@@ -6,7 +6,7 @@
 #define REDPIN A1
 #define GREENPIN A2
 #define BLUEPIN A3
-#define RANDOMSEEDPIN 0
+#define RANDOMSEEDPIN A0
 
 //DRIFTCHANCE must be a number from 1 to 127 - this is the chance out of 255 for an increase and for a decrease in brightness, eg, 127 will make it get brighter or dimmer every pass through loop();
 #define DRIFTCHANCE 64
@@ -75,13 +75,13 @@ void loop() {
   for (byte i = 0; i < (LENGTH * 3); i++) {
     //if (UseChannel[i % 3]) {
       byte rand = random(255);
-      if (rand > RANDINC && (pixels[i] < MaxChannel[i%3])) {
+      if (rand > (pixels[i]>32?RANDINC:(RANDINC-DRIFTCHANCE/2)) && (pixels[i] < MaxChannel[i%3])) {
         if (pixels[i] > 128 && pixels[i] < 254) {
           pixels[i] += 2;
         } else {
           pixels[i]++;
         }
-      } else if (rand < RANDDEC && (pixels[i]>MinChannel[i%3])) {
+      } else if (rand < (pixels[i]>32?RANDDEC:(RANDDEC-DRIFTCHANCE/2)) && (pixels[i]>MinChannel[i%3])) {
         if (pixels[i] > 128) {
           pixels[i] -= 2;
         } else {
