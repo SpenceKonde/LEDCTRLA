@@ -8,10 +8,10 @@
 #define BLUEPIN A3
 #define RANDOMSEEDPIN A0
 
-#define BUTTON1 2
-#define BUTTON2 3
-#define BUTTON3 4
-#define BUTTON4 5
+#define BUTTON1 3
+#define BUTTON2 2
+#define BUTTON3 5
+#define BUTTON4 4
 
 
 
@@ -24,7 +24,7 @@
 unsigned long lastAnimationTick = 0;
 
 byte frameCount = 0;
-byte animationState;
+byte animationState =0;
 
 uint8_t pixels[LENGTH * 3]; //buffer - 3 bytes per LED
 Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800, pixels);
@@ -100,6 +100,7 @@ void loop() {
 }
 
 void handleButtons() {
+  byte startstate=animationState;
   if (!digitalRead(BUTTON1)) {
     animationState = 0;
   } else if (!digitalRead(BUTTON2)) {
@@ -109,6 +110,9 @@ void handleButtons() {
   } else if (!digitalRead(BUTTON4)) {
     animationState = 3;
   }
+  if (animationState!=startstate){
+    Serial.println(animationState);
+  }
 }
 
 byte doAnimation() {
@@ -116,9 +120,9 @@ byte doAnimation() {
   if (millis() - lastAnimationTick >= 10) {
     if (animationState == 0) { //Default (drift) state
       animationdone = onDriftState();
-    } else if (animationState == 0) { //Default (drift) state
+    } else if (animationState == 1) { //Default (drift) state
       animationdone = onTwinkleState();
-    } else if (animationState == 0) { //Default (drift) state
+    } else if (animationState == 2) { //Default (drift) state
       animationdone = onDriftState();
     } else {
       animationdone = onDriftState();
@@ -170,6 +174,7 @@ byte onTwinkleState() {
 
     }
   }
+  return 1;
 }
 
 byte onPulseState() {
