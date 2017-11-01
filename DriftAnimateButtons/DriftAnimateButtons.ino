@@ -24,7 +24,7 @@
 unsigned long lastAnimationTick = 0;
 
 byte frameCount = 0;
-byte animationState =0;
+byte animationState = 0;
 
 uint8_t pixels[LENGTH * 3]; //buffer - 3 bytes per LED
 Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800, pixels);
@@ -100,7 +100,7 @@ void loop() {
 }
 
 void handleButtons() {
-  byte startstate=animationState;
+  byte startstate = animationState;
   if (!digitalRead(BUTTON1)) {
     animationState = 0;
   } else if (!digitalRead(BUTTON2)) {
@@ -110,7 +110,7 @@ void handleButtons() {
   } else if (!digitalRead(BUTTON4)) {
     animationState = 3;
   }
-  if (animationState!=startstate){
+  if (animationState != startstate) {
     Serial.println(animationState);
   }
 }
@@ -158,21 +158,32 @@ byte onDriftState() {
 byte onTwinkleState() {
   static byte twinklemode[LENGTH * 3];
   for (byte i = 0; i < LENGTH * 3; i++) {
-    if (pixels[i] <= MinChannel[i]) {
+    if (pixels[i] <= MinChannel[i % 3]) {
       twinklemode[i] = random(7);
+      if (i == 1) {
+        Serial.print("Twinkle Random:");
+        Serial.println(twinklemode[i]);
+      }
     } else {
       if (pixels[i] >= MaxChannel[i % 3]) { //in this case we need to reverse the direction
         twinklemode[i] |= 128;
       }
-      if (!frameCount % ((pixels[i] > 32 ? 1 : 2) * (1 + (twinklemode[i] & 7)))) { //if it's this LED's turn to be incremented/decremented
-        if (twinklemode[i] & 128) { //this means it's reached 255;
-          pixels[i]--; //so it's getting dimmer;
-        } else {
+    }
+
+
+    if (!(frameCount % ((pixels[i] > 32 ? 1 : 2) * (1 + (twinklemode[i] & 7))))) { //if it's this LED's turn to be incremented/decremented
+
+      if (twinklemode[i] & 128) { //this means it's reached 255;
+        pixels[i]--; //so it's getting dimmer;
+
+      } else {
+        if (pixels[i]!=255){
           pixels[i]++;
         }
       }
-
     }
+
+
   }
   return 1;
 }
