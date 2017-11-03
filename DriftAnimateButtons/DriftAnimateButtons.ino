@@ -191,9 +191,14 @@ byte onTwinkleState() {
 byte onPulseState() {
   static byte twinklemode[LENGTH];
   static byte brightness[LENGTH];
+  static byte maxval[LENGTH*3];
   for (byte i = 0; i < LENGTH; i++) {
     if (brightness[i] == 0) {
       twinklemode[i] = random(7);
+      maxval[(3*i)]=random(MinChannel[0],MaxChannel[0]);
+      maxval[(3*i)+1]=random(MinChannel[1],MaxChannel[1]);
+      maxval[(3*i)+2]=random(MinChannel[2],MaxChannel[2]);
+      
     } else {
       if (brightness[i] == 255) { //in this case we need to reverse the direction
         twinklemode[i] |= 128;
@@ -204,6 +209,9 @@ byte onPulseState() {
         } else {
           brightness[i]++;
         }
+        pixels[(3*i)]=map(brightness[i],0,255,0,maxval[3*i]);
+        pixels[(3*i)+1]=map(brightness[i],0,255,0,maxval[1+(3*i)]);
+        pixels[(3*i)+2]=map(brightness[i],0,255,0,maxval[2+(3*i)]);
       }
 
     }
