@@ -117,15 +117,15 @@ void handleButtons() {
 
 byte doAnimation() {
   byte animationdone = 0;
-  if (millis() - lastAnimationTick >= 10) {
+  if (millis() - lastAnimationTick >= 6) {
     if (animationState == 0) { //Default (drift) state
       animationdone = onDriftState();
     } else if (animationState == 1) { //Default (drift) state
       animationdone = onTwinkleState();
     } else if (animationState == 2) { //Default (drift) state
-      animationdone = onDriftState();
+      animationdone = onPulseState();
     } else {
-      animationdone = onDriftState();
+      animationdone = onTwinkleState2();
     }
   }
   if (animationdone) {
@@ -160,10 +160,6 @@ byte onTwinkleState() {
   for (byte i = 0; i < LENGTH * 3; i++) {
     if (pixels[i] <= MinChannel[i % 3]) {
       twinklemode[i] = random(7);
-      if (i == 1) {
-        Serial.print("Twinkle Random:");
-        Serial.println(twinklemode[i]);
-      }
     } else {
       if (pixels[i] >= MaxChannel[i % 3]) { //in this case we need to reverse the direction
         twinklemode[i] |= 128;
@@ -177,7 +173,37 @@ byte onTwinkleState() {
         pixels[i]--; //so it's getting dimmer;
 
       } else {
-        if (pixels[i]!=255){
+        if (pixels[i] != 255 && pixels[i]<MaxChannel[i%3]) {
+          pixels[i]++;
+        }
+      }
+    }
+
+
+  }
+  return 1;
+}
+
+
+byte onTwinkleState2() {
+  static byte twinklemode[LENGTH * 3];
+  for (byte i = 0; i < LENGTH * 3; i++) {
+    if (pixels[i] <= MinChannel[i % 3]) {
+      twinklemode[i] = random(7);
+    } else {
+      if (pixels[i] >= MaxChannel[i % 3]) { //in this case we need to reverse the direction
+        twinklemode[i] |= 128;
+      }
+    }
+
+
+    if (!(frameCount % ((pixels[i] > 32 ? 1 : 2) * (1 + (twinklemode[i] & 7))))) { //if it's this LED's turn to be incremented/decremented
+
+      if (twinklemode[i] & 128) { //this means it's reached 255;
+        pixels[i]--; //so it's getting dimmer;
+
+      } else {
+        if (pixels[i] != 255) {
           pixels[i]++;
         }
       }
@@ -191,30 +217,40 @@ byte onTwinkleState() {
 byte onPulseState() {
   static byte twinklemode[LENGTH];
   static byte brightness[LENGTH];
-  static byte maxval[LENGTH*3];
+  static byte maxval[LENGTH * 3];
   for (byte i = 0; i < LENGTH; i++) {
-    if (brightness[i] == 0) {
+
+    if (i == 1 && 0) {
+      Serial.print("Pulse Random:");
+      Serial.print(twinklemode[i]);
+      Serial.print(" ");
+      Serial.println(brightness[i]);
+    }
+    if (brightness[i] == 0 && (twinklemode[i]&128 || twinklemode[i]==0)) {
       twinklemode[i] = random(7);
-      maxval[(3*i)]=random(MinChannel[0],MaxChannel[0]);
-      maxval[(3*i)+1]=random(MinChannel[1],MaxChannel[1]);
-      maxval[(3*i)+2]=random(MinChannel[2],MaxChannel[2]);
-      
-    } else {
-      if (brightness[i] == 255) { //in this case we need to reverse the direction
-        twinklemode[i] |= 128;
-      }
-      if (!frameCount % ((brightness[i] > 32 ? 1 : 2) * (1 + (twinklemode[i] & 7)))) { //if it's this LED's turn to be incremented/decremented
-        if (twinklemode[i] & 128) { //this means it's reached 255;
-          brightness[i]--; //so it's getting dimmer;
-        } else {
-          brightness[i]++;
-        }
-        pixels[(3*i)]=map(brightness[i],0,255,0,maxval[3*i]);
-        pixels[(3*i)+1]=map(brightness[i],0,255,0,maxval[1+(3*i)]);
-        pixels[(3*i)+2]=map(brightness[i],0,255,0,maxval[2+(3*i)]);
+      maxval[(3 * i)] = random(MinChannel[0], MaxChannel[0]);
+      maxval[(3 * i) + 1] = random(MinChannel[1], MaxChannel[1]);
+      maxval[(3 * i) + 2] = random(MinChannel[2], MaxChannel[2]);
+      if (i == 1 &&0) {
+        Serial.print("New Mode:");
+        Serial.println(twinklemode[i]);
       }
 
     }
+    if (brightness[i] == 255) { //in this case we need to reverse the direction
+      twinklemode[i] |= 128;
+    }
+    if (!(frameCount % (1 + (twinklemode[i] & 7)))) { //if it's this LED's turn to be incremented/decremented
+      if (twinklemode[i] & 128) { //this means it's reached 255;
+        brightness[i]--; //so it's getting dimmer;
+      } else {
+        brightness[i]++;
+      }
+    pixels[(3 * i)] = map(brightness[i], 0, 255, 0, maxval[3 * i]);
+    pixels[(3 * i) + 1] = map(brightness[i], 0, 255, 0, maxval[1 + (3 * i)]);
+    pixels[(3 * i) + 2] = map(brightness[i], 0, 255, 0, maxval[2 + (3 * i)]);
+    }
   }
+  return 1;
 }
 
