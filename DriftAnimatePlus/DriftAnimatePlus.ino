@@ -49,7 +49,12 @@ const byte maxValueRight[][8] PROGMEM = {
   {10,10,10},
   {10,10,10}
 };
+const byte maxSetting[][2] PROGMEM = {
+  {2,1},
+  {2,2}
+}
 
+const byte maxMode=1;
 
 volatile byte lastEncPins = 0;
 volatile byte currentSettingLeft = 0;
@@ -135,7 +140,13 @@ void handleUI() {
   static byte lastBtnBounceState=7;
   static unsigned long lastBtnAt=0;
   byte btnRead=(PIND&0x1C)>>2;
-  //if btnRead
+  if (!(btnRead==lastBtnBounceState)) {
+    lastBtnBounceState=btnRead;
+    lastBtnAt=millis();
+  } else {
+    if (millis()-lastBtnAt > 50) {
+      if (btn
+    }
 }
 
 void handleLCD() {
