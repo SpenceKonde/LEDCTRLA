@@ -16,52 +16,52 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 #define FLASH(flashptr) (reinterpret_cast<const __FlashStringHelper *>(pgm_read_word_near(&flashptr)))
 
-const char mode0L0[] PROGMEM="  RED  ";
-const char mode0L1[] PROGMEM=" GREEN ";
-const char mode0L2[] PROGMEM="  BLUE ";
-const char mode0R0[] PROGMEM=" SPEED ";
-const char mode0R1[] PROGMEM="BRIGHT ";
-const char mode1R2[] PROGMEM="NUMBER ";
-const char mode0Name[] PROGMEM="DRIFTING";
-const char mode1Name[] PROGMEM=" COMETS ";
+const char mode0L0[] PROGMEM = "  RED  ";
+const char mode0L1[] PROGMEM = " GREEN ";
+const char mode0L2[] PROGMEM = "  BLUE ";
+const char mode0R0[] PROGMEM = " SPEED ";
+const char mode0R1[] PROGMEM = "BRIGHT ";
+const char mode1R2[] PROGMEM = "NUMBER ";
+const char mode0Name[] PROGMEM = "DRIFTING";
+const char mode1Name[] PROGMEM = " COMETS ";
 
 
-const char * const modesL[][8] PROGMEM ={
-  {mode0L0,mode0L1,mode0L2},
-  {mode0L0,mode0L1,mode0L2}
-  
+const char * const modesL[][8] PROGMEM = {
+  {mode0L0, mode0L1, mode0L2},
+  {mode0L0, mode0L1, mode0L2}
+
 };
 
-const char * const modesR[][8] PROGMEM ={
-  {mode0R0,mode0R1},
-  {mode0R0,mode0R1,mode1R2}
-  
+const char * const modesR[][8] PROGMEM = {
+  {mode0R0, mode0R1},
+  {mode0R0, mode0R1, mode1R2}
+
 };
 
-const char * const modeNames[] PROGMEM={mode0Name,mode1Name};
+const char * const modeNames[] PROGMEM = {mode0Name, mode1Name};
 
 const byte maxValueLeft[][8] PROGMEM = {
-  {10,10,10},
-  {10,10,10}
+  {10, 10, 10},
+  {10, 10, 10}
 };
 
 const byte maxValueRight[][8] PROGMEM = {
-  {10,10,10},
-  {10,10,10}
+  {10, 10, 10},
+  {10, 10, 10}
 };
 const byte maxSetting[][2] PROGMEM = {
-  {2,1},
-  {2,2}
-}
+  {2, 1},
+  {2, 2}
+};
 
-const byte maxMode=1;
+const byte maxMode = 1;
 
 volatile byte lastEncPins = 0;
 volatile byte currentSettingLeft = 0;
 volatile byte currentSettingRight = 0;
 volatile byte currentValueLeft = 0;
 volatile byte currentValueRight = 0;
-volatile byte UIChanged=1;
+volatile byte UIChanged = 1;
 
 byte currentMode = 0;
 
@@ -136,34 +136,63 @@ void processRFPacket(byte rlen) {
 }
 
 void handleUI() {
-  static byte lastBtnState=7;
-  static byte lastBtnBounceState=7;
-  static unsigned long lastBtnAt=0;
-  byte btnRead=(PIND&0x1C)>>2;
-  if (!(btnRead==lastBtnBounceState)) {
-    lastBtnBounceState=btnRead;
-    lastBtnAt=millis();
+  static byte lastBtnState = 7;
+  static byte lastBtnBounceState = 7;
+  static unsigned long lastBtnAt = 0;
+  byte btnRead = (PIND & 0x1C) >> 2;
+  if (!(btnRead == lastBtnBounceState)) {
+    lastBtnBounceState = btnRead;
+    lastBtnAt = millis();
   } else {
-    if (millis()-lastBtnAt > 50) {
-      if (btn
-    }
-}
+    if (millis() - lastBtnAt > 50) {
+      if (btnRead > lastBtnState) {
+        //do nothing - was button being released
+      } else {
+        if (!(btnRead & 1)) {
+          //mode++
+          UIChanged = 4;
+        }
+        if (!(btnRead & 2)) {
+          if (currentSettingLeft >= maxSetting[currentMode][0]) {
+            currentSettingLeft = 0;
 
+          } else {
+            currentSettingLeft++;
+
+          }
+          UIChanged = 2;
+        }
+        if (! (btnRead & 4)) {
+          if (currentSettingRight >= maxSetting[currentMode][1]) {
+            currentSettingRight = 0;
+
+          } else {
+            currentSettingRight++;
+
+          }
+          UIChanged = 2;
+        }
+      }
+    }
+  }
+}
 void handleLCD() {
-  if (!UIChanged){return;}
+  if (!UIChanged) {
+    return;
+  }
   lcd.clear();
-  lcd.setCursor(0,0);
+  lcd.setCursor(0, 0);
   lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
   lcd.print(' ');
   lcd.print(FLASH(modesR[currentMode][currentSettingRight]));
   //lcd.setCursor(currentValueLeft<10?2:(currentValueLeft>99?0:1),1);
-  lcd.setCursor(0,1);
+  lcd.setCursor(0, 1);
   lcd.print(currentValueLeft);
-  lcd.setCursor(4,1);
+  lcd.setCursor(4, 1);
   lcd.print(FLASH(modeNames[currentMode]));
-  lcd.setCursor(currentValueRight<10?15:(currentValueLeft>99?13:14),1);
+  lcd.setCursor(currentValueRight < 10 ? 15 : (currentValueLeft > 99 ? 13 : 14), 1);
   lcd.print(currentValueRight);
-  UIChanged=0;
+  UIChanged = 0;
 }
 
 void updatePattern() {
@@ -191,44 +220,44 @@ void setupPCINT() {
 
 // ISR based on: https://www.circuitsathome.com/mcu/rotary-encoder-interrupt-service-routine-for-avr-micros/
 // by Oleg Mazurov
-ISR(PCINT1_vect) 
+ISR(PCINT1_vect)
 {
   static uint8_t old_ABl = 3;  //lookup table index
-  static int8_t enclval = 0;   //encoder value  
+  static int8_t enclval = 0;   //encoder value
   static uint8_t old_ABr = 3;  //lookup table index
-  static int8_t encrval = 0;   //encoder value  
-  static const int8_t enc_states [] PROGMEM = 
-  {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};  //encoder lookup table
+  static int8_t encrval = 0;   //encoder value
+  //static const int8_t enc_states [] PROGMEM = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};  //encoder lookup table
+  static const int8_t enc_states [] PROGMEM = {0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0}; // reversed encoder table
   /**/
-  old_ABl <<=2;  //remember previous state
-  old_ABr <<=2;  //remember previous state
+  old_ABl <<= 2; //remember previous state
+  old_ABr <<= 2; //remember previous state
   old_ABl |= ( PINC & 0x03 );
-  old_ABr |= (( PINC & 0x0C )>>2);
+  old_ABr |= (( PINC & 0x0C ) >> 2);
   enclval += pgm_read_byte(&(enc_states[( old_ABl & 0x0f )]));
   encrval += pgm_read_byte(&(enc_states[( old_ABr & 0x0f )]));
   /* post "Navigation forward/reverse" event */
-  if( enclval > 3 ) {  //four steps forward
+  if ( enclval > 3 ) { //four steps forward
     currentValueLeft++;
-    if(currentValueLeft>pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]))currentValueLeft=0;
-    UIChanged=1;
+    if (currentValueLeft > pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]))currentValueLeft = 0;
+    UIChanged = 1;
     enclval = 0;
   }
-  else if( enclval < -3 ) {  //four steps backwards
+  else if ( enclval < -3 ) { //four steps backwards
     currentValueLeft--;
-    if(currentValueLeft==255)currentValueLeft=pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]);
-    UIChanged=1;
+    if (currentValueLeft == 255)currentValueLeft = pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]);
+    UIChanged = 1;
     enclval = 0;
   }
-    if( encrval > 3 ) {  //four steps forward
+  if ( encrval > 3 ) { //four steps forward
     currentValueRight++;
-    if(currentValueRight>pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]))currentValueRight=0;
-    UIChanged=1;
+    if (currentValueRight > pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]))currentValueRight = 0;
+    UIChanged = 1;
     encrval = 0;
   }
-  else if( encrval < -3 ) {  //four steps backwards
+  else if ( encrval < -3 ) { //four steps backwards
     currentValueRight--;
-    if(currentValueRight==255)currentValueRight=pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]);
-    UIChanged=1;
+    if (currentValueRight == 255)currentValueRight = pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]);
+    UIChanged = 1;
     encrval = 0;
   }
 }
