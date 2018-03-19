@@ -19,49 +19,58 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 const char mode0L0[] PROGMEM = "  RED  ";
 const char mode0L1[] PROGMEM = " GREEN ";
 const char mode0L2[] PROGMEM = "  BLUE ";
-const char mode0R0[] PROGMEM = " SPEED ";
-const char mode0R1[] PROGMEM = "BRIGHT ";
-const char mode1R2[] PROGMEM = "NUMBER ";
-const char mode0Name[] PROGMEM = "DRIFTING";
-const char mode1Name[] PROGMEM = " COMETS ";
+const char mode0R0[] PROGMEM = "       ";
+const char mode1R0[] PROGMEM = " SPEED ";
+const char mode1R1[] PROGMEM = "BRIGHT ";
+const char mode2R2[] PROGMEM = "NUMBER ";
+const char mode0Name[] PROGMEM = "  SOLID  ";
+const char mode1Name[] PROGMEM = "DRIFTING";
+const char mode2Name[] PROGMEM = " COMETS ";
 
 
 const char * const modesL[][8] PROGMEM = {
+  {mode0L0, mode0L1, mode0L2},
   {mode0L0, mode0L1, mode0L2},
   {mode0L0, mode0L1, mode0L2}
 
 };
 
 const char * const modesR[][8] PROGMEM = {
-  {mode0R0, mode0R1},
-  {mode0R0, mode0R1, mode1R2}
+  {mode0R0},
+  {mode1R0, mode1R1},
+  {mode1R0, mode1R1, mode2R2}
 
 };
 
-const char * const modeNames[] PROGMEM = {mode0Name, mode1Name};
+const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name};
 
 const byte maxValueLeft[][8] PROGMEM = {
-  {10, 10, 10},
+  {25, 25, 25},
+  {25, 25, 25},
   {10, 10, 10}
 };
 
+const byte leftValues[] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 12, 16, 20, 25, 30, 36, 42, 50, 60, 72, 84, 96, 110, 126, 144, 162, 192, 224, 255};
+
 const byte maxValueRight[][8] PROGMEM = {
+  {0},
   {10, 10, 10},
   {10, 10, 10}
 };
 const byte maxSetting[][2] PROGMEM = {
+  {2, 0},
   {2, 1},
   {2, 2}
 };
 
-const byte maxMode = 1;
+const byte maxMode = 2;
 
 volatile byte lastEncPins = 0;
 volatile byte currentSettingLeft = 0;
 volatile byte currentSettingRight = 0;
-volatile byte currentValueLeft = 0;
-volatile byte currentValueRight = 0;
-volatile byte UIChanged = 1;
+volatile byte currentValueLeft[] = {0, 0, 0, 0, 0, 0, 0, 0};
+volatile byte currentValueRight[] = {0, 0, 0, 0, 0, 0, 0, 0};
+volatile byte UIChanged = 7;
 
 byte currentMode = 0;
 
@@ -144,15 +153,26 @@ void handleUI() {
     lastBtnBounceState = btnRead;
     lastBtnAt = millis();
   } else {
+    Serial.print(btnRead);
+    Serial.print(' ');
+    Serial.print(lastBtnBounceState);
+    Serial.print(' ');
+    Serial.println(lastBtnState);
     if (millis() - lastBtnAt > 50) {
       if (btnRead > lastBtnState) {
         //do nothing - was button being released
       } else {
-        if (!(btnRead & 1)) {
-          //mode++
-          UIChanged = 4;
+        if ((!(btnRead & 1)) && (lastBtnState & 1)) {
+          Serial.println("mode");
+          if (currentMode >= maxMode) {
+            currentMode = 0;
+            currentMode++;
+          }
+          currentSettingLeft = 0;
+          currentSettingRight = 0;
+          UIChanged |= 4;
         }
-        if (!(btnRead & 2)) {
+        if ((!(btnRead & 2)) && (lastBtnState & 2)) {
           if (currentSettingLeft >= maxSetting[currentMode][0]) {
             currentSettingLeft = 0;
 
@@ -160,9 +180,9 @@ void handleUI() {
             currentSettingLeft++;
 
           }
-          UIChanged = 2;
+          UIChanged |= 2;
         }
-        if (! (btnRead & 4)) {
+        if ((!(btnRead & 4)) && (lastBtnState & 4)) {
           if (currentSettingRight >= maxSetting[currentMode][1]) {
             currentSettingRight = 0;
 
@@ -170,35 +190,80 @@ void handleUI() {
             currentSettingRight++;
 
           }
-          UIChanged = 2;
+          UIChanged |= 2;
+        }
+      }
+      lastBtnState = btnRead;
+    }
+  }
+}
+
+byte getLeftVal(byte t) {
+  if pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft] == 25) {
+    return pgm_read_byte_near(&leftValues[t]);
+  }
+  return t;
+}
+
+void handleLCD() {
+  byte uichg = 0;
+  cli();
+  if (!UIChanged) {
+    sei();
+    return;
+  } else {
+    uichg = UIChanged;
+    UIChanged = 0;
+    sei();
+  }
+  if (uichg & 2) {
+    lcd.setCursor(0, 0);
+    lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
+    lcd.print(' ');
+    lcd.print(FLASH(modesR[currentMode][currentSettingRight]));
+  }
+  //lcd.setCursor(currentValueLeft<10?2:(currentValueLeft>99?0:1),1);
+  if (uichg & 3) {
+    lcd.setCursor(0, 1);
+    byte tval = getLeftVal(currentValueLeft[currentSettingLeft]);
+    lcd.print(tval);
+    lcd.print(' ');
+    if (tval < 10) lcd.print(' ');
+    lcd.setCursor(4, 1);
+    lcd.print(FLASH(modeNames[currentMode]));
+    lcd.setCursor(13, 1);
+    tval = currentValueRight[currentSettingRight];
+    if (tval < 100) lcd.print(' ');
+    if (tval < 10) lcd.print(' ');
+    lcd.print(currentValueRight[currentMode]);
+  }
+  UIChanged = 0;
+}
+
+void updatePattern() {
+  if (currentMode == 0) {
+    for (unsigned int i = 0; i < LENGTH * 3; i++) {
+      pixels[i] = getLeftValue(currentValueLeft[i % 3]);
+    }
+  } else if (currentMode == 1) {
+    for (byte i = 0; i < (LENGTH * 3); i++) {
+      byte rand = random(255);
+      if (rand > (pixels[i] > 32 ? RANDINC : (RANDINC + DRIFTCHANCE / 2)) && (pixels[i] < MaxChannel[i % 3])) {
+        if (pixels[i] > 128 && pixels[i] < 254) {
+          pixels[i] += 2;
+        } else {
+          pixels[i]++;
+        }
+      } else if (rand < (pixels[i] > 32 ? RANDDEC : (RANDDEC - DRIFTCHANCE / 2)) && (pixels[i] > MinChannel[i % 3])) {
+        if (pixels[i] > 128) {
+          pixels[i] -= 2;
+        } else {
+          pixels[i]--;
         }
       }
     }
   }
 }
-void handleLCD() {
-  if (!UIChanged) {
-    return;
-  }
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
-  lcd.print(' ');
-  lcd.print(FLASH(modesR[currentMode][currentSettingRight]));
-  //lcd.setCursor(currentValueLeft<10?2:(currentValueLeft>99?0:1),1);
-  lcd.setCursor(0, 1);
-  lcd.print(currentValueLeft);
-  lcd.setCursor(4, 1);
-  lcd.print(FLASH(modeNames[currentMode]));
-  lcd.setCursor(currentValueRight < 10 ? 15 : (currentValueLeft > 99 ? 13 : 14), 1);
-  lcd.print(currentValueRight);
-  UIChanged = 0;
-}
-
-void updatePattern() {
-
-}
-
 
 void setupPins() {
   pinMode(LEDPIN, OUTPUT);
@@ -237,27 +302,23 @@ ISR(PCINT1_vect)
   encrval += pgm_read_byte(&(enc_states[( old_ABr & 0x0f )]));
   /* post "Navigation forward/reverse" event */
   if ( enclval > 3 ) { //four steps forward
-    currentValueLeft++;
-    if (currentValueLeft > pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]))currentValueLeft = 0;
-    UIChanged = 1;
+    if (currentValueLeft[currentSettingLeft] < pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]))currentValueLeft[currentSettingLeft]++;
+    UIChanged |= 1;
     enclval = 0;
   }
   else if ( enclval < -3 ) { //four steps backwards
-    currentValueLeft--;
-    if (currentValueLeft == 255)currentValueLeft = pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]);
-    UIChanged = 1;
+    if (currentValueLeft[currentSettingLeft])currentValueLeft[currentSettingLeft]--;
+    UIChanged |= 1;
     enclval = 0;
   }
   if ( encrval > 3 ) { //four steps forward
-    currentValueRight++;
-    if (currentValueRight > pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]))currentValueRight = 0;
-    UIChanged = 1;
+    if (currentValueRight[currentSettingRight] < pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]))currentValueRight[currentSettingRight]++;
+    UIChanged |= 1;
     encrval = 0;
   }
   else if ( encrval < -3 ) { //four steps backwards
-    currentValueRight--;
-    if (currentValueRight == 255)currentValueRight = pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]);
-    UIChanged = 1;
+    if (currentValueRight[currentSettingRight])currentValueRight[currentSettingRight]--;
+    UIChanged |= 1;
     encrval = 0;
   }
 }
