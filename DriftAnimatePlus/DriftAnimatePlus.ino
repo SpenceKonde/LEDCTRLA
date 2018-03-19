@@ -63,8 +63,8 @@ const byte maxValueLeft[][8] PROGMEM = {
 };
 const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
   {255, 255, 255},
-  {0, 0, 0,26, 26, 26},
-  {0, 0, 0,26, 26, 26}
+  {0, 26, 0,26, 0, 26},
+  {0, 26, 0,26, 0, 26}
 };
 
 //if above max is 26, use this value - otherwise use raw value. 
