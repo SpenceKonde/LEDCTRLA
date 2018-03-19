@@ -105,7 +105,7 @@ const byte maxSetting[][2] PROGMEM = {
   {5, 1}
 };
 
-const byte maxMode = 2;
+const byte maxMode = 5;
 
 volatile byte lastEncPins = 0;
 volatile byte currentSettingLeft = 0;
