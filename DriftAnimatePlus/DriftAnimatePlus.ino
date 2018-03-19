@@ -16,6 +16,7 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 #define FLASH(flashptr) (reinterpret_cast<const __FlashStringHelper *>(pgm_read_word_near(&flashptr)))
 
+// Names of mode settings - these get stuffed into modesL and modesR below.
 const char mode0L0[] PROGMEM = "  RED  ";
 const char mode0L1[] PROGMEM = " GREEN ";
 const char mode0L2[] PROGMEM = "  BLUE ";
@@ -29,11 +30,14 @@ const char mode0R0[] PROGMEM = "       ";
 const char mode1R0[] PROGMEM = " SPEED ";
 const char mode1R1[] PROGMEM = "BRIGHT ";
 const char mode2R2[] PROGMEM = "NUMBER ";
-const char mode0Name[] PROGMEM = "  SOLID  ";
+const char mode0Name[] PROGMEM = "  SOLID ";
 const char mode1Name[] PROGMEM = "DRIFTING";
 const char mode2Name[] PROGMEM = " COMETS ";
+const char mode3Name[] PROGMEM = "  PULSE ";
+const char mode4Name[] PROGMEM = " RAINBOW";
 
 
+//Names of settings by mode
 const char * const modesL[][8] PROGMEM = {
   {mode0L0, mode0L1, mode0L2},
   {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
@@ -48,20 +52,23 @@ const char * const modesR[][8] PROGMEM = {
 
 };
 
+// names of modes
 const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name};
 
+//max and default settings controlled by left knob. 26 is special, it indicates to use the leftValues array
 const byte maxValueLeft[][8] PROGMEM = {
-  {25, 25, 25},
-  {25, 25, 25, 25, 25, 25},
-  {25, 25, 25, 25, 25, 25}
+  {26, 26, 26},
+  {26, 26, 26, 26, 26, 26},
+  {26, 26, 26, 26, 26, 26}
 };
-const byte defaultValueLeft[][8] PROGMEM = {
+const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
   {255, 255, 255},
-  {0, 0, 0,25, 25, 25},
-  {0, 0, 0,25, 25, 25}
+  {0, 0, 0,26, 26, 26},
+  {0, 0, 0,26, 26, 26}
 };
 
-const byte leftValues[] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 12, 16, 20, 25, 30, 36, 42, 50, 60, 72, 84, 96, 110, 126, 144, 162, 192, 224, 255};
+//if above max is 26, use this value - otherwise use raw value. 
+const byte leftValues[] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 23, 29, 36, 44, 53, 63, 74, 86, 99, 113, 128, 144, 162, 182,,205, 229, 255};
 
 const byte maxValueRight[][8] PROGMEM = {
   {0},
@@ -136,7 +143,6 @@ void setup() {
   lcd.backlight();
   lcd.print("test");
   delay(1000);
-  Serial.println("test");
 }
 
 void loop() {
@@ -208,10 +214,23 @@ void handleUI() {
         if ((!(btnRead & 2)) && (lastBtnState & 2)) {
           if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
             currentSettingLeft = 0;
-
+      
           } else {
             currentSettingLeft++;
 
+          }
+          
+          //hackjob to handle min exceeding max or vice versa. 
+          if ((currentMode==1 || currentMode==2) && currentSettingLeft<6) {
+            if (currentSettingLeft & 1) {
+              if (currentValueLeft[currentSettingLeft] < currentValueLeft[currentSettingLeft-1]) {
+                currentValueLeft[currentSettingLeft-1]=currentValueLeft[currentSettingLeft];
+              }
+            } else {
+              if (currentValueLeft[currentSettingLeft] > currentValueLeft[currentSettingLeft+1]) {
+                currentValueLeft[currentSettingLeft+1]=currentValueLeft[currentSettingLeft];
+              }
+            }
           }
           UIChanged |= 2;
         }
@@ -232,7 +251,7 @@ void handleUI() {
 }
 
 byte getLeftVal(byte t) {
-  if pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft] == 25) {
+  if pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft] == 26) {
     return pgm_read_byte_near(&leftValues[t]);
   }
   return t;
@@ -249,14 +268,13 @@ void handleLCD() {
     UIChanged = 0;
     sei();
   }
-  if (uichg & 2) {
+  if (uichg & 6) { //if setting or mode has changed, redraw settings
     lcd.setCursor(0, 0);
     lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
     lcd.print(' ');
     lcd.print(FLASH(modesR[currentMode][currentSettingRight]));
   }
-  //lcd.setCursor(currentValueLeft<10?2:(currentValueLeft>99?0:1),1);
-  if (uichg & 3) {
+  if (uichg & 7) { //if mode, setting, or value has changed, redraw second line
     lcd.setCursor(0, 1);
     byte tval = getLeftVal(currentValueLeft[currentSettingLeft]);
     lcd.print(tval);
@@ -268,9 +286,12 @@ void handleLCD() {
     tval = currentValueRight[currentSettingRight];
     if (tval < 100) lcd.print(' ');
     if (tval < 10) lcd.print(' ');
-    lcd.print(currentValueRight[currentMode]);
+    if (pgm_get_byte_near(&maxValueRight[currentMode][1])) { //if max is 0, then this is blank
+      lcd.print(currentValueRight[currentMode]);
+    } else {
+      lcd.print(' ');
+    }
   }
-  UIChanged = 0;
 }
 
                                
