@@ -19,6 +19,12 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 const char mode0L0[] PROGMEM = "  RED  ";
 const char mode0L1[] PROGMEM = " GREEN ";
 const char mode0L2[] PROGMEM = "  BLUE ";
+const char mode1L0[] PROGMEM = "MIN RED";
+const char mode1L1[] PROGMEM = "MAX RED";
+const char mode1L2[] PROGMEM = "MIN GRN";
+const char mode1L3[] PROGMEM = "MAX GRN";
+const char mode1L4[] PROGMEM = "MIN BLU";
+const char mode1L5[] PROGMEM = "MAX BLU";
 const char mode0R0[] PROGMEM = "       ";
 const char mode1R0[] PROGMEM = " SPEED ";
 const char mode1R1[] PROGMEM = "BRIGHT ";
@@ -30,8 +36,8 @@ const char mode2Name[] PROGMEM = " COMETS ";
 
 const char * const modesL[][8] PROGMEM = {
   {mode0L0, mode0L1, mode0L2},
-  {mode0L0, mode0L1, mode0L2},
-  {mode0L0, mode0L1, mode0L2}
+  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
+  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5}
 
 };
 
@@ -46,16 +52,26 @@ const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name};
 
 const byte maxValueLeft[][8] PROGMEM = {
   {25, 25, 25},
-  {25, 25, 25},
-  {10, 10, 10}
+  {25, 25, 25, 25, 25, 25},
+  {25, 25, 25, 25, 25, 25}
+};
+const byte defaultValueLeft[][8] PROGMEM = {
+  {255, 255, 255},
+  {0, 0, 0,25, 25, 25},
+  {0, 0, 0,25, 25, 25}
 };
 
 const byte leftValues[] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 12, 16, 20, 25, 30, 36, 42, 50, 60, 72, 84, 96, 110, 126, 144, 162, 192, 224, 255};
 
 const byte maxValueRight[][8] PROGMEM = {
   {0},
-  {10, 10, 10},
+  {10, 10},
   {10, 10, 10}
+};
+const byte defaultValueRight[][8] PROGMEM = {
+  {0},
+  {5, 10},
+  {5, 10, 5}
 };
 const byte maxSetting[][2] PROGMEM = {
   {2, 0},
@@ -144,36 +160,53 @@ void processRFPacket(byte rlen) {
 
 }
 
+
+
+void advanceMode() {
+  if (currentMode >= maxMode) {
+    currentMode = 0;
+  } else {
+    currentMode++;
+  }
+  for (byte i=0;i<8;i++){ //set the current setting values to defaults
+    if (pgm_read_byte_near(&defaultValueLeft[currentMode][i])==255) {
+      currentValueLeft[i]=rand(pgm_read_byte_near(&defaultValueLeft[currentMode][i]));
+    } else {
+      currentValueLeft[i]=pgm_read_byte_near(&maxValueLeft[currentMode][i]);
+    }
+    if (pgm_read_byte_near(&defaultValueLeft[currentMode][i])==255) {
+      currentValueRight[i]=rand(pgm_read_byte_near(&maxValueRight[currentMode][i]));
+    } else {
+      currentValueRight[i]=pgm_read_byte_near(&defaultValueRight[currentMode][i]);
+    }
+  } 
+    // start with the first setting selected, in case we had a setting now out of index. 
+  currentSettingLeft = 0;
+  currentSettingRight = 0;
+}
+
+                               
+                               
+
 void handleUI() {
   static byte lastBtnState = 7;
   static byte lastBtnBounceState = 7;
   static unsigned long lastBtnAt = 0;
   byte btnRead = (PIND & 0x1C) >> 2;
-  if (!(btnRead == lastBtnBounceState)) {
+  if (!(btnRead == lastBtnBounceState)) { //debounce all buttons at once. 
     lastBtnBounceState = btnRead;
     lastBtnAt = millis();
   } else {
-    Serial.print(btnRead);
-    Serial.print(' ');
-    Serial.print(lastBtnBounceState);
-    Serial.print(' ');
-    Serial.println(lastBtnState);
-    if (millis() - lastBtnAt > 50) {
+    if (millis() - lastBtnAt > 50) { //has been stable for 50ms
       if (btnRead > lastBtnState) {
         //do nothing - was button being released
       } else {
         if ((!(btnRead & 1)) && (lastBtnState & 1)) {
-          Serial.println("mode");
-          if (currentMode >= maxMode) {
-            currentMode = 0;
-            currentMode++;
-          }
-          currentSettingLeft = 0;
-          currentSettingRight = 0;
+          advanceMode();
           UIChanged |= 4;
         }
         if ((!(btnRead & 2)) && (lastBtnState & 2)) {
-          if (currentSettingLeft >= maxSetting[currentMode][0]) {
+          if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
             currentSettingLeft = 0;
 
           } else {
@@ -183,7 +216,7 @@ void handleUI() {
           UIChanged |= 2;
         }
         if ((!(btnRead & 4)) && (lastBtnState & 4)) {
-          if (currentSettingRight >= maxSetting[currentMode][1]) {
+          if (currentSettingRight >= pgm_read_byte_near(&maxSetting[currentMode][1])) {
             currentSettingRight = 0;
 
           } else {
@@ -240,30 +273,41 @@ void handleLCD() {
   UIChanged = 0;
 }
 
+                               
 void updatePattern() {
   if (currentMode == 0) {
     for (unsigned int i = 0; i < LENGTH * 3; i++) {
-      pixels[i] = getLeftValue(currentValueLeft[i % 3]);
+      pixels[i] = getLeftVal(currentValueLeft[i % 3]);
     }
   } else if (currentMode == 1) {
-    for (byte i = 0; i < (LENGTH * 3); i++) {
-      byte rand = random(255);
-      if (rand > (pixels[i] > 32 ? RANDINC : (RANDINC + DRIFTCHANCE / 2)) && (pixels[i] < MaxChannel[i % 3])) {
-        if (pixels[i] > 128 && pixels[i] < 254) {
-          pixels[i] += 2;
-        } else {
-          pixels[i]++;
-        }
-      } else if (rand < (pixels[i] > 32 ? RANDDEC : (RANDDEC - DRIFTCHANCE / 2)) && (pixels[i] > MinChannel[i % 3])) {
-        if (pixels[i] > 128) {
-          pixels[i] -= 2;
-        } else {
-          pixels[i]--;
-        }
+    updatePatternDrift();
+  }
+}
+
+void updatePatternDrift() {
+  byte driftchance=16+currentSettingRight[0]*10;
+  byte randinc=255-driftchance);
+  byte randdec=driftchance;
+  for (byte i = 0; i < (LENGTH * 3); i++) {
+    byte tem=i%3;
+    tem*=2;
+    byte rand = random(255);
+    if (rand > (pixels[i] > 32 ? randinc : (randinc + driftchance / 2)) && (pixels[i] < getLeftVal(currentSettingLeft[tem+1]))) {
+      if (pixels[i] > 128 && pixels[i] < 254) {
+        pixels[i] += 2;
+      } else {
+        pixels[i]++;
+      }
+    } else if (rand < (pixels[i] > 32 ? randdec : (randdec - driftchance / 2)) && (pixels[i] > getLeftVal(currentSettingLeft[tem]))) {
+      if (pixels[i] > 128) {
+        pixels[i] -= 2;
+      } else {
+        pixels[i]--;
       }
     }
   }
 }
+                                                            
 
 void setupPins() {
   pinMode(LEDPIN, OUTPUT);
