@@ -28,8 +28,9 @@ const char mode1L4[] PROGMEM = "MIN BLU";
 const char mode1L5[] PROGMEM = "MAX BLU";
 const char mode0R0[] PROGMEM = "       ";
 const char mode1R0[] PROGMEM = " SPEED ";
-const char mode1R1[] PROGMEM = "BRIGHT ";
-const char mode2R2[] PROGMEM = "NUMBER ";
+const char mode1R1[] PROGMEM = " NUMBER";
+const char mode2R2[] PROGMEM = " LENGTH";
+const char mode5R1[] PROGMEM = "DENSITY";
 const char mode0Name[] PROGMEM = "  SOLID ";
 const char mode1Name[] PROGMEM = "DRIFTING";
 const char mode2Name[] PROGMEM = " COMETS ";
@@ -41,6 +42,9 @@ const char mode4Name[] PROGMEM = " RAINBOW";
 const char * const modesL[][8] PROGMEM = {
   {mode0L0, mode0L1, mode0L2},
   {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
+  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
+  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
+  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
   {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5}
 
 };
@@ -48,21 +52,30 @@ const char * const modesL[][8] PROGMEM = {
 const char * const modesR[][8] PROGMEM = {
   {mode0R0},
   {mode1R0, mode1R1},
-  {mode1R0, mode1R1, mode2R2}
+  {mode1R0, mode1R1, mode2R2},
+  {mode1R0, mode1R1, mode2R2},
+  {mode1R0, mode1R1},
+  {mode1R0, mode5R1}
 
 };
 
 // names of modes
-const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name};
+const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name};
 
 //max and default settings controlled by left knob. 26 is special, it indicates to use the leftValues array
 const byte maxValueLeft[][8] PROGMEM = {
   {26, 26, 26},
   {26, 26, 26, 26, 26, 26},
+  {26, 26, 26, 26, 26, 26},
+  {26, 26, 26, 26, 26, 26},
+  {26, 26, 26, 26, 26, 26},
   {26, 26, 26, 26, 26, 26}
 };
 const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
   {255, 255, 255},
+  {0, 26, 0,26, 0, 26},
+  {0, 26, 0,26, 0, 26},
+  {0, 26, 0,26, 0, 26},
   {0, 26, 0,26, 0, 26},
   {0, 26, 0,26, 0, 26}
 };
@@ -78,12 +91,18 @@ const byte maxValueRight[][8] PROGMEM = {
 const byte defaultValueRight[][8] PROGMEM = {
   {0},
   {5, 10},
-  {5, 10, 5}
+  {5, 10, 5},
+  {5, 10, 5},
+  {5, 10},
+  {5, 10}
 };
 const byte maxSetting[][2] PROGMEM = {
   {2, 0},
   {5, 1},
-  {5, 2}
+  {5, 2},
+  {5, 2},
+  {5, 1},
+  {5, 1}
 };
 
 const byte maxMode = 2;
