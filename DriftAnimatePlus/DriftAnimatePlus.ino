@@ -75,8 +75,8 @@ const byte defaultValueRight[][8] PROGMEM = {
 };
 const byte maxSetting[][2] PROGMEM = {
   {2, 0},
-  {2, 1},
-  {2, 2}
+  {5, 1},
+  {5, 2}
 };
 
 const byte maxMode = 2;
