@@ -36,16 +36,17 @@ const char mode1Name[] PROGMEM = "DRIFTING";
 const char mode2Name[] PROGMEM = " COMETS ";
 const char mode3Name[] PROGMEM = "  PULSE ";
 const char mode4Name[] PROGMEM = " RAINBOW";
+const char mode5Name[] PROGMEM = "   DOTS ";
 
 
 //Names of settings by mode
 const char * const modesL[][8] PROGMEM = {
   {mode0L0, mode0L1, mode0L2},
-  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2,mode1L3, mode1L4, mode1L5}
+  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
+  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
+  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
+  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
+  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5}
 
 };
 
@@ -73,15 +74,15 @@ const byte maxValueLeft[][8] PROGMEM = {
 };
 const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
   {255, 255, 255},
-  {0, 26, 0,26, 0, 26},
-  {0, 26, 0,26, 0, 26},
-  {0, 26, 0,26, 0, 26},
-  {0, 26, 0,26, 0, 26},
-  {0, 26, 0,26, 0, 26}
+  {0, 26, 0, 26, 0, 26},
+  {0, 26, 0, 26, 0, 26},
+  {0, 26, 0, 26, 0, 26},
+  {0, 26, 0, 26, 0, 26},
+  {0, 26, 0, 26, 0, 26}
 };
 
-//if above max is 26, use this value - otherwise use raw value. 
-const byte leftValues[] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 23, 29, 36, 44, 53, 63, 74, 86, 99, 113, 128, 144, 162, 182,,205, 229, 255};
+//if above max is 26, use this value - otherwise use raw value.
+const byte leftValues[] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 23, 29, 36, 44, 53, 63, 74, 86, 99, 113, 128, 144, 162, 182, 205, 229, 255};
 
 const byte maxValueRight[][8] PROGMEM = {
   {0},
@@ -90,7 +91,7 @@ const byte maxValueRight[][8] PROGMEM = {
 };
 const byte defaultValueRight[][8] PROGMEM = {
   {0},
-  {5, 10},
+  {5},
   {5, 10, 5},
   {5, 10, 5},
   {5, 10},
@@ -98,7 +99,7 @@ const byte defaultValueRight[][8] PROGMEM = {
 };
 const byte maxSetting[][2] PROGMEM = {
   {2, 0},
-  {5, 1},
+  {5, 0},
   {5, 2},
   {5, 2},
   {5, 1},
@@ -125,8 +126,8 @@ volatile unsigned long lastUserAction = 0;
 unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
 byte pixels[LENGTH * 3];
-byte target[LENGTH * 3];
-byte param[LENGTH];
+byte scratch[LENGTH * 3];
+unsigned long frameNumber=0;
 Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800, pixels);
 
 //RF related globals
@@ -193,32 +194,33 @@ void advanceMode() {
   } else {
     currentMode++;
   }
-  for (byte i=0;i<8;i++){ //set the current setting values to defaults
-    if (pgm_read_byte_near(&defaultValueLeft[currentMode][i])==255) {
-      currentValueLeft[i]=rand(pgm_read_byte_near(&defaultValueLeft[currentMode][i]));
+  memset(scratch, 0, 600);
+  for (byte i = 0; i < 8; i++) { //set the current setting values to defaults
+    if (pgm_read_byte_near(&defaultValueLeft[currentMode][i]) == 255) {
+      currentValueLeft[i] = random(pgm_read_byte_near(&maxValueLeft[currentMode][i]));
     } else {
-      currentValueLeft[i]=pgm_read_byte_near(&maxValueLeft[currentMode][i]);
+      currentValueLeft[i] = pgm_read_byte_near(&defaultValueLeft[currentMode][i]);
     }
-    if (pgm_read_byte_near(&defaultValueLeft[currentMode][i])==255) {
-      currentValueRight[i]=rand(pgm_read_byte_near(&maxValueRight[currentMode][i]));
+    if (pgm_read_byte_near(&defaultValueLeft[currentMode][i]) == 255) {
+      currentValueRight[i] = random(pgm_read_byte_near(&maxValueRight[currentMode][i]));
     } else {
-      currentValueRight[i]=pgm_read_byte_near(&defaultValueRight[currentMode][i]);
+      currentValueRight[i] = pgm_read_byte_near(&defaultValueRight[currentMode][i]);
     }
-  } 
-    // start with the first setting selected, in case we had a setting now out of index. 
+  }
+  // start with the first setting selected, in case we had a setting now out of index.
   currentSettingLeft = 0;
   currentSettingRight = 0;
 }
 
-                               
-                               
+
+
 
 void handleUI() {
   static byte lastBtnState = 7;
   static byte lastBtnBounceState = 7;
   static unsigned long lastBtnAt = 0;
   byte btnRead = (PIND & 0x1C) >> 2;
-  if (!(btnRead == lastBtnBounceState)) { //debounce all buttons at once. 
+  if (!(btnRead == lastBtnBounceState)) { //debounce all buttons at once.
     lastBtnBounceState = btnRead;
     lastBtnAt = millis();
   } else {
@@ -233,24 +235,13 @@ void handleUI() {
         if ((!(btnRead & 2)) && (lastBtnState & 2)) {
           if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
             currentSettingLeft = 0;
-      
+
           } else {
             currentSettingLeft++;
 
           }
-          
-          //hackjob to handle min exceeding max or vice versa. 
-          if ((currentMode==1 || currentMode==2) && currentSettingLeft<6) {
-            if (currentSettingLeft & 1) {
-              if (currentValueLeft[currentSettingLeft] < currentValueLeft[currentSettingLeft-1]) {
-                currentValueLeft[currentSettingLeft-1]=currentValueLeft[currentSettingLeft];
-              }
-            } else {
-              if (currentValueLeft[currentSettingLeft] > currentValueLeft[currentSettingLeft+1]) {
-                currentValueLeft[currentSettingLeft+1]=currentValueLeft[currentSettingLeft];
-              }
-            }
-          }
+
+
           UIChanged |= 2;
         }
         if ((!(btnRead & 4)) && (lastBtnState & 4)) {
@@ -305,15 +296,15 @@ void handleLCD() {
     tval = currentValueRight[currentSettingRight];
     if (tval < 100) lcd.print(' ');
     if (tval < 10) lcd.print(' ');
-    if (pgm_get_byte_near(&maxValueRight[currentMode][1])) { //if max is 0, then this is blank
-      lcd.print(currentValueRight[currentMode]);
+    if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])) { //if max is 0, then this is blank
+      lcd.print(tval);
     } else {
       lcd.print(' ');
     }
   }
 }
 
-                               
+
 void updatePattern() {
   if (currentMode == 0) {
     for (unsigned int i = 0; i < LENGTH * 3; i++) {
@@ -322,23 +313,24 @@ void updatePattern() {
   } else if (currentMode == 1) {
     updatePatternDrift();
   }
+  frameNumber++;
 }
 
 void updatePatternDrift() {
-  byte driftchance=16+currentSettingRight[0]*10;
-  byte randinc=255-driftchance);
-  byte randdec=driftchance;
-  for (byte i = 0; i < (LENGTH * 3); i++) {
-    byte tem=i%3;
-    tem*=2;
+  byte driftchance = 16 + currentValueRight[0] * 10;
+  byte randinc = 255 - driftchance;
+  byte randdec = driftchance;
+  for (unsigned int i = 0; i < (LENGTH * 3); i++) {
+    byte tem = i % 3;
+    tem *= 2;
     byte rand = random(255);
-    if (rand > (pixels[i] > 32 ? randinc : (randinc + driftchance / 2)) && (pixels[i] < getLeftVal(currentSettingLeft[tem+1]))) {
+    if (rand > (pixels[i] > 32 ? randinc : (randinc + driftchance / 2)) && (pixels[i] < getLeftVal(currentValueLeft[tem + 1]))) {
       if (pixels[i] > 128 && pixels[i] < 254) {
         pixels[i] += 2;
       } else {
         pixels[i]++;
       }
-    } else if (rand < (pixels[i] > 32 ? randdec : (randdec - driftchance / 2)) && (pixels[i] > getLeftVal(currentSettingLeft[tem]))) {
+    } else if (rand < (pixels[i] > 32 ? randdec : (randdec - driftchance / 2)) && (pixels[i] > getLeftVal(currentValueLeft[tem]))) {
       if (pixels[i] > 128) {
         pixels[i] -= 2;
       } else {
@@ -347,7 +339,26 @@ void updatePatternDrift() {
     }
   }
 }
-                                                            
+
+void updatePatternDots() {
+  
+  for (unsigned int i=0; i<((LENGTH-1)*3);i++) {
+    pixels [i+3]=pixels[i];
+  }
+  if (!(frameNumber%currentSettingRight[1])) {
+    pixels[0]=random(getLeftVal(currentSettingLeft[0]),getLeftVal(currentSettingLeft[1)]);
+    pixels[1]=random(getLeftVal(currentSettingLeft[2]),getLeftVal(currentSettingLeft[3)]);
+    pixels[2]=random(getLeftVal(currentSettingLeft[4]),getLeftVal(currentSettingLeft[5)]);
+  }
+}
+
+
+
+void updatePatternRainbow() {
+  for (unsigned int i = 0; i < (LENGTH * 3); i++) {
+    
+  }
+}
 
 void setupPins() {
   pinMode(LEDPIN, OUTPUT);
@@ -387,11 +398,27 @@ ISR(PCINT1_vect)
   /* post "Navigation forward/reverse" event */
   if ( enclval > 3 ) { //four steps forward
     if (currentValueLeft[currentSettingLeft] < pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]))currentValueLeft[currentSettingLeft]++;
+    //hackjob to handle min exceeding max or vice versa.
+    if ((currentMode == 1 || currentMode == 2) && currentSettingLeft < 6) {
+      if (!(currentSettingLeft & 1)) {
+        if (currentValueLeft[currentSettingLeft] > currentValueLeft[currentSettingLeft + 1]) {
+          currentValueLeft[currentSettingLeft + 1] = currentValueLeft[currentSettingLeft];
+        }
+      }
+    }
     UIChanged |= 1;
     enclval = 0;
   }
   else if ( enclval < -3 ) { //four steps backwards
     if (currentValueLeft[currentSettingLeft])currentValueLeft[currentSettingLeft]--;
+    //hackjob to handle min exceeding max or vice versa.
+    if ((currentMode == 1 || currentMode == 2) && currentSettingLeft < 6) {
+      if (currentSettingLeft & 1) {
+        if (currentValueLeft[currentSettingLeft] < currentValueLeft[currentSettingLeft - 1]) {
+          currentValueLeft[currentSettingLeft - 1] = currentValueLeft[currentSettingLeft];
+        }
+      }
+    }
     UIChanged |= 1;
     enclval = 0;
   }
