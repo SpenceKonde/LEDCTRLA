@@ -312,6 +312,10 @@ void updatePattern() {
     }
   } else if (currentMode == 1) {
     updatePatternDrift();
+  } else if (currentMode == 4) {
+    updatePatternRainbow();
+  } else if (currentMode == 5) {
+    updatePatternDots();
   }
   frameNumber++;
 }
@@ -342,10 +346,10 @@ void updatePatternDrift() {
 
 void updatePatternDots() {
   
-  for (unsigned int i=0; i<((LENGTH-1)*3);i++) {
-    pixels [i+3]=pixels[i];
+  for (unsigned int i=3; i<LENGTH*3;i++) {
+    pixels [i]=pixels[i-3];
   }
-  if (!(frameNumber%currentSettingRight[1])) {
+  if (!(frameNumber%(currentSettingRight[1]+2))) {
     pixels[0]=random(getLeftVal(currentSettingLeft[0]),getLeftVal(currentSettingLeft[1)]);
     pixels[1]=random(getLeftVal(currentSettingLeft[2]),getLeftVal(currentSettingLeft[3)]);
     pixels[2]=random(getLeftVal(currentSettingLeft[4]),getLeftVal(currentSettingLeft[5)]);
@@ -355,9 +359,12 @@ void updatePatternDots() {
 
 
 void updatePatternRainbow() {
-  for (unsigned int i = 0; i < (LENGTH * 3); i++) {
-    
+  for (unsigned int i=3; i<LENGTH*3;i++) {
+    pixels [i]=pixels[i-3];
   }
+  pixels[0]=0;
+  pixels[1]=0;
+  pixels[2]=0;
 }
 
 void setupPins() {
