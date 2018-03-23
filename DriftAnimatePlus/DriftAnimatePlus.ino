@@ -31,12 +31,12 @@ const char mode1R0[] PROGMEM = " SPEED ";
 const char mode1R1[] PROGMEM = " NUMBER";
 const char mode2R2[] PROGMEM = " LENGTH";
 const char mode5R1[] PROGMEM = "DENSITY";
-const char mode0Name[] PROGMEM = "  SOLID ";
+const char mode0Name[] PROGMEM = " SOLID  ";
 const char mode1Name[] PROGMEM = "DRIFTING";
 const char mode2Name[] PROGMEM = " COMETS ";
-const char mode3Name[] PROGMEM = "  PULSE ";
+const char mode3Name[] PROGMEM = " PULSE  ";
 const char mode4Name[] PROGMEM = " RAINBOW";
-const char mode5Name[] PROGMEM = "   DOTS ";
+const char mode5Name[] PROGMEM = "  DOTS  ";
 
 
 //Names of settings by mode
@@ -55,7 +55,7 @@ const char * const modesR[][8] PROGMEM = {
   {mode1R0, mode1R1},
   {mode1R0, mode1R1, mode2R2},
   {mode1R0, mode1R1, mode2R2},
-  {mode1R0, mode1R1},
+  {mode1R0, mode2R2},
   {mode1R0, mode5R1}
 
 };
@@ -63,31 +63,36 @@ const char * const modesR[][8] PROGMEM = {
 // names of modes
 const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name};
 
+#define COLORTABLEMAX 31
+
 //max and default settings controlled by left knob. 26 is special, it indicates to use the leftValues array
 const byte maxValueLeft[][8] PROGMEM = {
-  {26, 26, 26},
-  {26, 26, 26, 26, 26, 26},
-  {26, 26, 26, 26, 26, 26},
-  {26, 26, 26, 26, 26, 26},
-  {26, 26, 26, 26, 26, 26},
-  {26, 26, 26, 26, 26, 26}
+  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
+  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
+  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
+  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
+  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
+  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX}
 };
 const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
   {255, 255, 255},
-  {0, 26, 0, 26, 0, 26},
-  {0, 26, 0, 26, 0, 26},
-  {0, 26, 0, 26, 0, 26},
-  {0, 26, 0, 26, 0, 26},
-  {0, 26, 0, 26, 0, 26}
+  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
+  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
+  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
+  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
+  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
 };
 
-//if above max is 26, use this value - otherwise use raw value.
-const byte leftValues[] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 23, 29, 36, 44, 53, 63, 74, 86, 99, 113, 128, 144, 162, 182, 205, 229, 255};
+//if above max is COLORTABLEMAX, use this value - otherwise use raw value.
+const byte leftValues[COLORTABLEMAX+1] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 22, 27, 33, 39, 46,54,63,73,84,95,106,117,128,139,151,163,176,189,204,220,237,255};
 
 const byte maxValueRight[][8] PROGMEM = {
   {0},
+  {10},
+  {10, 10, 10},
+  {10, 10, 10},
   {10, 10},
-  {10, 10, 10}
+  {10, 13}
 };
 const byte defaultValueRight[][8] PROGMEM = {
   {0},
@@ -127,7 +132,7 @@ unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
 byte pixels[LENGTH * 3];
 byte scratch[LENGTH * 3];
-unsigned long frameNumber=0;
+unsigned long frameNumber = 0;
 Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800, pixels);
 
 //RF related globals
@@ -173,13 +178,20 @@ void loop() {
   } else if (true) { //will be if not receiving, but we don't know where we're saving the RXing status.
     handleUI();
     handleLCD();
-    if (millis() - lastFrameAt > frameDelay) {
+    if (millis() - lastFrameAt > getFrameDelay()) {
       lastFrameAt = millis();
       updatePattern();
       leds.show();
     }
   }
-  delay(1);
+}
+
+byte getFrameDelay() {
+  if (currentMode == 1 || currentMode == 0) {
+    return 30;
+  }
+  return 30 + 20 * (pgm_read_byte_near(&maxValueRight[currentMode][0])-currentValueRight[0]);
+
 }
 
 void processRFPacket(byte rlen) {
@@ -208,6 +220,7 @@ void advanceMode() {
     }
   }
   // start with the first setting selected, in case we had a setting now out of index.
+  frameNumber = 0;
   currentSettingLeft = 0;
   currentSettingRight = 0;
 }
@@ -345,26 +358,140 @@ void updatePatternDrift() {
 }
 
 void updatePatternDots() {
-  
-  for (unsigned int i=3; i<LENGTH*3;i++) {
-    pixels [i]=pixels[i-3];
+
+  for (unsigned int i = (LENGTH - 1) * 3; i > 2; i--) {
+    pixels [i] = pixels[i - 3];
   }
-  if (!(frameNumber%(currentSettingRight[1]+2))) {
-    pixels[0]=random(getLeftVal(currentSettingLeft[0]),getLeftVal(currentSettingLeft[1)]);
-    pixels[1]=random(getLeftVal(currentSettingLeft[2]),getLeftVal(currentSettingLeft[3)]);
-    pixels[2]=random(getLeftVal(currentSettingLeft[4]),getLeftVal(currentSettingLeft[5)]);
+  if (!(frameNumber % (13-currentValueRight[1]))) {
+    pixels[0] = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
+    pixels[1] = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
+    pixels[2] = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
+  } else {
+    pixels[0] = 0;
+    pixels[1] = 0;
+    pixels[2] = 0;
   }
 }
 
 
 
 void updatePatternRainbow() {
-  for (unsigned int i=3; i<LENGTH*3;i++) {
-    pixels [i]=pixels[i-3];
+  byte maxVal = COLORTABLEMAX;
+  byte l = 9 + (6 * currentValueRight[1]);
+  byte f = frameNumber % (3 * l);
+  byte r = 0;
+  byte g = 0;
+  byte b = 0;
+  byte fal = 0.0;
+  byte rise = 0.0;
+  if (f % l) {
+
+    float tem = f % l;
+    tem /= l;
+    float temr = (tem * (currentValueLeft[1] - currentValueLeft[0])) + currentValueLeft[0];
+    float temg = (tem * (currentValueLeft[3] - currentValueLeft[2])) + currentValueLeft[2];
+    float temb = (tem * (currentValueLeft[5] - currentValueLeft[4])) + currentValueLeft[4];
+    if (f < l) { // sector 1 - green rising red falling
+      byte flg = floor(temg);
+      byte clg = ceil(temg);
+      if (clg == flg) {
+        g = getLeftVal(clg);
+      } else {
+        byte ming = getLeftVal(flg);
+        byte maxg = getLeftVal(clg);
+        maxg -= ming;
+        float temg2 = temg - flg;
+        g = ming + (maxg * temg2)+0.5;
+        
+      }
+      
+      temr=maxVal-temr;
+      byte flr = floor(temr);
+      byte clr = ceil(temr);
+      if (clr == flr) {
+        r = getLeftVal(clr);
+      } else {
+        byte minr = getLeftVal(flr);
+        byte maxr = getLeftVal(clr);
+        maxr -= minr;
+        temr = temr - flr;
+        r = minr + (maxr * temr)+0.5;
+      }
+      b=getLeftVal(currentValueLeft[4]);
+    } else if (f < 2*l) { // sector 2 - blue rising green falling
+      byte flb = floor(temb);
+      byte clb = ceil(temb);
+      if (clb == flb) {
+        b = getLeftVal(clb);
+      } else {
+        byte minb = getLeftVal(flb);
+        byte maxb = getLeftVal(clb);
+        maxb -= minb;
+        temb = temb - flb;
+        b = minb + (maxb * temb)+0.5;
+      }
+      temg=maxVal-temg;
+      byte flg = floor(temg);
+      byte clg = ceil(temg);
+      if (clg == flg) {
+        g = getLeftVal(clg);
+      } else {
+        byte ming = getLeftVal(flg);
+        byte maxg = getLeftVal(clg);
+        maxg -= ming;
+        temg = temg - flg;
+        g = ming + (maxg * temg)+0.5;
+      }
+      r=getLeftVal(currentValueLeft[0]);
+    } else { // sector 3 - red rising blue falling
+      byte flr = floor(temr);
+      byte clr = ceil(temr);
+      if (clr == flr) {
+        r = getLeftVal(clr);
+      } else {
+        byte minr = getLeftVal(flr);
+        byte maxr = getLeftVal(clr);
+        maxr -= minr;
+        temr = temr - flr;
+        r = minr + (maxr * temr)+0.5;
+      }
+      temb=maxVal-temb;
+      byte flb = floor(temb);
+      byte clb = ceil(temb);
+      if (clb == flb) {
+        b = getLeftVal(clb);
+      } else {
+        byte minb = getLeftVal(flb);
+        byte maxb = getLeftVal(clb);
+        maxb -= minb;
+        temb = temb - flb;
+        b = minb + (maxb * temb)+0.5;
+      }
+      g=getLeftVal(currentValueLeft[2]);
+    }
+  } else {
+    if (f == 0) {
+      r = getLeftVal(currentValueLeft[1]);
+      g = getLeftVal(currentValueLeft[2]);
+      b = getLeftVal(currentValueLeft[4]);
+    } else if (f == l) {
+      r = getLeftVal(currentValueLeft[0]);
+      g = getLeftVal(currentValueLeft[3]);
+      b = getLeftVal(currentValueLeft[4]);
+    } else {
+      r = getLeftVal(currentValueLeft[0]);
+      g = getLeftVal(currentValueLeft[2]);
+      b = getLeftVal(currentValueLeft[5]);
+    }
   }
-  pixels[0]=0;
-  pixels[1]=0;
-  pixels[2]=0;
+
+  for (unsigned int i = (LENGTH - 1) * 3; i > 2; i--) {
+    pixels [i] = pixels[i - 3];
+  }
+
+  pixels[0] = r;
+  pixels[1] = g;
+  pixels[2] = b;
 }
 
 void setupPins() {
