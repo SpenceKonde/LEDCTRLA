@@ -388,24 +388,30 @@ void updatePatternRainbow() {
 
     float tem = f % l;
     tem /= l;
-    float temr = (tem * (currentValueLeft[1] - currentValueLeft[0])) + currentValueLeft[0];
-    float temg = (tem * (currentValueLeft[3] - currentValueLeft[2])) + currentValueLeft[2];
-    float temb = (tem * (currentValueLeft[5] - currentValueLeft[4])) + currentValueLeft[4];
+    
+    //float temr = (tem * (currentValueLeft[1] - currentValueLeft[0])) + currentValueLeft[0];
+    //float temg = (tem * (currentValueLeft[3] - currentValueLeft[2])) + currentValueLeft[2];
+    //float temb = (tem * (currentValueLeft[5] - currentValueLeft[4])) + currentValueLeft[4];
+    float temr = (tem * (getLeftVal(currentValueLeft[1])-getLeftVal(currentValueLeft[0]))+getLeftVal(currentValueLeft[0]));
+    float temg = (tem * (getLeftVal(currentValueLeft[3])-getLeftVal(currentValueLeft[2]))+getLeftVal(currentValueLeft[2]));
+    float temb = (tem * (getLeftVal(currentValueLeft[5])-getLeftVal(currentValueLeft[4]))+getLeftVal(currentValueLeft[4]));
     if (f < l) { // sector 1 - green rising red falling
-      byte flg = floor(temg);
-      byte clg = ceil(temg);
-      if (clg == flg) {
-        g = getLeftVal(clg);
-      } else {
-        byte ming = getLeftVal(flg);
-        byte maxg = getLeftVal(clg);
-        maxg -= ming;
-        float temg2 = temg - flg;
-        g = ming + (maxg * temg2)+0.5;
-        
-      }
+    //  byte flg = floor(temg);
+    //  byte clg = ceil(temg);
+    //  if (clg == flg) {
+    //    g = getLeftVal(clg);
+    //  } else {
+    //    byte ming = getLeftVal(flg);
+    //    byte maxg = getLeftVal(clg);
+    //    maxg -= ming;
+    //    float temg2 = temg - flg;
+    //    g = ming + (maxg * temg2)+0.5;
+      g = temg+0.5;  
+      //}
       
-      temr=maxVal-temr;
+      temr=255-temr;
+      r=temr+0.5;
+    /*
       byte flr = floor(temr);
       byte clr = ceil(temr);
       if (clr == flr) {
@@ -417,8 +423,10 @@ void updatePatternRainbow() {
         temr = temr - flr;
         r = minr + (maxr * temr)+0.5;
       }
+      */
       b=getLeftVal(currentValueLeft[4]);
     } else if (f < 2*l) { // sector 2 - blue rising green falling
+      /*
       byte flb = floor(temb);
       byte clb = ceil(temb);
       if (clb == flb) {
@@ -442,8 +450,14 @@ void updatePatternRainbow() {
         temg = temg - flg;
         g = ming + (maxg * temg)+0.5;
       }
+      */
+    
+      temg=255-temg;
+      g=temg+0.5;
+      b=temb+0.5;
       r=getLeftVal(currentValueLeft[0]);
     } else { // sector 3 - red rising blue falling
+      /*
       byte flr = floor(temr);
       byte clr = ceil(temr);
       if (clr == flr) {
@@ -466,7 +480,10 @@ void updatePatternRainbow() {
         maxb -= minb;
         temb = temb - flb;
         b = minb + (maxb * temb)+0.5;
-      }
+      } */
+    temb=255-temb;
+      b=temb+0.5;
+      r=temr+0.5;
       g=getLeftVal(currentValueLeft[2]);
     }
   } else {
