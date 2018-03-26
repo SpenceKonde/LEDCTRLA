@@ -30,6 +30,9 @@ const char mode0R0[] PROGMEM = "       ";
 const char mode1R0[] PROGMEM = " SPEED ";
 const char mode1R1[] PROGMEM = " NUMBER";
 const char mode2R2[] PROGMEM = " LENGTH";
+const char mode4R2[] PROGMEM = " DIRECT";
+const char mode4R2_0[] PROGMEM = "FWD";
+const char mode4R2_1[] PROGMEM = "REV";
 const char mode5R1[] PROGMEM = "DENSITY";
 const char mode0Name[] PROGMEM = " SOLID  ";
 const char mode1Name[] PROGMEM = "DRIFTING";
@@ -54,9 +57,9 @@ const char * const modesR[][8] PROGMEM = {
   {mode0R0},
   {mode1R0, mode1R1},
   {mode1R0, mode1R1, mode2R2},
-  {mode1R0, mode1R1, mode2R2},
-  {mode1R0, mode2R2},
-  {mode1R0, mode5R1}
+  {mode1R0, mode1R1, mode5R1},
+  {mode1R0, mode2R2, mode4R2},
+  {mode1R0, mode5R1, mode4R2}
 
 };
 
@@ -90,28 +93,30 @@ const byte maxValueRight[][8] PROGMEM = {
   {0},
   {10},
   {10, 10, 10},
-  {10, 10, 10},
-  {10, 10},
-  {10, 13}
+  {10, 10, 20},
+  {10, 10,1},
+  {10, 12,1}
 };
 const byte defaultValueRight[][8] PROGMEM = {
   {0},
   {5},
   {5, 10, 5},
-  {5, 10, 5},
-  {5, 10},
-  {5, 10}
+  {5, 10, 10},
+  {5, 10,0},
+  {5, 10,0}
 };
 const byte maxSetting[][2] PROGMEM = {
   {2, 0},
   {5, 0},
   {5, 2},
   {5, 2},
-  {5, 1},
-  {5, 1}
+  {5, 2},
+  {5, 2}
 };
 
 const byte maxMode = 5;
+
+const byte pulseBrightnessTable[] PROGMEM={0,1,2,3,4,5,6,7,8,9,10,12,14,16,18,20,22,24,26,28,31,34,37,40,43,46,49,52,55,59,63,67,71,75,79,83,87,92,97,102,107,112,117,122,127,133,139,145,151,157,163,169,175,182,189,196,203,210,217,224,231,239,247,255}
 
 volatile byte lastEncPins = 0;
 volatile byte currentSettingLeft = 0;
@@ -123,6 +128,7 @@ volatile byte UIChanged = 7;
 byte currentMode = 0;
 
 volatile unsigned long lastUserAction = 0;
+
 
 
 //animation related globals
@@ -306,13 +312,17 @@ void handleLCD() {
     lcd.setCursor(4, 1);
     lcd.print(FLASH(modeNames[currentMode]));
     lcd.setCursor(13, 1);
-    tval = currentValueRight[currentSettingRight];
-    if (tval < 100) lcd.print(' ');
-    if (tval < 10) lcd.print(' ');
-    if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])) { //if max is 0, then this is blank
-      lcd.print(tval);
+    if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])==1) {
+      lcd.print(FLASH(currentValueRight[currentSettingRight]?mode4R2_0:mode4R2_0));
     } else {
-      lcd.print(' ');
+      tval = currentValueRight[currentSettingRight];
+      if (tval < 100) lcd.print(' ');
+      if (tval < 10) lcd.print(' ');
+      if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])) { //if max is 0, then this is blank
+        lcd.print(tval);
+      } else {
+        lcd.print(' ');
+      }
     }
   }
 }
@@ -360,7 +370,20 @@ void updatePatternDrift() {
 }
 
 void updatePatternDots() {
-
+  if (currentValueRight[2]) {//reverse
+    for (unsigned int i = 0; i < (LENGTH-3); i++) {
+    pixels [i] = pixels[i + 3];
+  }
+  if (!(frameNumber % (13 - currentValueRight[1]))) {
+    pixels[LENGTH-3] = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
+    pixels[LENGTH-2] = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
+    pixels[LENGTH-1] = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
+  } else {
+    pixels[LENGTH-3] = 0;
+    pixels[LENGTH-2] = 0;
+    pixels[LENGTH-1] = 0;
+  }
+  } else { //forward
   for (unsigned int i = (LENGTH - 1) * 3; i > 2; i--) {
     pixels [i] = pixels[i - 3];
   }
@@ -373,6 +396,7 @@ void updatePatternDots() {
     pixels[1] = 0;
     pixels[2] = 0;
   }
+  }
 }
 
 void updatePatternPulse() {
@@ -384,7 +408,7 @@ void updatePatternPulse() {
     byte bright = scratch[i + 2] & 0x3F;
     byte dir = (scratch[i] >> 7);
     if (!(max_r + max_b + max_g)) { // need to consider generating new target
-      if (random(0, pgm_read_byte_near(&maxValueRight[currentMode][2])) < currentValueRight[2]) {
+      if (random(0, (currentSettingRight[0]+2)*2*pgm_read_byte_near(&maxValueRight[currentMode][2])) < currentValueRight[2]) {
         max_r = random(currentValueLeft[0], currentValueLeft[1]);
         max_g = random(currentValueLeft[2], currentValueLeft[3]);
         max_b = random(currentValueLeft[4], currentValueLeft[5]);
@@ -414,8 +438,8 @@ void updatePatternPulse() {
           max_g = 0;
           max_b = 0;
         } else {
-          //byte nbright = pgm_read_byte_near(&pulseBrightnessTable[bright]);
-          byte nbright = bright << 2;
+          byte nbright = pgm_read_byte_near(&pulseBrightnessTable[bright]);
+          //byte nbright = bright << 2;
           pixels[i] = map(nbright, 0, 255, 0, getLeftVal(max_r));
           pixels[i + 1] = map(nbright, 0, 255, 0, getLeftVal(max_g));
           pixels[i + 2] = map(nbright, 0, 255, 0, getLeftVal(max_b));
@@ -451,99 +475,20 @@ void updatePatternRainbow() {
 
     float tem = f % l;
     tem /= l;
-
-    //float temr = (tem * (currentValueLeft[1] - currentValueLeft[0])) + currentValueLeft[0];
-    //float temg = (tem * (currentValueLeft[3] - currentValueLeft[2])) + currentValueLeft[2];
-    //float temb = (tem * (currentValueLeft[5] - currentValueLeft[4])) + currentValueLeft[4];
     float temr = (tem * (getLeftVal(currentValueLeft[1]) - getLeftVal(currentValueLeft[0])) + getLeftVal(currentValueLeft[0]));
     float temg = (tem * (getLeftVal(currentValueLeft[3]) - getLeftVal(currentValueLeft[2])) + getLeftVal(currentValueLeft[2]));
     float temb = (tem * (getLeftVal(currentValueLeft[5]) - getLeftVal(currentValueLeft[4])) + getLeftVal(currentValueLeft[4]));
     if (f < l) { // sector 1 - green rising red falling
-      //  byte flg = floor(temg);
-      //  byte clg = ceil(temg);
-      //  if (clg == flg) {
-      //    g = getLeftVal(clg);
-      //  } else {
-      //    byte ming = getLeftVal(flg);
-      //    byte maxg = getLeftVal(clg);
-      //    maxg -= ming;
-      //    float temg2 = temg - flg;
-      //    g = ming + (maxg * temg2)+0.5;
       g = temg + 0.5;
-      //}
-
       temr = 255 - temr;
       r = temr + 0.5;
-      /*
-        byte flr = floor(temr);
-        byte clr = ceil(temr);
-        if (clr == flr) {
-          r = getLeftVal(clr);
-        } else {
-          byte minr = getLeftVal(flr);
-          byte maxr = getLeftVal(clr);
-          maxr -= minr;
-          temr = temr - flr;
-          r = minr + (maxr * temr)+0.5;
-        }
-      */
       b = getLeftVal(currentValueLeft[4]);
     } else if (f < 2 * l) { // sector 2 - blue rising green falling
-      /*
-        byte flb = floor(temb);
-        byte clb = ceil(temb);
-        if (clb == flb) {
-        b = getLeftVal(clb);
-        } else {
-        byte minb = getLeftVal(flb);
-        byte maxb = getLeftVal(clb);
-        maxb -= minb;
-        temb = temb - flb;
-        b = minb + (maxb * temb)+0.5;
-        }
-        temg=maxVal-temg;
-        byte flg = floor(temg);
-        byte clg = ceil(temg);
-        if (clg == flg) {
-        g = getLeftVal(clg);
-        } else {
-        byte ming = getLeftVal(flg);
-        byte maxg = getLeftVal(clg);
-        maxg -= ming;
-        temg = temg - flg;
-        g = ming + (maxg * temg)+0.5;
-        }
-      */
-
       temg = 255 - temg;
       g = temg + 0.5;
       b = temb + 0.5;
       r = getLeftVal(currentValueLeft[0]);
     } else { // sector 3 - red rising blue falling
-      /*
-        byte flr = floor(temr);
-        byte clr = ceil(temr);
-        if (clr == flr) {
-        r = getLeftVal(clr);
-        } else {
-        byte minr = getLeftVal(flr);
-        byte maxr = getLeftVal(clr);
-        maxr -= minr;
-        temr = temr - flr;
-        r = minr + (maxr * temr)+0.5;
-        }
-        temb=maxVal-temb;
-        byte flb = floor(temb);
-        byte clb = ceil(temb);
-        if (clb == flb) {
-        b = getLeftVal(clb);
-        } else {
-        byte minb = getLeftVal(flb);
-        byte maxb = getLeftVal(clb);
-        maxb -= minb;
-        temb = temb - flb;
-        b = minb + (maxb * temb)+0.5;
-        } */
       temb = 255 - temb;
       b = temb + 0.5;
       r = temr + 0.5;
@@ -564,14 +509,21 @@ void updatePatternRainbow() {
       b = getLeftVal(currentValueLeft[5]);
     }
   }
-
-  for (unsigned int i = (LENGTH - 1) * 3; i > 2; i--) {
-    pixels [i] = pixels[i - 3];
+  if (currentSettingRight[2]) { //reverse
+    for (unsigned int i = 0; i < (LENGTH-3); i++) {
+      pixels [i] = pixels[i + 3];
+    }
+    pixels[LENGTH-3] = r;
+    pixels[LENGTH-2] = g;
+    pixels[LENGTH-1] = b;
+  } else {//forward
+    for (unsigned int i = (LENGTH - 1) * 3; i > 2; i--) {
+      pixels [i] = pixels[i - 3];
+    }
+    pixels[0] = r;
+    pixels[1] = g;
+    pixels[2] = b;
   }
-
-  pixels[0] = r;
-  pixels[1] = g;
-  pixels[2] = b;
 }
 
 void setupPins() {
