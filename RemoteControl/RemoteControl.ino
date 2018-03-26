@@ -32,7 +32,12 @@ unsigned int txSyncTime  = 2000;
 unsigned int txTrainLen  = 200;
 byte txTrainRep  = 20;
 
-
+const byte commands[][13] PROGMEM={ //mode,first six left settings,first six right settings
+  {},
+  {},
+  {},
+  {},
+  {}
 /*
 unsigned int rxSyncMin  = 1750;
 unsigned int rxSyncMax  = 2250;
@@ -91,7 +96,8 @@ byte getBtnst() {
   retval+=digitalRead(BUTTON_1); //pin1
   retval+=digitalRead(BUTTON_2)<<1; //pin2
   retval+=digitalRead(BUTTON_3)<<2; //pin3
-  retval+=digitalRead(BUTTON_4)<<3; //reset
+  retval+=digitalRead(BUTTON_4)<<3; //pin4
+  retval+=digitalRead(BUTTON_5)<<4; //pin5
   return (~retval) & 0xF;
 }
 
@@ -105,21 +111,13 @@ void loop() {
     if (btnst == 1 ) {
       preparePayload16(3,0);
     } else if (btnst == 2) {
-      preparePayload32(4,0);
+      preparePayload16(4,0);
     } else if (btnst == 4) {
-      preparePayload8(2,0);
+      preparePayload16(2,0);
     } else if (btnst == 8) {
-      preparePayload(1,0);
-    } else if (btnst & 8){
-      if (btnst==9) {
-        preparePayload(1,1);
-      } else if (btnst==10) {
-        preparePayload(2,1);
-      } else if (btnst==12) {
-        preparePayload(3,1);
-      }
-    } else {
-      prepareErrorPayload(btnst); //error
+      preparePayload16(1,0);
+    } else if (btnst ==16){
+      preparePayload16(5,0);
     }
     doTransmit(10);
   }
@@ -161,9 +159,7 @@ void preparePayload8(byte btn,byte rover) {
   
   TXLength = 8;
 }
-void preparePayload16(byte btn,byte rover) {
-  byte plen = txrxbuffer[0] >> 6;
-  plen = 4 << plen;
+void preparePayload16(byte btn,byte notused) {
   txrxbuffer[0] = 128|mytarget;
   txrxbuffer[1] = 0x55;
   txrxbuffer[2] = ((myid & 0x0F) << 4) + btn;
