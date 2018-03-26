@@ -84,7 +84,7 @@ const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pic
 };
 
 //if above max is COLORTABLEMAX, use this value - otherwise use raw value.
-const byte leftValues[COLORTABLEMAX+1] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 22, 27, 33, 39, 46,54,63,73,84,95,106,117,128,139,151,163,176,189,204,220,237,255};
+const byte leftValues[COLORTABLEMAX + 1] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 22, 27, 33, 39, 46, 54, 63, 73, 84, 95, 106, 117, 128, 139, 151, 163, 176, 189, 204, 220, 237, 255};
 
 const byte maxValueRight[][8] PROGMEM = {
   {0},
@@ -190,7 +190,7 @@ byte getFrameDelay() {
   if (currentMode == 1 || currentMode == 0) {
     return 30;
   }
-  return 30 + 20 * (pgm_read_byte_near(&maxValueRight[currentMode][0])-currentValueRight[0]);
+  return 30 + 20 * (pgm_read_byte_near(&maxValueRight[currentMode][0]) - currentValueRight[0]);
 
 }
 
@@ -325,6 +325,8 @@ void updatePattern() {
     }
   } else if (currentMode == 1) {
     updatePatternDrift();
+  } else if (currentMode == 3) {
+    updatePatternPulse();
   } else if (currentMode == 4) {
     updatePatternRainbow();
   } else if (currentMode == 5) {
@@ -362,7 +364,7 @@ void updatePatternDots() {
   for (unsigned int i = (LENGTH - 1) * 3; i > 2; i--) {
     pixels [i] = pixels[i - 3];
   }
-  if (!(frameNumber % (13-currentValueRight[1]))) {
+  if (!(frameNumber % (13 - currentValueRight[1]))) {
     pixels[0] = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
     pixels[1] = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
     pixels[2] = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
@@ -373,7 +375,68 @@ void updatePatternDots() {
   }
 }
 
-
+void updatePatternPulse() {
+  for (int  i = 0; i < (LENGTH * 3) - 2; i += 3) {
+    byte max_r = (scratch[i] & 0x7C) >> 2;
+    byte max_g = (((scratch[i] & 0x02) << 3) | ((scratch[i + 1] >> 5))); //dont need to mask the low 5 bits here because we're just pushing them off the edge
+    byte max_b = (scratch[i + 1]) & 0x07;
+    byte speed = 1 + (scratch[i + 2] >> 6);
+    byte bright = scratch[i + 2] & 0x3F;
+    byte dir = (scratch[i] >> 7);
+    if (!(max_r + max_b + max_g)) { // need to consider generating new target
+      if (random(0, pgm_read_byte_near(&maxValueRight[currentMode][2])) < currentValueRight[2]) {
+        max_r = random(currentValueLeft[0], currentValueLeft[1]);
+        max_g = random(currentValueLeft[2], currentValueLeft[3]);
+        max_b = random(currentValueLeft[4], currentValueLeft[5]);
+        speed = random(0, 3);
+        bright = 0;
+        dir = 0;
+        if (!i) {Serial.print("new light");
+          Serial.print(' ');
+          Serial.print(speed);
+          Serial.print(' ');
+          Serial.print(bright);
+          Serial.print(' ');
+          Serial.println(max_r);
+        }
+      }
+      pixels[i] = 0;
+      pixels[i + 1] = 0;
+      pixels[i + 2] = 0;
+    } else {
+      if (!(frameNumber % (speed+2))) {
+        if (dir && !bright) {
+          dir = 0;
+          pixels[i] = 0;
+          pixels[i + 1] = 0;
+          pixels[i + 2] = 0;
+          max_r = 0;
+          max_g = 0;
+          max_b = 0;
+        } else {
+          //byte nbright = pgm_read_byte_near(&pulseBrightnessTable[bright]);
+          byte nbright = bright << 2;
+          pixels[i] = map(nbright, 0, 255, 0, getLeftVal(max_r));
+          pixels[i + 1] = map(nbright, 0, 255, 0, getLeftVal(max_g));
+          pixels[i + 2] = map(nbright, 0, 255, 0, getLeftVal(max_b));
+          if (dir) {
+            bright--;
+          } else {
+            if (bright == 63) {
+              bright--;
+              dir = 1;
+            } else {
+              bright++;
+            }
+          }
+        }
+      }
+    }
+    scratch[i] = (dir << 7) | (max_r << 2) | (max_g >> 3);
+    scratch[i + 1] = (max_g << 5) | max_b;
+    scratch[i + 2] = (speed << 6) | bright;
+  }
+}
 
 void updatePatternRainbow() {
   byte maxVal = COLORTABLEMAX;
@@ -388,103 +451,103 @@ void updatePatternRainbow() {
 
     float tem = f % l;
     tem /= l;
-    
+
     //float temr = (tem * (currentValueLeft[1] - currentValueLeft[0])) + currentValueLeft[0];
     //float temg = (tem * (currentValueLeft[3] - currentValueLeft[2])) + currentValueLeft[2];
     //float temb = (tem * (currentValueLeft[5] - currentValueLeft[4])) + currentValueLeft[4];
-    float temr = (tem * (getLeftVal(currentValueLeft[1])-getLeftVal(currentValueLeft[0]))+getLeftVal(currentValueLeft[0]));
-    float temg = (tem * (getLeftVal(currentValueLeft[3])-getLeftVal(currentValueLeft[2]))+getLeftVal(currentValueLeft[2]));
-    float temb = (tem * (getLeftVal(currentValueLeft[5])-getLeftVal(currentValueLeft[4]))+getLeftVal(currentValueLeft[4]));
+    float temr = (tem * (getLeftVal(currentValueLeft[1]) - getLeftVal(currentValueLeft[0])) + getLeftVal(currentValueLeft[0]));
+    float temg = (tem * (getLeftVal(currentValueLeft[3]) - getLeftVal(currentValueLeft[2])) + getLeftVal(currentValueLeft[2]));
+    float temb = (tem * (getLeftVal(currentValueLeft[5]) - getLeftVal(currentValueLeft[4])) + getLeftVal(currentValueLeft[4]));
     if (f < l) { // sector 1 - green rising red falling
-    //  byte flg = floor(temg);
-    //  byte clg = ceil(temg);
-    //  if (clg == flg) {
-    //    g = getLeftVal(clg);
-    //  } else {
-    //    byte ming = getLeftVal(flg);
-    //    byte maxg = getLeftVal(clg);
-    //    maxg -= ming;
-    //    float temg2 = temg - flg;
-    //    g = ming + (maxg * temg2)+0.5;
-      g = temg+0.5;  
+      //  byte flg = floor(temg);
+      //  byte clg = ceil(temg);
+      //  if (clg == flg) {
+      //    g = getLeftVal(clg);
+      //  } else {
+      //    byte ming = getLeftVal(flg);
+      //    byte maxg = getLeftVal(clg);
+      //    maxg -= ming;
+      //    float temg2 = temg - flg;
+      //    g = ming + (maxg * temg2)+0.5;
+      g = temg + 0.5;
       //}
-      
-      temr=255-temr;
-      r=temr+0.5;
-    /*
-      byte flr = floor(temr);
-      byte clr = ceil(temr);
-      if (clr == flr) {
-        r = getLeftVal(clr);
-      } else {
-        byte minr = getLeftVal(flr);
-        byte maxr = getLeftVal(clr);
-        maxr -= minr;
-        temr = temr - flr;
-        r = minr + (maxr * temr)+0.5;
-      }
-      */
-      b=getLeftVal(currentValueLeft[4]);
-    } else if (f < 2*l) { // sector 2 - blue rising green falling
+
+      temr = 255 - temr;
+      r = temr + 0.5;
       /*
-      byte flb = floor(temb);
-      byte clb = ceil(temb);
-      if (clb == flb) {
+        byte flr = floor(temr);
+        byte clr = ceil(temr);
+        if (clr == flr) {
+          r = getLeftVal(clr);
+        } else {
+          byte minr = getLeftVal(flr);
+          byte maxr = getLeftVal(clr);
+          maxr -= minr;
+          temr = temr - flr;
+          r = minr + (maxr * temr)+0.5;
+        }
+      */
+      b = getLeftVal(currentValueLeft[4]);
+    } else if (f < 2 * l) { // sector 2 - blue rising green falling
+      /*
+        byte flb = floor(temb);
+        byte clb = ceil(temb);
+        if (clb == flb) {
         b = getLeftVal(clb);
-      } else {
+        } else {
         byte minb = getLeftVal(flb);
         byte maxb = getLeftVal(clb);
         maxb -= minb;
         temb = temb - flb;
         b = minb + (maxb * temb)+0.5;
-      }
-      temg=maxVal-temg;
-      byte flg = floor(temg);
-      byte clg = ceil(temg);
-      if (clg == flg) {
+        }
+        temg=maxVal-temg;
+        byte flg = floor(temg);
+        byte clg = ceil(temg);
+        if (clg == flg) {
         g = getLeftVal(clg);
-      } else {
+        } else {
         byte ming = getLeftVal(flg);
         byte maxg = getLeftVal(clg);
         maxg -= ming;
         temg = temg - flg;
         g = ming + (maxg * temg)+0.5;
-      }
+        }
       */
-    
-      temg=255-temg;
-      g=temg+0.5;
-      b=temb+0.5;
-      r=getLeftVal(currentValueLeft[0]);
+
+      temg = 255 - temg;
+      g = temg + 0.5;
+      b = temb + 0.5;
+      r = getLeftVal(currentValueLeft[0]);
     } else { // sector 3 - red rising blue falling
       /*
-      byte flr = floor(temr);
-      byte clr = ceil(temr);
-      if (clr == flr) {
+        byte flr = floor(temr);
+        byte clr = ceil(temr);
+        if (clr == flr) {
         r = getLeftVal(clr);
-      } else {
+        } else {
         byte minr = getLeftVal(flr);
         byte maxr = getLeftVal(clr);
         maxr -= minr;
         temr = temr - flr;
         r = minr + (maxr * temr)+0.5;
-      }
-      temb=maxVal-temb;
-      byte flb = floor(temb);
-      byte clb = ceil(temb);
-      if (clb == flb) {
+        }
+        temb=maxVal-temb;
+        byte flb = floor(temb);
+        byte clb = ceil(temb);
+        if (clb == flb) {
         b = getLeftVal(clb);
-      } else {
+        } else {
         byte minb = getLeftVal(flb);
         byte maxb = getLeftVal(clb);
         maxb -= minb;
         temb = temb - flb;
         b = minb + (maxb * temb)+0.5;
-      } */
-    temb=255-temb;
-      b=temb+0.5;
-      r=temr+0.5;
-      g=getLeftVal(currentValueLeft[2]);
+        } */
+      temb = 255 - temb;
+      b = temb + 0.5;
+      r = temr + 0.5;
+      g = getLeftVal(currentValueLeft[2]);
     }
   } else {
     if (f == 0) {
