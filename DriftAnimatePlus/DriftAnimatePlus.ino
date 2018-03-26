@@ -213,6 +213,7 @@ void advanceMode() {
     currentMode++;
   }
   memset(scratch, 0, 600);
+  memset(pixels,0,600);
   for (byte i = 0; i < 8; i++) { //set the current setting values to defaults
     if (pgm_read_byte_near(&defaultValueLeft[currentMode][i]) == 255) {
       currentValueLeft[i] = random(pgm_read_byte_near(&maxValueLeft[currentMode][i]));
@@ -554,7 +555,6 @@ ISR(PCINT1_vect)
   static int8_t encrval = 0;   //encoder value
   //static const int8_t enc_states [] PROGMEM = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};  //encoder lookup table
   static const int8_t enc_states [] PROGMEM = {0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0}; // reversed encoder table
-  /**/
   old_ABl <<= 2; //remember previous state
   old_ABr <<= 2; //remember previous state
   old_ABl |= ( PINC & 0x03 );
