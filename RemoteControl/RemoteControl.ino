@@ -69,7 +69,6 @@ void setup() {
   mytarget = (tval == 255) ? mytarget : tval;
   tval = EEPROM.read(9);
   myid = (tval == 255) ? myid : tval;
-  pinMode(LED_BUILTIN, OUTPUT);
   pinMode(txpin,OUTPUT);
   //pinMode(LED5,OUTPUT);
   pinMode(5, INPUT_PULLUP);
@@ -161,21 +160,20 @@ void preparePayload8(byte btn,byte rover) {
 }
 void preparePayload16(byte btn,byte notused) {
   txrxbuffer[0] = 128|mytarget;
-  txrxbuffer[1] = 0x55;
-  txrxbuffer[2] = ((myid & 0x0F) << 4) + btn;
-  txrxbuffer[3] = (rover?0x50:0x20);
-  txrxbuffer[4] = 0x54;
-  txrxbuffer[5] = 0x55;
-  txrxbuffer[6] = 0x56;
-  txrxbuffer[7] = 0x54;
-  txrxbuffer[8] = 0x55;
-  txrxbuffer[9] = 0x56;
-  txrxbuffer[10] = 0x54;
-  txrxbuffer[11] = 0x55;
-  txrxbuffer[12] = 0x56;
-  txrxbuffer[13] = 0x54;
-  txrxbuffer[14] = 0x55;
-  
+  txrxbuffer[1] = 0x54;
+  txrxbuffer[2] = commands[btn][0];
+  txrxbuffer[3] = commands[btn][1];
+  txrxbuffer[4] = commands[btn][2];
+  txrxbuffer[5] = commands[btn][3];
+  txrxbuffer[6] = commands[btn][4];
+  txrxbuffer[7] = commands[btn][5];
+  txrxbuffer[8] = commands[btn][6];
+  txrxbuffer[9] = commands[btn][7];
+  txrxbuffer[10] = commands[btn][8];
+  txrxbuffer[11] = commands[btn][9];
+  txrxbuffer[12] = commands[btn][10];
+  txrxbuffer[13] = commands[btn][11];
+  txrxbuffer[14] = commands[btn][12];
   TXLength = 16;
 }
 void preparePayload32(byte btn,byte rover) {
@@ -216,20 +214,12 @@ void preparePayload32(byte btn,byte rover) {
   
   TXLength = 32;
 }
-void prepareErrorPayload(byte state) {
-  byte plen = txrxbuffer[0] >> 6;
-  plen = 4 << plen;
-  txrxbuffer[0] = mytarget;
-  txrxbuffer[1] = 0x55;
-  txrxbuffer[2] = ((myid & 0x0F) << 4);
-  txrxbuffer[3] = 0xA0;
-  TXLength = 4;
-}
+
 
 
 void doTransmit(int rep) { //rep is the number of repetitions
   Serial.println("Starting transmit");
-  digitalWrite(LED_BUILTIN, 1);
+  
   byte txchecksum = 0;
   for (byte i = 0; i < TXLength - 1; i++) {
     txchecksum = txchecksum ^ txrxbuffer[i];
@@ -279,5 +269,4 @@ void doTransmit(int rep) { //rep is the number of repetitions
     digitalWrite(txpin,0);
   }
   TXLength = 0;
-  digitalWrite(LED_BUILTIN, 0);
 }
