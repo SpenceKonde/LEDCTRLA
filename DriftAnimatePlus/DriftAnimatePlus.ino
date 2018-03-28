@@ -63,6 +63,7 @@ const char * const modesR[][8] PROGMEM = {
 
 };
 
+const char * const directionNames={mode4R2_0,mode4R2_1};
 // names of modes
 const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name};
 
@@ -313,13 +314,9 @@ void handleLCD() {
     lcd.setCursor(4, 1);
     lcd.print(FLASH(modeNames[currentMode]));
     lcd.setCursor(13, 1);
-    /*if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])==1) {
-      if(currentValueRight[currentSettingRight]){
-        lcd.print(FLASH(mode4R2_0));
-      } else {
-        lcd.print(FLASH(mode4R2_1));
-      }
-    } else*/ {
+    if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])==1) { //if max is 1, that means it's forward/reverse
+      lcd.print(FLASH(directionNames[currentValueRight[currentSettingRight]]));
+    } else {
       tval = currentValueRight[currentSettingRight];
       if (tval < 100) lcd.print(' ');
       if (tval < 10) lcd.print(' ');
@@ -420,19 +417,16 @@ void updatePatternPulse() {
         speed = random(0, 3);
         bright = 0;
         dir = 0;
-        if (!i) {Serial.print("new light");
-          Serial.print(' ');
-          Serial.print(speed);
-          Serial.print(' ');
-          Serial.print(bright);
-          Serial.print(' ');
-          Serial.println(max_r);
-        }
+        
       }
       pixels[i] = 0;
       pixels[i + 1] = 0;
       pixels[i + 2] = 0;
     } else {
+      if (!i) {Serial.print(frameNumber);
+          Serial.print(' ');
+          Serial.println(speed);
+        }
       if (!(frameNumber % (speed+2))) {
         if (dir && !bright) {
           dir = 0;
@@ -470,7 +464,7 @@ void updatePatternPulse() {
 void updatePatternRainbow() {
   byte maxVal = COLORTABLEMAX;
   byte l = 9 + (6 * currentValueRight[1]);
-  byte f = frameNumber % (3 * l);
+  byte f = (currentValueRight[2]?0:200)+frameNumber) % (3 * l); //if in forward direction, add 200, otherwise don't - this keeps the color from skipping when reversing the direction.
   byte r = 0;
   byte g = 0;
   byte b = 0;
