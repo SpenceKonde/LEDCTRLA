@@ -221,6 +221,7 @@ void processRFPacket(byte rlen) {
       currentValueRight[3]=recvMessage[12];
       currentValueRight[4]=recvMessage[13];
       currentValueRight[5]=recvMessage[14];
+      UIChanged=7;
     }
   }
 }
