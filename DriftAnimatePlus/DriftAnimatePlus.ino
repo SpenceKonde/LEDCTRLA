@@ -203,16 +203,40 @@ byte getFrameDelay() {
 
 void processRFPacket(byte rlen) {
 
+  byte vers = (rlen & 196) >> 6;
+  rlen &= 0x3F;
+  if (vers == 0 && rlen==15) { 
+    if (recvMessage[1]==0x54){
+      if (recvMessage[2] > maxModes) {return;} 
+      setMode(recvMessage[2]);
+      currentValueLeft[0]=recvMessage[3];
+      currentValueLeft[1]=recvMessage[4];
+      currentValueLeft[2]=recvMessage[5];
+      currentValueLeft[3]=recvMessage[6];
+      currentValueLeft[4]=recvMessage[7];
+      currentValueLeft[5]=recvMessage[8];
+      currentValueRight[0]=recvMessage[9];
+      currentValueRight[1]=recvMessage[10];
+      currentValueRight[2]=recvMessage[11];
+      currentValueRight[3]=recvMessage[12];
+      currentValueRight[4]=recvMessage[13];
+      currentValueRight[5]=recvMessage[14];
+    }
+  }
 }
-
 
 
 void advanceMode() {
   if (currentMode >= maxMode) {
-    currentMode = 0;
+    setMode(0);
   } else {
-    currentMode++;
+    setMode(currentMode+1);
   }
+  
+}
+    
+void setMode(byte mode) {
+  currentMode=mode;
   memset(scratch, 0, 600);
   memset(pixels,0,600);
   for (byte i = 0; i < 8; i++) { //set the current setting values to defaults
@@ -232,7 +256,6 @@ void advanceMode() {
   currentSettingLeft = 0;
   currentSettingRight = 0;
 }
-
 
 
 
