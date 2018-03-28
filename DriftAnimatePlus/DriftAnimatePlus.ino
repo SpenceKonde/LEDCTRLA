@@ -116,7 +116,7 @@ const byte maxSetting[][2] PROGMEM = {
 
 const byte maxMode = 5;
 
-const byte pulseBrightnessTable[] PROGMEM={0,1,2,3,4,5,6,7,8,9,10,12,14,16,18,20,22,24,26,28,31,34,37,40,43,46,49,52,55,59,63,67,71,75,79,83,87,92,97,102,107,112,117,122,127,133,139,145,151,157,163,169,175,182,189,196,203,210,217,224,231,239,247,255}
+const byte pulseBrightnessTable[] PROGMEM={0,1,2,3,4,5,6,7,8,9,10,12,14,16,18,20,22,24,26,28,31,34,37,40,43,46,49,52,55,59,63,67,71,75,79,83,87,92,97,102,107,112,117,122,127,133,139,145,151,157,163,169,175,182,189,196,203,210,217,224,231,239,247,255};
 
 volatile byte lastEncPins = 0;
 volatile byte currentSettingLeft = 0;
@@ -313,9 +313,13 @@ void handleLCD() {
     lcd.setCursor(4, 1);
     lcd.print(FLASH(modeNames[currentMode]));
     lcd.setCursor(13, 1);
-    if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])==1) {
-      lcd.print(FLASH(currentValueRight[currentSettingRight]?mode4R2_0:mode4R2_0));
-    } else {
+    /*if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])==1) {
+      if(currentValueRight[currentSettingRight]){
+        lcd.print(FLASH(mode4R2_0));
+      } else {
+        lcd.print(FLASH(mode4R2_1));
+      }
+    } else*/ {
       tval = currentValueRight[currentSettingRight];
       if (tval < 100) lcd.print(' ');
       if (tval < 10) lcd.print(' ');
@@ -372,13 +376,13 @@ void updatePatternDrift() {
 
 void updatePatternDots() {
   if (currentValueRight[2]) {//reverse
-    for (unsigned int i = 0; i < (LENGTH-3); i++) {
+    for (unsigned int i = 0; i < ((LENGTH-1)*3); i++) {
     pixels [i] = pixels[i + 3];
   }
   if (!(frameNumber % (13 - currentValueRight[1]))) {
-    pixels[LENGTH-3] = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
-    pixels[LENGTH-2] = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
-    pixels[LENGTH-1] = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
+    pixels[(3*LENGTH)-3] = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
+    pixels[(3*LENGTH)-2] = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
+    pixels[(3*LENGTH)-1] = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
   } else {
     pixels[LENGTH-3] = 0;
     pixels[LENGTH-2] = 0;
@@ -409,7 +413,7 @@ void updatePatternPulse() {
     byte bright = scratch[i + 2] & 0x3F;
     byte dir = (scratch[i] >> 7);
     if (!(max_r + max_b + max_g)) { // need to consider generating new target
-      if (random(0, (currentSettingRight[0]+2)*2*pgm_read_byte_near(&maxValueRight[currentMode][2])) < currentValueRight[2]) {
+      if (random(0, (currentValueRight[0]+2)*2*pgm_read_byte_near(&maxValueRight[currentMode][2])) < currentValueRight[2]) {
         max_r = random(currentValueLeft[0], currentValueLeft[1]);
         max_g = random(currentValueLeft[2], currentValueLeft[3]);
         max_b = random(currentValueLeft[4], currentValueLeft[5]);
@@ -510,13 +514,13 @@ void updatePatternRainbow() {
       b = getLeftVal(currentValueLeft[5]);
     }
   }
-  if (currentSettingRight[2]) { //reverse
-    for (unsigned int i = 0; i < (LENGTH-3); i++) {
+  if (currentValueRight[2]) { //reverse
+    for (unsigned int i = 0; i < ((LENGTH-1)*3); i++) {
       pixels [i] = pixels[i + 3];
     }
-    pixels[LENGTH-3] = r;
-    pixels[LENGTH-2] = g;
-    pixels[LENGTH-1] = b;
+    pixels[(LENGTH*3)-3] = r;
+    pixels[(LENGTH*3)-2] = g;
+    pixels[(LENGTH*3)-1] = b;
   } else {//forward
     for (unsigned int i = (LENGTH - 1) * 3; i > 2; i--) {
       pixels [i] = pixels[i - 3];

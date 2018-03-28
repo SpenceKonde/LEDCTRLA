@@ -14,6 +14,7 @@
 #define BUTTON_2 7
 #define BUTTON_3 5
 #define BUTTON_4 6 
+#define BUTTON_5 8 
 
 #define PCMSK0_SLEEP 0x39 //0b00111001
 
@@ -38,6 +39,7 @@ const byte commands[][13] PROGMEM={ //mode,first six left settings,first six rig
   {},
   {},
   {}
+};
 /*
 unsigned int rxSyncMin  = 1750;
 unsigned int rxSyncMax  = 2250;
