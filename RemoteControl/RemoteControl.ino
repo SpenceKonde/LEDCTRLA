@@ -34,11 +34,11 @@ unsigned int txTrainLen  = 200;
 byte txTrainRep  = 20;
 
 const byte commands[][13] PROGMEM={ //mode,first six left settings,first six right settings
-  {},
-  {},
-  {},
-  {},
-  {}
+  {1,0,15,0,15,0,15,10,0,0,0,0,0},
+  {5,0,31,0,31,0,31,8,4,0,0,0,0},
+  {5,0,31,0,31,0,31,8,4,0,0,0,0},
+  {4,0,31,0,31,0,31,8,4,0,0,0,0},
+  {5,0,31,0,31,0,31,8,1,0,0,0,0}
 };
 /*
 unsigned int rxSyncMin  = 1750;
