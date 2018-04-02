@@ -39,6 +39,8 @@ const char mode2Name[] PROGMEM = " COMETS ";
 const char mode3Name[] PROGMEM = " PULSE  ";
 const char mode4Name[] PROGMEM = " RAINBOW";
 const char mode5Name[] PROGMEM = "  DOTS  ";
+const char mode5Name[] PROGMEM = "  FADE  ";
+const char mode5Name[] PROGMEM = "  WAVE  ";
 
 
 //Names of settings by mode
@@ -48,7 +50,9 @@ const char * const modesL[][8] PROGMEM = {
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5}
+  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
+  {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5}, //different order!
+  {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5} //different order!
 
 };
 
@@ -58,18 +62,22 @@ const char * const modesR[][8] PROGMEM = {
   {mode1R0, mode1R1, mode2R2},
   {mode1R0, mode5R1},
   {mode1R0, mode2R2, mode4R2},
-  {mode1R0, mode5R1, mode4R2}
+  {mode1R0, mode5R1, mode4R2},
+  {mode1R0},
+  {mode1R0, mode2R2, mode4R2}
 
 };
 
 // names of modes
-const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name};
+const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name,mode6Name,mode7Name};
 
 #define COLORTABLEMAX 31
 
 //max and default settings controlled by left knob. 26 is special, it indicates to use the leftValues array
 const byte maxValueLeft[][8] PROGMEM = {
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
+  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
+  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
@@ -83,6 +91,8 @@ const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pic
   {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
   {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
   {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
+  {255,255, 255, 255, 255, 255},
+  {255,255, 255, 255, 255, 255}
 };
 
 //if above max is COLORTABLEMAX, use this value - otherwise use raw value.
@@ -94,7 +104,9 @@ const byte maxValueRight[][8] PROGMEM = {
   {10, 10, 10},
   {10, 20},
   {10, 10, 1},
-  {10, 12, 1}
+  {10, 12, 1},
+  {10},
+  {10, 7, 1}
 };
 const byte defaultValueRight[][8] PROGMEM = {
   {0},
@@ -102,18 +114,22 @@ const byte defaultValueRight[][8] PROGMEM = {
   {5, 10, 5},
   {5, 5},
   {5, 10, 0},
-  {5, 10, 0}
+  {5, 10, 0},
+  {5},
+  {5, 4, 0}
 };
 const byte maxSetting[][2] PROGMEM = {
-  {2, 0},
-  {5, 0},
-  {5, 2},
-  {5, 1},
-  {5, 2},
-  {5, 2}
+  {2, 0}, //solid
+  {5, 0}, //drift
+  {5, 2}, //comets
+  {5, 1}, //pulse
+  {5, 2}, //rainbow
+  {5, 2}, //dots
+  {5, 0}, //fade
+  {5, 2} //wave
 };
 
-const byte maxMode = 5;
+const byte maxMode = 7;
 
 const byte pulseBrightnessTable[] PROGMEM = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 59, 63, 67, 71, 75, 79, 83, 87, 92, 97, 102, 107, 112, 117, 122, 127, 133, 139, 145, 151, 157, 163, 169, 175, 182, 189, 196, 203, 210, 217, 224, 231, 239, 247, 255};
 
@@ -127,8 +143,6 @@ volatile byte UIChanged = 7;
 byte currentMode = 0;
 
 volatile unsigned long lastUserAction = 0;
-
-
 
 //animation related globals
 #define LENGTH 200
@@ -189,7 +203,6 @@ void setup() {
 
 void loop() {
   byte rlen = handleReceive();
-  //byte rlen = 0; //debug
   if (rlen) {
     processRFPacket(rlen);
   } else if ((!receiving)  && (millis() - lastRFMsgAt > 100)) { //will be if not receiving, but we don't know where we're saving the RXing status.
@@ -217,7 +230,6 @@ void processRFPacket(byte rlen) {
 
   byte vers = (rlen & 196) >> 6;
   rlen &= 0x3F;
-  //if (vers == 0) {
   if (recvMessage[1] == 0x54) {
     if (recvMessage[2] > maxMode) {
       return;
@@ -240,7 +252,6 @@ void processRFPacket(byte rlen) {
     lcd.print(F("REMOTE OVERRIDE"));
     UIChanged = 7;
   }
-  //}
 }
 
 
@@ -250,7 +261,6 @@ void advanceMode() {
   } else {
     setMode(currentMode + 1);
   }
-
 }
 
 void setMode(byte mode) {
@@ -297,22 +307,16 @@ void handleUI() {
         if ((!(btnRead & 2)) && (lastBtnState & 2)) {
           if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
             currentSettingLeft = 0;
-
           } else {
             currentSettingLeft++;
-
           }
-
-
           UIChanged |= 2;
         }
         if ((!(btnRead & 4)) && (lastBtnState & 4)) {
           if (currentSettingRight >= pgm_read_byte_near(&maxSetting[currentMode][1])) {
             currentSettingRight = 0;
-
           } else {
             currentSettingRight++;
-
           }
           UIChanged |= 2;
         }
@@ -331,16 +335,35 @@ byte getLeftVal(byte t) {
 }
 
 void handleLCD() {
+  static byte attractmode=0;
   byte uichg = 0;
   cli();
-  if (!UIChanged) {
-    sei();
-    return;
-  } else {
     uichg = UIChanged;
     UIChanged = 0;
     sei();
+  if (uichg == 0) {
+    if (millis() - lastInputAt > 30000) {
+      if (!attractmode) {
+        attractmode=1;
+        lcd.clear();
+        lcd.setCursor(2,0);
+        lcd.print(F("PLAY WITH ME"));
+        byte r=random(0,3);
+        if (r==0) {
+          lcd.print(F("USE KNOBS&BUTTON")); 
+        } else if (r==1) {
+          lcd.print(F("TURN MY KNOBS ;)")); 
+        } else if (r==2) {
+          lcd.print(F("ADJUST LIGHTING")); 
+        } else {
+          lcd.print(F(" LIGHTS ARE FUN")); 
+        }
+      }
+    }
+    return;
   }
+  lastInputAt=millis();
+  attractmode=0; //turn off attract mode, since if we got here, UI changes have happened.
   if (uichg & 6) { //if setting or mode has changed, redraw settings
     lcd.setCursor(0, 0);
     lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
@@ -383,12 +406,20 @@ void updatePattern() {
     }
   } else if (currentMode == 1) {
     updatePatternDrift();
+  } else if (currentMode == 2) {
+    //updatePatternComets();
   } else if (currentMode == 3) {
     updatePatternPulse();
   } else if (currentMode == 4) {
     updatePatternRainbow();
   } else if (currentMode == 5) {
     updatePatternDots();
+  } else if (currentMode == 6) {
+    updatePatternFade();
+  } else if (currentMode == 7) {
+    updatePatternWave();
+  } else {
+    setMode(0);
   }
   frameNumber++;
 }
@@ -463,7 +494,6 @@ void updatePatternPulse() {
         speed = random(0, 3);
         bright = 0;
         dir = 0;
-
       }
       pixels[i] = 0;
       pixels[i + 1] = 0;
@@ -509,10 +539,74 @@ void updatePatternPulse() {
   }
 }
 
+void updatePatternFade() {
+  static byte bright=0;
+  if (bright&128) {
+    if (bright&63) {
+      bright--;
+    } else {
+      bright=0;
+    }
+  } else {
+    if (bright>=63) {
+      bright=0xBF;
+    } else {
+      bright++;
+    }
+  }
+  byte nbright = pgm_read_byte_near(&pulseBrightnessTable[63&bright]);
+  r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
+  g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
+  b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
+  for (unsigned int i=0;i<(LENGTH*3);i+=3) {
+    pixels[i]=r;
+    pixels[i+1]=g;
+    pixels[i+2]=b;
+  }   
+}
+
+void updatePatternWave() {
+  static byte bright=0;
+    for (byte i=0;i<(1+pgm_read_byte_near(&maxValueRight[currentMode][1])-currentValueRight[1])) { 
+  if (bright&128) {
+    if (bright&63) {
+      bright--;
+    } else {
+      bright=0;
+    }
+  } else {
+    if (bright>=63) {
+      bright=0xBF;
+    } else {
+      bright++;
+    }
+  }
+  }
+  byte nbright = pgm_read_byte_near(&pulseBrightnessTable[63&bright]);
+  r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
+  g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
+  b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
+  if (currentValueRight[2]) { //reverse
+    for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
+      pixels [i] = pixels[i + 3];
+    }
+    pixels[(LENGTH * 3) - 3] = r;
+    pixels[(LENGTH * 3) - 2] = g;
+    pixels[(LENGTH * 3) - 1] = b;
+  } else {//forward
+    for (unsigned int i = ((LENGTH) * 3)-1; i > 2; i--) {
+      pixels [i] = pixels[i - 3];
+    }
+    pixels[0] = r;
+    pixels[1] = g;
+    pixels[2] = b;
+  }
+}
+
 void updatePatternRainbow() {
   byte maxVal = COLORTABLEMAX;
   byte l = 9 + (6 * currentValueRight[1]);
-  byte f = ((currentValueRight[2] ? 0 : 200) + frameNumber) % (3 * l); //if in forward direction, add 200, otherwise don't - this keeps the color from skipping when reversing the direction.
+  byte f = ((currentValueRight[2] ? 0 : LENGTH) + frameNumber) % (3 * l); //if in forward direction, add 200, otherwise don't - this keeps the color from skipping when reversing the direction.
   byte r = 0;
   byte g = 0;
   byte b = 0;
@@ -783,7 +877,6 @@ ISR (TIMER1_CAPT_vect)
         receiving = 0;
         gotMessage = 1;
         TIMSK1 = 0; //turn off input capture;
-
       } else {
         bitnum++;
       }
