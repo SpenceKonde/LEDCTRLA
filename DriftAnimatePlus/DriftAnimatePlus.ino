@@ -111,7 +111,7 @@ const byte maxValueRight[][8] PROGMEM = {
 const byte defaultValueRight[][8] PROGMEM = {
   {0},
   {5},
-  {5, 10, 5},
+  {10, 10, 5},
   {5, 5},
   {5, 10, 0},
   {5, 10, 0},
@@ -192,7 +192,7 @@ void setup() {
   setupPins();
   setupPCINT();
   setupRF();
-  Serial.begin(115200);
+  //Serial.begin(115200);
   lcd.backlight();
   lcd.print(F(" Hello - Let's"));
   lcd.setCursor(2,1);
@@ -478,6 +478,23 @@ void updatePatternDots() {
   }
 }
 
+void updatePatternComets() {
+  
+}
+
+void createComet(byte index) {
+  if ((index+1)*20 <= (LENGTH*3)) {
+    
+  }
+}
+void removeComet(byte index) {
+  if ((index+1)*20 <= (LENGTH*3)) {
+    for (byte i=0;i<20;i++) {
+      scratch[index*20+i]=0;
+    }
+  }
+}
+
 void updatePatternPulse() {
   for (int  i = 0; i < (LENGTH * 3) - 2; i += 3) {
     byte max_r = (scratch[i] & 0x7C) >> 2;
@@ -499,11 +516,6 @@ void updatePatternPulse() {
       pixels[i + 1] = 0;
       pixels[i + 2] = 0;
     } else {
-      if (!i) {
-        Serial.print(frameNumber);
-        Serial.print(' ');
-        Serial.println(speed);
-      }
       if (!(frameNumber % (speed))) {
 
         if (dir && !bright) {
