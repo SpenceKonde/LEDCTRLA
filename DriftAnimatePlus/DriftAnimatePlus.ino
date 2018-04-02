@@ -705,7 +705,7 @@ ISR(PCINT1_vect)
   if ( enclval > 3 ) { //four steps forward
     if (currentValueLeft[currentSettingLeft] < pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]))currentValueLeft[currentSettingLeft]++;
     //hackjob to handle min exceeding max or vice versa.
-    if ((currentMode == 1 || currentMode == 2) && currentSettingLeft < 6) {
+    if ((currentMode == 1 || currentMode == 2 || currentMode==3 || currentMode==4 || currentMode==5) && currentSettingLeft < 6) {
       if (!(currentSettingLeft & 1)) {
         if (currentValueLeft[currentSettingLeft] > currentValueLeft[currentSettingLeft + 1]) {
           currentValueLeft[currentSettingLeft + 1] = currentValueLeft[currentSettingLeft];
