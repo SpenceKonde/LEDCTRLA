@@ -1,10 +1,10 @@
 #include <avr/sleep.h>
 #include <avr/power.h>
 
-#define txpin 4
-#define txPIN PINA
-#define txPORT PORTA
-#define txBV 64
+#define txpin 2
+#define txPIN PINB
+#define txPORT PORTB
+#define txBV 4
 #define RX_MAX_LEN 256
 #include <EEPROM.h>
 //#define LED5 4
@@ -12,11 +12,11 @@
 //#define LED_OFF 0
 #define BUTTON_1 10
 #define BUTTON_2 7
-#define BUTTON_3 5
-#define BUTTON_4 6 
-#define BUTTON_5 8 
+#define BUTTON_3 6
+#define BUTTON_4 5 
+#define BUTTON_5 4 
 
-#define PCMSK0_SLEEP 0x39 //0b00111001
+#define PCMSK0_SLEEP 0x79 //0b01111001
 
 unsigned char txrxbuffer[RX_MAX_LEN >> 3];
 byte btnst = 0;
@@ -73,6 +73,7 @@ void setup() {
   myid = (tval == 255) ? myid : tval;
   pinMode(txpin,OUTPUT);
   //pinMode(LED5,OUTPUT);
+  pinMode(4, INPUT_PULLUP);
   pinMode(5, INPUT_PULLUP);
   pinMode(6, INPUT_PULLUP);
   pinMode(7, INPUT_PULLUP);
@@ -99,7 +100,7 @@ byte getBtnst() {
   retval+=digitalRead(BUTTON_3)<<2; //pin3
   retval+=digitalRead(BUTTON_4)<<3; //pin4
   retval+=digitalRead(BUTTON_5)<<4; //pin5
-  return (~retval) & 0xF;
+  return (~retval) & 0x1F;
 }
 
 
@@ -110,15 +111,15 @@ void loop() {
   if (btnst) {
     Serial.println(btnst);
     if (btnst == 1 ) {
-      preparePayload16(3,0);
+      preparePayload16(0,0);
     } else if (btnst == 2) {
-      preparePayload16(4,0);
+      preparePayload16(1,0);
     } else if (btnst == 4) {
       preparePayload16(2,0);
     } else if (btnst == 8) {
-      preparePayload16(1,0);
+      preparePayload16(3,0);
     } else if (btnst ==16){
-      preparePayload16(5,0);
+      preparePayload16(4,0);
     }
     doTransmit(10);
   }
@@ -161,21 +162,22 @@ void preparePayload8(byte btn,byte rover) {
   TXLength = 8;
 }
 void preparePayload16(byte btn,byte notused) {
+  if (btn > 4) btn=4;
   txrxbuffer[0] = 128|mytarget;
   txrxbuffer[1] = 0x54;
-  txrxbuffer[2] = commands[btn][0];
-  txrxbuffer[3] = commands[btn][1];
-  txrxbuffer[4] = commands[btn][2];
-  txrxbuffer[5] = commands[btn][3];
-  txrxbuffer[6] = commands[btn][4];
-  txrxbuffer[7] = commands[btn][5];
-  txrxbuffer[8] = commands[btn][6];
-  txrxbuffer[9] = commands[btn][7];
-  txrxbuffer[10] = commands[btn][8];
-  txrxbuffer[11] = commands[btn][9];
-  txrxbuffer[12] = commands[btn][10];
-  txrxbuffer[13] = commands[btn][11];
-  txrxbuffer[14] = commands[btn][12];
+  txrxbuffer[2] = pgm_read_byte_near(&commands[btn][0]);
+  txrxbuffer[3] = pgm_read_byte_near(&commands[btn][1]);
+  txrxbuffer[4] = pgm_read_byte_near(&commands[btn][2]);
+  txrxbuffer[5] = pgm_read_byte_near(&commands[btn][3]);
+  txrxbuffer[6] = pgm_read_byte_near(&commands[btn][4]);
+  txrxbuffer[7] = pgm_read_byte_near(&commands[btn][5]);
+  txrxbuffer[8] = pgm_read_byte_near(&commands[btn][6]);
+  txrxbuffer[9] = pgm_read_byte_near(&commands[btn][7]);
+  txrxbuffer[10] = pgm_read_byte_near(&commands[btn][8]);
+  txrxbuffer[11] = pgm_read_byte_near(&commands[btn][9]);
+  txrxbuffer[12] = pgm_read_byte_near(&commands[btn][10]);
+  txrxbuffer[13] = pgm_read_byte_near(&commands[btn][11]);
+  txrxbuffer[14] = pgm_read_byte_near(&commands[btn][12]);
   TXLength = 16;
 }
 void preparePayload32(byte btn,byte rover) {
