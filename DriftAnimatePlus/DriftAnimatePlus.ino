@@ -147,6 +147,7 @@ volatile byte currentSettingRight = 0;
 volatile byte currentValueLeft[] = {0, 0, 0, 0, 0, 0, 0, 0};
 volatile byte currentValueRight[] = {0, 0, 0, 0, 0, 0, 0, 0};
 volatile byte UIChanged = 7;
+volatile unsigned long lastRFUpdateAt=0;
 
 byte currentMode = 0;
 
@@ -346,6 +347,9 @@ void handleLCD() {
   static unsigned long lastInputAt;
   static byte attractmode=0;
   byte uichg = 0;
+  if (millis() - lastRFUpdateAt < 5000 && lastRFUpdateAt) {
+    return;
+  }
   cli();
     uichg = UIChanged;
     UIChanged = 0;
@@ -492,14 +496,27 @@ void updatePatternDots() {
 }
 
 void updatePatternComets() {
+  static byte nextCometIn=0;
   memset(pixels,0,600);
   for (byte i=0; (i+1)*20 <= (LENGTH); i++) {
     if (scratch[i*60]) {
-      
-      for (byte j=0;(j<(scratch[i*60+2]*3) && j<LENGTH*3);j++){
-        pixels[(scratch[i*60+1]*3)+j] = scratch[i*60+12+j];
+      if (!frameNumber%(scratch[i*60+3]+1)) {
+        scratch[i*60+1]+=1;
+      }
+      if (scratch[i*60+1]+scratch[i*60+2]) > LENGTH) {
+        removeComet(i);
+      } else {
+        for (byte j=0;(j<(scratch[i*60+2]*3));j++){
+          if (j <= (scratch[i*60+1]*3)) {
+            pixels[(scratch[i*60+1]*3)-j] = scratch[i*60+12+j];
+          }
+        }
       }
     }
+  }
+  if (!nextCometIn--) {
+    createComet();
+    nextCometIn=random(30-2*currentSettingRight[2],200-10*currentSettingRight[2]);
   }
 }
 
@@ -508,6 +525,7 @@ void updatePatternComets() {
 // Byte 0: active - 0 = inactive 1 = active 
 // byte 1: starts at position
 // byte 2: length
+// byte 3: speed
 
 
 void createComet() {
@@ -516,7 +534,22 @@ void createComet() {
       unsigned int index= i*60;
       scratch[index]=1;
       scratch[index+1]=0; //start at position 0. 
-      
+      scratch[index+2]=random(3,currentSettingRight[1]+6);
+      unsigned int l=3*scratch[index+2]; 
+      byte r = random(currentValueLeft[0], currentValueLeft[1]);
+      byte g = random(currentValueLeft[2], currentValueLeft[3]);
+      byte b = random(currentValueLeft[4], currentValueLeft[5]);
+      for (byte j=0;j<l;j+=3) {
+        if (!j || random(0,1)){
+          scratch[i*60+12+j]=r;
+          scratch[i*60+13+j]=g;
+          scratch[i*60+14+j]=b;
+        } else {
+          scratch[i*60+12+j]=0;
+          scratch[i*60+13+j]=0;
+          scratch[i*60+14+j]=0;
+        }
+      }
       return 1;
     }
   }
