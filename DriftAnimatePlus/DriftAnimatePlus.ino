@@ -39,8 +39,9 @@ const char mode2Name[] PROGMEM = " COMETS ";
 const char mode3Name[] PROGMEM = " PULSE  ";
 const char mode4Name[] PROGMEM = " RAINBOW";
 const char mode5Name[] PROGMEM = "  DOTS  ";
-const char mode5Name[] PROGMEM = "  FADE  ";
-const char mode5Name[] PROGMEM = "  WAVE  ";
+const char mode6Name[] PROGMEM = "  FADE  ";
+const char mode7Name[] PROGMEM = "  WAVE  ";
+const char mode8Name[] PROGMEM = " CHASE  ";
 
 
 //Names of settings by mode
@@ -52,7 +53,8 @@ const char * const modesL[][8] PROGMEM = {
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
   {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5}, //different order!
-  {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5} //different order!
+  {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5}, //different order!
+  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5}
 
 };
 
@@ -64,18 +66,20 @@ const char * const modesR[][8] PROGMEM = {
   {mode1R0, mode2R2, mode4R2},
   {mode1R0, mode5R1, mode4R2},
   {mode1R0},
+  {mode1R0, mode2R2, mode4R2},
   {mode1R0, mode2R2, mode4R2}
 
 };
 
 // names of modes
-const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name,mode6Name,mode7Name};
+const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name,mode6Name,mode7Name,mode8Name};
 
 #define COLORTABLEMAX 31
 
 //max and default settings controlled by left knob. 26 is special, it indicates to use the leftValues array
 const byte maxValueLeft[][8] PROGMEM = {
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
+  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
@@ -92,7 +96,8 @@ const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pic
   {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
   {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
   {255,255, 255, 255, 255, 255},
-  {255,255, 255, 255, 255, 255}
+  {255,255, 255, 255, 255, 255},
+  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX}
 };
 
 //if above max is COLORTABLEMAX, use this value - otherwise use raw value.
@@ -106,7 +111,8 @@ const byte maxValueRight[][8] PROGMEM = {
   {10, 10, 1},
   {10, 12, 1},
   {10},
-  {10, 7, 1}
+  {10, 7, 1},
+  {10, 20, 1}
 };
 const byte defaultValueRight[][8] PROGMEM = {
   {0},
@@ -116,7 +122,8 @@ const byte defaultValueRight[][8] PROGMEM = {
   {5, 10, 0},
   {5, 10, 0},
   {5},
-  {5, 4, 0}
+  {5, 4, 0},
+  {5, 10, 0}
 };
 const byte maxSetting[][2] PROGMEM = {
   {2, 0}, //solid
@@ -126,10 +133,11 @@ const byte maxSetting[][2] PROGMEM = {
   {5, 2}, //rainbow
   {5, 2}, //dots
   {5, 0}, //fade
-  {5, 2} //wave
+  {5, 2}, //wave
+  {5, 2} //chase
 };
 
-const byte maxMode = 7;
+const byte maxMode = 8;
 
 const byte pulseBrightnessTable[] PROGMEM = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 59, 63, 67, 71, 75, 79, 83, 87, 92, 97, 102, 107, 112, 117, 122, 127, 133, 139, 145, 151, 157, 163, 169, 175, 182, 189, 196, 203, 210, 217, 224, 231, 239, 247, 255};
 
@@ -335,6 +343,7 @@ byte getLeftVal(byte t) {
 }
 
 void handleLCD() {
+  static unsigned long lastInputAt;
   static byte attractmode=0;
   byte uichg = 0;
   cli();
@@ -342,12 +351,13 @@ void handleLCD() {
     UIChanged = 0;
     sei();
   if (uichg == 0) {
-    if (millis() - lastInputAt > 30000) {
+    if (millis() - lastInputAt > 60000) {
       if (!attractmode) {
         attractmode=1;
         lcd.clear();
         lcd.setCursor(2,0);
         lcd.print(F("PLAY WITH ME"));
+        lcd.setCursor(0,1);
         byte r=random(0,3);
         if (r==0) {
           lcd.print(F("USE KNOBS&BUTTON")); 
@@ -356,21 +366,21 @@ void handleLCD() {
         } else if (r==2) {
           lcd.print(F("ADJUST LIGHTING")); 
         } else {
-          lcd.print(F(" LIGHTS ARE FUN")); 
+          lcd.print(F(" LIGHTS ARE FUN!")); 
         }
       }
     }
     return;
   }
-  lastInputAt=millis();
-  attractmode=0; //turn off attract mode, since if we got here, UI changes have happened.
-  if (uichg & 6) { //if setting or mode has changed, redraw settings
+  if(attractmode) {lcd.clear();}
+  lastInputAt=millis(); 
+  if ((uichg & 6) || attractmode ) { //if setting or mode has changed, redraw settings
     lcd.setCursor(0, 0);
     lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
     lcd.print(' ');
     lcd.print(FLASH(modesR[currentMode][currentSettingRight]));
   }
-  if (uichg & 7) { //if mode, setting, or value has changed, redraw second line
+  if ((uichg & 7) || attractmode) { //if mode, setting, or value has changed, redraw second line
     lcd.setCursor(0, 1);
     byte tval = getLeftVal(currentValueLeft[currentSettingLeft]);
     lcd.print(tval);
@@ -396,6 +406,7 @@ void handleLCD() {
       }
     }
   }
+  attractmode=0;
 }
 
 
@@ -418,6 +429,8 @@ void updatePattern() {
     updatePatternFade();
   } else if (currentMode == 7) {
     updatePatternWave();
+  } else if (currentMode == 8) {
+    updatePatternChase();
   } else {
     setMode(0);
   }
@@ -479,18 +492,40 @@ void updatePatternDots() {
 }
 
 void updatePatternComets() {
-  
-}
-
-void createComet(byte index) {
-  if ((index+1)*20 <= (LENGTH*3)) {
-    
+  memset(pixels,0,600);
+  for (byte i=0; (i+1)*20 <= (LENGTH); i++) {
+    if (scratch[i*60]) {
+      
+      for (byte j=0;(j<(scratch[i*60+2]*3) && j<LENGTH*3);j++){
+        pixels[(scratch[i*60+1]*3)+j] = scratch[i*60+12+j];
+      }
+    }
   }
 }
+
+//comet data:
+// last 48 bytes are the comet 
+// Byte 0: active - 0 = inactive 1 = active 
+// byte 1: starts at position
+// byte 2: length
+
+
+void createComet() {
+  for (byte i=0; (i+1)*20 <= (LENGTH); i++) {
+    if (scratch[i*60]==0) {
+      unsigned int index= i*60;
+      scratch[index]=1;
+      scratch[index+1]=0; //start at position 0. 
+      
+      return 1;
+    }
+  }
+  return 0;
+}
 void removeComet(byte index) {
-  if ((index+1)*20 <= (LENGTH*3)) {
-    for (byte i=0;i<20;i++) {
-      scratch[index*20+i]=0;
+  if ((index+1)*20 <= (LENGTH)) {
+    for (byte i=0;i<60;i++) {
+      scratch[index*60+i]=0;
     }
   }
 }
@@ -567,9 +602,9 @@ void updatePatternFade() {
     }
   }
   byte nbright = pgm_read_byte_near(&pulseBrightnessTable[63&bright]);
-  r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
-  g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
-  b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
+  byte r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
+  byte g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
+  byte b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
   for (unsigned int i=0;i<(LENGTH*3);i+=3) {
     pixels[i]=r;
     pixels[i+1]=g;
@@ -579,7 +614,7 @@ void updatePatternFade() {
 
 void updatePatternWave() {
   static byte bright=0;
-    for (byte i=0;i<(1+pgm_read_byte_near(&maxValueRight[currentMode][1])-currentValueRight[1])) { 
+    for (byte i=0;i<(1+pgm_read_byte_near(&maxValueRight[currentMode][1])-currentValueRight[1]);i++) { 
   if (bright&128) {
     if (bright&63) {
       bright--;
@@ -595,9 +630,39 @@ void updatePatternWave() {
   }
   }
   byte nbright = pgm_read_byte_near(&pulseBrightnessTable[63&bright]);
-  r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
-  g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
-  b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
+  byte r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
+  byte g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
+  byte b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
+  if (currentValueRight[2]) { //reverse
+    for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
+      pixels [i] = pixels[i + 3];
+    }
+    pixels[(LENGTH * 3) - 3] = r;
+    pixels[(LENGTH * 3) - 2] = g;
+    pixels[(LENGTH * 3) - 1] = b;
+  } else {//forward
+    for (unsigned int i = ((LENGTH) * 3)-1; i > 2; i--) {
+      pixels [i] = pixels[i - 3];
+    }
+    pixels[0] = r;
+    pixels[1] = g;
+    pixels[2] = b;
+  }
+}
+
+void updatePatternChase() {
+  static byte nextColorAt=0;
+  static byte r;
+  static byte g;
+  static byte b;
+  if (!nextColorAt){
+   r = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
+   g = random(getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
+   b = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
+   nextColorAt=random(5,5+(currentValueRight[1]*2)); 
+  } else {
+    nextColorAt--;
+  }
   if (currentValueRight[2]) { //reverse
     for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
       pixels [i] = pixels[i + 3];
