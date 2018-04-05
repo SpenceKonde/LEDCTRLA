@@ -201,7 +201,7 @@ void setup() {
   setupPins();
   setupPCINT();
   setupRF();
-  //Serial.begin(115200);
+  Serial.begin(115200);
   lcd.backlight();
   lcd.print(F(" Hello - Let's"));
   lcd.setCursor(2,1);
@@ -268,6 +268,7 @@ void advanceMode() {
   if (currentMode >= maxMode) {
     setMode(0);
   } else {
+    if (currentMode==1) currentMode++;
     setMode(currentMode + 1);
   }
 }
@@ -421,7 +422,7 @@ void updatePattern() {
     }
   } else if (currentMode == 1) {
     updatePatternDrift();
-  } else if (currentMode == 2) {
+  //} else if (currentMode == 2) {
     //updatePatternComets();
   } else if (currentMode == 3) {
     updatePatternPulse();
@@ -499,11 +500,15 @@ void updatePatternComets() {
   static byte nextCometIn=0;
   memset(pixels,0,600);
   for (byte i=0; (i+1)*20 <= (LENGTH); i++) {
+         if (i==0) {
+      Serial.println(scratch[i*60]);
+     }
     if (scratch[i*60]) {
+
       if (!frameNumber%(scratch[i*60+3]+1)) {
         scratch[i*60+1]+=1;
       }
-      if (scratch[i*60+1]+scratch[i*60+2]) > LENGTH) {
+      if ((scratch[i*60+1]+scratch[i*60+2]) > LENGTH) {
         removeComet(i);
       } else {
         for (byte j=0;(j<(scratch[i*60+2]*3));j++){
@@ -511,12 +516,15 @@ void updatePatternComets() {
             pixels[(scratch[i*60+1]*3)-j] = scratch[i*60+12+j];
           }
         }
+        
       }
     }
   }
-  if (!nextCometIn--) {
-    createComet();
-    nextCometIn=random(30-2*currentSettingRight[2],200-10*currentSettingRight[2]);
+  if (nextCometIn==0) {
+    nextCometIn=random(30-2*currentValueRight[2],200-10*currentValueRight[2]);
+  } else {
+  
+    nextCometIn--;
   }
 }
 
@@ -528,13 +536,14 @@ void updatePatternComets() {
 // byte 3: speed
 
 
-void createComet() {
+byte createComet() {
   for (byte i=0; (i+1)*20 <= (LENGTH); i++) {
     if (scratch[i*60]==0) {
       unsigned int index= i*60;
       scratch[index]=1;
       scratch[index+1]=0; //start at position 0. 
-      scratch[index+2]=random(3,currentSettingRight[1]+6);
+      scratch[index+2]=random(3,currentValueRight[1]+6);
+      scratch[index+3]=random(0,3);
       unsigned int l=3*scratch[index+2]; 
       byte r = random(currentValueLeft[0], currentValueLeft[1]);
       byte g = random(currentValueLeft[2], currentValueLeft[3]);
