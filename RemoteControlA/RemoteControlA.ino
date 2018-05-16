@@ -36,10 +36,13 @@ byte txTrainRep  = 20;
 const byte commands[][13] PROGMEM={ //mode,first six left settings,first six right settings
   {1,0,15,0,15,0,15,10,0,0,0,0,0}, //Basement 1
   {7,31,0,31,0,31,15,9,4,0,0,0,0}, //Basement 2
-  {8,0,31,0,31,0,31,8,4,0,0,0,0}, //Basement 3
-  {4,0,31,0,31,0,31,8,4,0,0,0,0}, //Basement 4
+  {8,0,31,0,31,0,31,8,4,0,0,0,0}, //Main Hall 1
+  {4,0,31,0,31,0,31,8,4,0,0,0,0}, //Main Hall 2
   {0,0,0,0,0,0,0,0,0,0,0,0,0} //Off
 };
+
+const byte targets[] = {0x2A, 0x2A, 0x29, 0x29, 0x28};
+
 /*
 unsigned int rxSyncMin  = 1750;
 unsigned int rxSyncMax  = 2250;
@@ -111,15 +114,15 @@ void loop() {
   if (btnst) {
     Serial.println(btnst);
     if (btnst == 1 ) {
-      preparePayload16(0,0);
+      preparePayload16(0,targets[0]);
     } else if (btnst == 2) {
-      preparePayload16(1,0);
+      preparePayload16(1,targets[1]);
     } else if (btnst == 4) {
-      preparePayload16(2,0);
+      preparePayload16(2,targets[2]);
     } else if (btnst == 8) {
-      preparePayload16(3,0);
+      preparePayload16(3,targets[3]);
     } else if (btnst ==16){
-      preparePayload16(4,0);
+      preparePayload16(4,targets[4]);
     }
     doTransmit(10);
   }
@@ -139,31 +142,9 @@ void loop() {
   }
 }
 
-void preparePayload(byte btn,byte rover) {
-  byte plen = txrxbuffer[0] >> 6;
-  plen = 4 << plen;
-  txrxbuffer[0] = mytarget;
-  txrxbuffer[1] = 0x55;
-  txrxbuffer[2] = ((myid & 0x0F) << 4) + btn;
-  txrxbuffer[3] = (rover?0x50:0x20);
-  TXLength = 4;
-}
-void preparePayload8(byte btn,byte rover) {
-  byte plen = txrxbuffer[0] >> 6;
-  plen = 4 << plen;
-  txrxbuffer[0] = 64|mytarget;
-  txrxbuffer[1] = 0x55;
-  txrxbuffer[2] = ((myid & 0x0F) << 4) + btn;
-  txrxbuffer[3] = (rover?0x50:0x20);
-  txrxbuffer[4] = 0x54;
-  txrxbuffer[5] = 0x55;
-  txrxbuffer[6] = 0x56;
-  
-  TXLength = 8;
-}
-void preparePayload16(byte btn,byte notused) {
+void preparePayload16(byte btn,byte target) {
   if (btn > 4) btn=4;
-  txrxbuffer[0] = 128|(btn&2?0x2A,0x29);
+  txrxbuffer[0] = 128|target;
   txrxbuffer[1] = 0x54;
   txrxbuffer[2] = pgm_read_byte_near(&commands[btn][0]);
   txrxbuffer[3] = pgm_read_byte_near(&commands[btn][1]);
@@ -180,46 +161,6 @@ void preparePayload16(byte btn,byte notused) {
   txrxbuffer[14] = pgm_read_byte_near(&commands[btn][12]);
   TXLength = 16;
 }
-void preparePayload32(byte btn,byte rover) {
-  byte plen = txrxbuffer[0] >> 6;
-  plen = 4 << plen;
-  txrxbuffer[0] = 128|64|mytarget;
-  txrxbuffer[1] = 0x55;
-  txrxbuffer[2] = ((myid & 0x0F) << 4) + btn;
-  txrxbuffer[3] = (rover?0x50:0x20);
-  txrxbuffer[4] = 0x54;
-  txrxbuffer[5] = 0x55;
-  txrxbuffer[6] = 0x56;
-  txrxbuffer[7] = 0x54;
-  txrxbuffer[8] = 0x55;
-  txrxbuffer[9] = 0x56;
-  txrxbuffer[10] = 0x54;
-  txrxbuffer[11] = 0x55;
-  txrxbuffer[12] = 0x56;
-  txrxbuffer[13] = 0x54;
-  txrxbuffer[14] = 0x55;
-  txrxbuffer[15] = 0x55;
-  txrxbuffer[16] = 0x55;
-  txrxbuffer[17] = 0x55;
-  txrxbuffer[18] = 0x55;
-  txrxbuffer[19] = 0x55;
-  txrxbuffer[20] = 0x10;
-  txrxbuffer[21] = 0x25;
-  txrxbuffer[22] = 0xFF;
-  txrxbuffer[23] = 0x57;
-  txrxbuffer[24] = 0x55;
-  txrxbuffer[25] = 0x0F;
-  txrxbuffer[26] = 0xF0;
-  txrxbuffer[27] = 0x55;
-  txrxbuffer[28] = 0x55;
-  txrxbuffer[29] = 0x55;
-  txrxbuffer[30] = 0x55;
-  txrxbuffer[31] = 0x55;
-  
-  TXLength = 32;
-}
-
-
 
 void doTransmit(int rep) { //rep is the number of repetitions
   Serial.println("Starting transmit");
