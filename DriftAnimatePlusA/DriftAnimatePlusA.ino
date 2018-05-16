@@ -6,8 +6,8 @@
 #include <avr/pgmspace.h>
 
 // UI + encoder involved globals
-//LiquidCrystal_I2C lcd(0x3F, 16, 2);
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd(0x3F, 16, 2);
+//LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define ENC1_PINA 14
 #define ENC1_PINB 15
 #define ENC2_PINA 16
