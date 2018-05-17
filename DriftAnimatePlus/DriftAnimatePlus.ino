@@ -576,7 +576,7 @@ void updatePatternPulse() {
   for (int  i = 0; i < (LENGTH * 3) - 2; i += 3) {
     byte max_r = (scratch[i] & 0x7C) >> 2;
     byte max_g = (((scratch[i] & 0x02) << 3) | ((scratch[i + 1] >> 5))); //dont need to mask the low 5 bits here because we're just pushing them off the edge
-    byte max_b = (scratch[i + 1]) & 0x07;
+    byte max_b = (scratch[i + 1]) & 0x1F;
     byte speed = 1 + (scratch[i + 2] >> 6);
     byte bright = scratch[i + 2] & 0x3F;
     byte dir = (scratch[i] >> 7);
