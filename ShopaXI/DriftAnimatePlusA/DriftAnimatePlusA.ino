@@ -1,11 +1,13 @@
+//This is a slightly adapted version of DriftAnimatePlus that 
+
 #include <Adafruit_NeoPixel_Static.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 #include <avr/pgmspace.h>
 
 // UI + encoder involved globals
-//LiquidCrystal_I2C lcd(0x3F, 16, 2);
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd(0x3F, 16, 2);
+//LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define ENC1_PINA 14
 #define ENC1_PINB 15
 #define ENC2_PINA 16
@@ -90,14 +92,14 @@ const byte maxValueLeft[][8] PROGMEM = {
 };
 const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
   {255, 255, 255},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {255,255, 255, 255, 255, 255},
-  {255,255, 255, 255, 255, 255},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX}
+  {7, 19, 0, 19, 14, COLORTABLEMAX},
+  {7, 19, 0, 19, 14, COLORTABLEMAX},
+  {7, 19, 0, 19, 14, COLORTABLEMAX},
+  {7, 19, 0, 19, 14, COLORTABLEMAX},
+  {7, 19, 0, 19, 14, COLORTABLEMAX},
+  {7,19,14, 19, 0, 31},
+  {7,19,14, 19, 0, 31},
+  {7, 19, 0, 19, 14, COLORTABLEMAX}
 };
 
 //if above max is COLORTABLEMAX, use this value - otherwise use raw value.
@@ -164,7 +166,7 @@ unsigned long frameNumber = 0;
 Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800, pixels);
 
 //RF related globals
-const byte MyAddress = 0x28;
+const byte MyAddress = 0x2A;
 volatile byte receiving = 0;
 volatile byte bitnum = 0; //current bit received
 
@@ -360,19 +362,20 @@ void handleLCD() {
       if (!attractmode) {
         attractmode=1;
         lcd.clear();
-        lcd.setCursor(2,0);
-        lcd.print(F("PLAY WITH ME"));
+        lcd.setCursor(1,0);
+        lcd.print(F("SHORE PARTY XI"));
         lcd.setCursor(0,1);
-        byte r=random(0,3);
-        if (r==0) {
-          lcd.print(F("USE KNOBS&BUTTON")); 
-        } else if (r==1) {
-          lcd.print(F("TURN MY KNOBS ;)")); 
-        } else if (r==2) {
-          lcd.print(F("ADJUST LIGHTING")); 
-        } else {
-          lcd.print(F(" LIGHTS ARE FUN!")); 
-        }
+        //byte r=random(0,3);
+        //if (r==0) {
+          lcd.print(F("We're not a cult!")); 
+        //} else if (r==1) {
+          //lcd.print(F("TURN MY KNOBS ;)")); 
+        //} else if (r==2) {
+         // lcd.print(F("ADJUST LIGHTING")); 
+        //} else {
+        //  lcd.print(F(" LIGHTS ARE FUN!")); 
+       // }
+        
       }
     }
     return;
@@ -576,7 +579,7 @@ void updatePatternPulse() {
   for (int  i = 0; i < (LENGTH * 3) - 2; i += 3) {
     byte max_r = (scratch[i] & 0x7C) >> 2;
     byte max_g = (((scratch[i] & 0x02) << 3) | ((scratch[i + 1] >> 5))); //dont need to mask the low 5 bits here because we're just pushing them off the edge
-    byte max_b = (scratch[i + 1]) & 0x07;
+    byte max_b = (scratch[i + 1]) & 0x1F;
     byte speed = 1 + (scratch[i + 2] >> 6);
     byte bright = scratch[i + 2] & 0x3F;
     byte dir = (scratch[i] >> 7);

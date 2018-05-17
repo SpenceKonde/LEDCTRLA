@@ -34,14 +34,14 @@ unsigned int txTrainLen  = 200;
 byte txTrainRep  = 20;
 
 const byte commands[][13] PROGMEM={ //mode,first six left settings,first six right settings
-  {1,0,15,0,15,0,15,10,0,0,0,0,0}, //Basement 1
-  {7,31,0,31,0,31,15,9,4,0,0,0,0}, //Basement 2
-  {8,0,31,0,31,0,31,8,4,0,0,0,0}, //Main Hall 1
-  {4,0,31,0,31,0,31,8,4,0,0,0,0}, //Main Hall 2
+  {7,7,19,14,19,0,31,7,5,0,0,0,0}, //Basement 1
+  {3,7,19,14,19,14,31,9,4,0,0,0,0}, //Basement 2
+  {7,31,8,0,24,14,5,8,6,0,0,0,0}, //Main Hall 1
+  {1,15,31,4,16,0,5,5,0,0,0,0,0}, //Main Hall 2
   {0,0,0,0,0,0,0,0,0,0,0,0,0} //Off
 };
 
-const byte targets[] = {0x2A, 0x2A, 0x29, 0x29, 0x28};
+const byte targets[] = {0x2A, 0x2A, 0x29, 0x29, 0};
 
 /*
 unsigned int rxSyncMin  = 1750;

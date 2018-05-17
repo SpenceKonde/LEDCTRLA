@@ -92,14 +92,14 @@ const byte maxValueLeft[][8] PROGMEM = {
 };
 const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
   {255, 255, 255},
-  {15, 31, 4, 14, 0, 5},
-  {15, 31, 4, 14, 0, 5},
-  {15, 31, 4, 14, 0, 5},
-  {15, 31, 4, 14, 0, 5},
-  {15, 31, 4, 14, 0, 5},
-  {31,0,0, 22, 20, 4},
-  {31,0,0, 22, 20, 4},
-  {15, 31, 4, 14, 0, 5}
+  {15, 31, 4, 16, 0, 5},
+  {15, 31, 4, 16, 0, 5},
+  {15, 31, 4, 16, 0, 5},
+  {15, 31, 4, 16, 0, 5},
+  {15, 31, 4, 16, 0, 5},
+  {31,8,0, 24, 14, 5},
+  {31,8,0, 24, 14, 5},
+  {15, 31, 4, 16, 0, 5}
 };
 
 //if above max is COLORTABLEMAX, use this value - otherwise use raw value.
@@ -362,19 +362,19 @@ void handleLCD() {
       if (!attractmode) {
         attractmode=1;
         lcd.clear();
-        lcd.setCursor(2,0);
-        lcd.print(F("PLAY WITH ME"));
+        lcd.setCursor(1,0);
+        lcd.print(F("SHORE PARTY XI"));
         lcd.setCursor(0,1);
-        byte r=random(0,3);
-        if (r==0) {
-          lcd.print(F("USE KNOBS&BUTTON")); 
-        } else if (r==1) {
-          lcd.print(F("TURN MY KNOBS ;)")); 
-        } else if (r==2) {
-          lcd.print(F("ADJUST LIGHTING")); 
-        } else {
-          lcd.print(F(" LIGHTS ARE FUN!")); 
-        }
+        //byte r=random(0,3);
+        //1if (r==0) {
+          lcd.print(F("We're not a cult")); 
+        //} else if (r==1) {
+          //lcd.print(F("TURN MY KNOBS ;)")); 
+        //} else if (r==2) {
+          //lcd.print(F("ADJUST LIGHTING")); 
+        //} else {
+          //lcd.print(F(" LIGHTS ARE FUN!")); 
+        //}
       }
     }
     return;
@@ -578,7 +578,7 @@ void updatePatternPulse() {
   for (int  i = 0; i < (LENGTH * 3) - 2; i += 3) {
     byte max_r = (scratch[i] & 0x7C) >> 2;
     byte max_g = (((scratch[i] & 0x02) << 3) | ((scratch[i + 1] >> 5))); //dont need to mask the low 5 bits here because we're just pushing them off the edge
-    byte max_b = (scratch[i + 1]) & 0x07;
+    byte max_b = (scratch[i + 1]) & 0x1F;
     byte speed = 1 + (scratch[i + 2] >> 6);
     byte bright = scratch[i + 2] & 0x3F;
     byte dir = (scratch[i] >> 7);
