@@ -5,143 +5,16 @@
 //LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 
-#define FLASH(flashptr) (reinterpret_cast<const __FlashStringHelper *>(pgm_read_word_near(&flashptr)))
 
-// Names of mode settings - these get stuffed into modesL and modesR below.
-const char mode0L0[] PROGMEM = "  RED  ";
-const char mode0L1[] PROGMEM = " GREEN ";
-const char mode0L2[] PROGMEM = "  BLUE ";
-const char mode1L0[] PROGMEM = "MIN RED";
-const char mode1L1[] PROGMEM = "MAX RED";
-const char mode1L2[] PROGMEM = "MIN GRN";
-const char mode1L3[] PROGMEM = "MAX GRN";
-const char mode1L4[] PROGMEM = "MIN BLU";
-const char mode1L5[] PROGMEM = "MAX BLU";
-const char mode0R0[] PROGMEM = "       ";
-const char mode1R0[] PROGMEM = " SPEED ";
-const char mode1R1[] PROGMEM = " NUMBER";
-const char mode2R2[] PROGMEM = " LENGTH";
-const char mode4R2[] PROGMEM = " DIRECT";
-const char mode5R1[] PROGMEM = "DENSITY";
-const char mode0Name[] PROGMEM = " SOLID  ";
-const char mode1Name[] PROGMEM = "DRIFTING";
-const char mode2Name[] PROGMEM = " COMETS ";
-const char mode3Name[] PROGMEM = " PULSE  ";
-const char mode4Name[] PROGMEM = " RAINBOW";
-const char mode5Name[] PROGMEM = "  DOTS  ";
-const char mode6Name[] PROGMEM = "  FADE  ";
-const char mode7Name[] PROGMEM = "  WAVE  ";
-const char mode8Name[] PROGMEM = " CHASE  ";
-
-
-//Names of settings by mode
-const char * const modesL[][8] PROGMEM = {
-  {mode0L0, mode0L1, mode0L2},
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5}, //different order!
-  {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5}, //different order!
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5}
-
-};
-
-const char * const modesR[][8] PROGMEM = {
-  {mode0R0},
-  {mode1R0, mode1R1},
-  {mode1R0, mode1R1, mode2R2},
-  {mode1R0, mode5R1},
-  {mode1R0, mode2R2, mode4R2},
-  {mode1R0, mode5R1, mode4R2},
-  {mode1R0},
-  {mode1R0, mode2R2, mode4R2},
-  {mode1R0, mode2R2, mode4R2}
-
-};
-
-// names of modes
-const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name,mode6Name,mode7Name,mode8Name};
 
 #define COLORTABLEMAX 31
-
-//max and default settings controlled by left knob. 26 is special, it indicates to use the leftValues array
-const byte maxValueLeft[][8] PROGMEM = {
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX}
-};
-const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
-  {255, 255, 255},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {255,255, 255, 255, 255, 255},
-  {255,255, 255, 255, 255, 255},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX}
-};
-
-//if above max is COLORTABLEMAX, use this value - otherwise use raw value.
-const byte leftValues[COLORTABLEMAX + 1] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 22, 27, 33, 39, 46, 54, 63, 73, 84, 95, 106, 117, 128, 139, 151, 163, 176, 189, 204, 220, 237, 255};
-
-const byte maxValueRight[][8] PROGMEM = {
-  {0},
-  {10},
-  {10, 10, 10},
-  {10, 20},
-  {10, 10, 1},
-  {10, 12, 1},
-  {10},
-  {10, 7, 1},
-  {10, 20, 1}
-};
-const byte defaultValueRight[][8] PROGMEM = {
-  {0},
-  {5},
-  {10, 10, 5},
-  {5, 5},
-  {5, 10, 0},
-  {5, 10, 0},
-  {5},
-  {5, 4, 0},
-  {5, 10, 0}
-};
-const byte maxSetting[][2] PROGMEM = {
-  {2, 0}, //solid
-  {5, 0}, //drift
-  {5, 2}, //comets
-  {5, 1}, //pulse
-  {5, 2}, //rainbow
-  {5, 2}, //dots
-  {5, 0}, //fade
-  {5, 2}, //wave
-  {5, 2} //chase
-};
-
-const byte maxMode = 8;
+const byte normalizedBrightnessTable[COLORTABLEMAX + 1] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 22, 27, 33, 39, 46, 54, 63, 73, 84, 95, 106, 117, 128, 139, 151, 163, 176, 189, 204, 220, 237, 255};
 
 const byte pulseBrightnessTable[] PROGMEM = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 59, 63, 67, 71, 75, 79, 83, 87, 92, 97, 102, 107, 112, 117, 122, 127, 133, 139, 145, 151, 157, 163, 169, 175, 182, 189, 196, 203, 210, 217, 224, 231, 239, 247, 255};
 
-volatile byte lastEncPins = 0;
-volatile byte currentSettingLeft = 0;
-volatile byte currentSettingRight = 0;
-volatile byte currentValueLeft[] = {0, 0, 0, 0, 0, 0, 0, 0};
-volatile byte currentValueRight[] = {0, 0, 0, 0, 0, 0, 0, 0};
-volatile byte UIChanged = 7;
 volatile unsigned long lastRFUpdateAt=0;
 
 byte currentMode = 0;
-
-volatile unsigned long lastUserAction = 0;
 
 //animation related globals
 #define LENGTH 11
@@ -157,7 +30,6 @@ Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800,
 const byte MyAddress = 0;
 volatile byte receiving = 0;
 volatile byte bitnum = 0; //current bit received
-
 volatile byte gotMessage = 0;
 volatile byte dataIn = 0;
 volatile byte pktLength = 31;
@@ -215,90 +87,114 @@ byte getFrameDelay() {
 
 }
 
-byte getLeftVal(byte t) {
-  if (pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]) == COLORTABLEMAX) {
-    if (t>COLORTABLEMAX) t=COLORTABLEMAX;
-    return pgm_read_byte_near(&leftValues[t]);
-  }
-  return t;
-}
-
 void processRFPacket(byte rlen) {
 
   byte vers = (rlen & 196) >> 6;
   rlen &= 0x3F;
-  if (recvMessage[1] == 0x54) {
-    if (recvMessage[2] > maxMode) {
-      return;
-    }
-    setMode(recvMessage[2]);
-    currentValueLeft[0] = recvMessage[3];
-    currentValueLeft[1] = recvMessage[4];
-    currentValueLeft[2] = recvMessage[5];
-    currentValueLeft[3] = recvMessage[6];
-    currentValueLeft[4] = recvMessage[7];
-    currentValueLeft[5] = recvMessage[8];
-    currentValueRight[0] = recvMessage[9];
-    currentValueRight[1] = recvMessage[10];
-    currentValueRight[2] = recvMessage[11];
-    currentValueRight[3] = recvMessage[12];
-    currentValueRight[4] = recvMessage[13];
-    currentValueRight[5] = recvMessage[14];
-    UIChanged = 7;
-  }
-}
-
-
-void advanceMode() {
-  if (currentMode >= maxMode) {
-    setMode(0);
-  } else {
-    if (currentMode==1) currentMode++;
-    setMode(currentMode + 1);
-  }
+  //TODO: Everything. 
+  
 }
 
 void setMode(byte mode) {
   currentMode = mode;
-  memset(scratch, 0, 600);
-  memset(pixels, 0, 600);
-  for (byte i = 0; i < 8; i++) { //set the current setting values to defaults
-    if (pgm_read_byte_near(&defaultValueLeft[currentMode][i]) == 255) {
-      currentValueLeft[i] = random(pgm_read_byte_near(&maxValueLeft[currentMode][i]));
-    } else {
-      currentValueLeft[i] = pgm_read_byte_near(&defaultValueLeft[currentMode][i]);
-    }
-    if (pgm_read_byte_near(&defaultValueLeft[currentMode][i]) == 255) {
-      currentValueRight[i] = random(pgm_read_byte_near(&maxValueRight[currentMode][i]));
-    } else {
-      currentValueRight[i] = pgm_read_byte_near(&defaultValueRight[currentMode][i]);
-    }
-  }
+  memset(scratch, 0, LENGTH * 3);
+  memset(pixels, 0, LENGTH * 3);
+  if (!initializeMode(mode)) mode=0;
   // start with the first setting selected, in case we had a setting now out of index.
   frameNumber = 0;
-  currentSettingLeft = 0;
-  currentSettingRight = 0;
 }
 
+byte initializeMode(byte mode) {
+  switch (mode) {
+    case 0:
+      
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+
+void rotateOuter(byte dir) {
+  if (dir) { //reverse 
+    byte g=pixels[0];
+    byte r=pixels[1];
+    byte b=pixels[2];
+  } else {
+    byte g=pixels[OUTERLENGTH*3-3];
+    byte r=pixels[OUTERLENGTH*3-2];
+    byte b=pixels[OUTERLENGTH*3-1];
+  }
+  pushOuter(r,g,b,dir);
+}
+
+void pushOuter(byte r,byte g,byte b,byte dir) {
+  if (dir) { //reverse 
+    for (byte i=0;i<(OUTERLENGTH-1)*3;i++) {
+      pixels[i]=pixels[i+3];
+    }
+    pixels[OUTERLENGTH*3-3]=g;
+    pixels[OUTERLENGTH*3-2]=r;
+    pixels[OUTERLENGTH*3-1]=b;
+  } else {
+    for (byte i=3;i<(OUTERLENGTH*3);i++) {
+      pixels[i]=pixels[i-3];
+    }
+    pixels[0]=g;
+    pixels[1]=r;
+    pixels[2]=b;
+  }
+}
+
+void rotateInner(byte dir) {
+  if (dir) { //reverse 
+    byte g=pixels[(OUTERLENGTH*3)];
+    byte r=pixels[(OUTERLENGTH*3)+1];
+    byte b=pixels[(OUTERLENGTH*3)+2];
+  } else {
+    byte g=pixels[((OUTERLENGTH+INNERLENGTH)*3)-3];
+    byte r=pixels[((OUTERLENGTH+INNERLENGTH)*3)-2];
+    byte b=pixels[((OUTERLENGTH+INNERLENGTH)*3)-1];
+  }
+  pushInner(r,g,b,dir);
+}
+void pushInner(byte r,byte g,byte b,byte dir) {
+  if (dir) { //reverse 
+    for (byte i=(OUTERLENGTH*3);i<((OUTERLENGTH+INNERLENGTH-1)*3);i++) {
+      pixels[i]=pixels[i+3];
+    }
+    pixels[((OUTERLENGTH+INNERLENGTH)*3)-3]=g;
+    pixels[((OUTERLENGTH+INNERLENGTH)*3)-2]=r;
+    pixels[((OUTERLENGTH+INNERLENGTH)*3)-1]=b;
+  } else {
+    for (byte i=(OUTERLENGTH+1)*3;i<((OUTERLENGTH+INNERLENGTH)*3);i++) {
+      pixels[i]=pixels[i-3];
+    }
+    pixels[(OUTERLENGTH*3)]=g;
+    pixels[(OUTERLENGTH*3)+1]=r;
+    pixels[(OUTERLENGTH*3)+2]=b;
+  }
+}
+  
+void smoothInner() { //set the inner pixels to averages of the outer pixels. 
+  //Aligned = (outer + outer + right + left) >>2  //between (right + left)>>1)
+  pixels[24]=; //G 
+  pixels[25]=; //R
+  pixels[26]=; //B
+  pixels[27]=; //G
+  pixels[28]=; //R
+  pixels[29]=; //B
+  pixels[30]=; //G
+  pixels[31]=; //R
+  pixels[32]=; //B
+  
+}
 
 void updatePattern() {
   if (currentMode == 0) {
     for (unsigned int i = 0; i < LENGTH * 3; i++) {
-      pixels[i] = getLeftVal(currentValueLeft[i % 3]);
+      pixels[i] = currentColor[i%3]);
     }
-    //pixels[0]=255;
-    pixels[1]=0;
-    pixels[2]=0;
-    pixels[3]=0;
-    //pixels[4]=255;
-    pixels[5]=0;
-    pixels[6]=0;
-    //pixels[7]=255;
-    pixels[8]=0;
-    pixels[24]=255;
-    pixels[25]=255;
-    pixels[26]=255;
-    pixels[29]=255;
     
   } else if (currentMode == 1) {
     updatePatternDrift();
@@ -320,116 +216,6 @@ void updatePattern() {
   frameNumber++;
 }
 
-void updatePatternDrift() {
-  byte driftchance = 16 + currentValueRight[0] * 10;
-  byte randinc = 255 - driftchance;
-  byte randdec = driftchance;
-  for (unsigned int i = 0; i < (LENGTH * 3); i++) {
-    byte tem = i % 3;
-    tem *= 2;
-    byte rand = random(255);
-    if (rand > (pixels[i] > 32 ? randinc : (randinc + driftchance / 2)) && (pixels[i] < getLeftVal(currentValueLeft[tem + 1]))) {
-      if (pixels[i] > 128 && pixels[i] < 254) {
-        pixels[i] += 2;
-      } else {
-        pixels[i]++;
-      }
-    } else if (rand < (pixels[i] > 32 ? randdec : (randdec - driftchance / 2)) && (pixels[i] > getLeftVal(currentValueLeft[tem]))) {
-      if (pixels[i] > 128) {
-        pixels[i] -= 2;
-      } else {
-        pixels[i]--;
-      }
-    }
-  }
-}
-
-void updatePatternDots() {
-  if (currentValueRight[2]) {//reverse
-    for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
-      pixels [i] = pixels[i + 3];
-    }
-    if (!(frameNumber % (13 - currentValueRight[1]))) {
-      pixels[(3 * LENGTH) - 3] = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
-      pixels[(3 * LENGTH) - 2] = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
-      pixels[(3 * LENGTH) - 1] = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
-    } else {
-      pixels[LENGTH - 3] = 0;
-      pixels[LENGTH - 2] = 0;
-      pixels[LENGTH - 1] = 0;
-    }
-  } else { //forward
-    for (unsigned int i = (LENGTH - 1) * 3; i > 2; i--) {
-      pixels [i] = pixels[i - 3];
-    }
-    if (!(frameNumber % (13 - currentValueRight[1]))) {
-      pixels[0] = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
-      pixels[1] = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
-      pixels[2] = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
-    } else {
-      pixels[0] = 0;
-      pixels[1] = 0;
-      pixels[2] = 0;
-    }
-  }
-}
-
-
-void updatePatternPulse() {
-  for (int  i = 0; i < (LENGTH * 3) - 2; i += 3) {
-    byte max_r = (scratch[i] & 0x7C) >> 2;
-    byte max_g = (((scratch[i] & 0x02) << 3) | ((scratch[i + 1] >> 5))); //dont need to mask the low 5 bits here because we're just pushing them off the edge
-    byte max_b = (scratch[i + 1]) & 0x1F;
-    byte speed = 1 + (scratch[i + 2] >> 6);
-    byte bright = scratch[i + 2] & 0x3F;
-    byte dir = (scratch[i] >> 7);
-    if (!(max_r + max_b + max_g)) { // need to consider generating new target
-      if (random(0, (currentValueRight[0] + 2) * 4 * pgm_read_byte_near(&maxValueRight[currentMode][1])) < currentValueRight[1]) {
-        max_r = random(currentValueLeft[0], currentValueLeft[1]);
-        max_g = random(currentValueLeft[2], currentValueLeft[3]);
-        max_b = random(currentValueLeft[4], currentValueLeft[5]);
-        speed = random(0, 3);
-        bright = 0;
-        dir = 0;
-      }
-      pixels[i] = 0;
-      pixels[i + 1] = 0;
-      pixels[i + 2] = 0;
-    } else {
-      if (!(frameNumber % (speed))) {
-
-        if (dir && !bright) {
-          dir = 0;
-          pixels[i] = 0;
-          pixels[i + 1] = 0;
-          pixels[i + 2] = 0;
-          max_r = 0;
-          max_g = 0;
-          max_b = 0;
-        } else {
-          byte nbright = pgm_read_byte_near(&pulseBrightnessTable[bright]);
-          //byte nbright = bright << 2;
-          pixels[i] = map(nbright, 0, 255, 0, getLeftVal(max_r));
-          pixels[i + 1] = map(nbright, 0, 255, 0, getLeftVal(max_g));
-          pixels[i + 2] = map(nbright, 0, 255, 0, getLeftVal(max_b));
-          if (dir) {
-            bright--;
-          } else {
-            if (bright == 63) {
-              bright--;
-              dir = 1;
-            } else {
-              bright++;
-            }
-          }
-        }
-      }
-    }
-    scratch[i] = (dir << 7) | (max_r << 2) | (max_g >> 3);
-    scratch[i + 1] = (max_g << 5) | max_b;
-    scratch[i + 2] = ((speed-1) << 6) | bright;
-  }
-}
 
 void updatePatternFade() {
   static byte bright=0;
