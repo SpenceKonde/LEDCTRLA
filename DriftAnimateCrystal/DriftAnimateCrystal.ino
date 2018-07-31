@@ -22,7 +22,6 @@ byte currentMode = 0;
 unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
 byte pixels[LENGTH * 3];
-byte scratch[LENGTH * 3];
 unsigned long frameNumber = 0;
 Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800, pixels);
 
@@ -78,13 +77,7 @@ void loop() {
 }
 
 byte getFrameDelay() {
-  if (currentMode == 1 || currentMode == 0) {
-    return 80;
-  } else if (currentMode==3) {
-    return 30 + 10 * (pgm_read_byte_near(&maxValueRight[currentMode][0]) - currentValueRight[0]);
-  }
-  return 30 + 20 * (pgm_read_byte_near(&maxValueRight[currentMode][0]) - currentValueRight[0]);
-
+  return 40; 
 }
 
 void processRFPacket(byte rlen) {
@@ -96,8 +89,7 @@ void processRFPacket(byte rlen) {
 }
 
 void setMode(byte mode) {
-  currentMode = mode;
-  memset(scratch, 0, LENGTH * 3);
+  currentMode = mode; 
   memset(pixels, 0, LENGTH * 3);
   if (!initializeMode(mode)) mode=0;
   // start with the first setting selected, in case we had a setting now out of index.
@@ -105,13 +97,16 @@ void setMode(byte mode) {
 }
 
 byte initializeMode(byte mode) {
-  switch (mode) {
-    case 0:
-      
-      return 1;
-    default:
-      return 0;
+  for (i=0;i<8;i++) {
+    updatePatternRainbow();
   }
+}
+
+
+void updatePattern() {
+  updatePatternRainbow();
+  smoothInner();
+  frameNumber++;
 }
 
 
@@ -158,6 +153,7 @@ void rotateInner(byte dir) {
   }
   pushInner(r,g,b,dir);
 }
+
 void pushInner(byte r,byte g,byte b,byte dir) {
   if (dir) { //reverse 
     for (byte i=(OUTERLENGTH*3);i<((OUTERLENGTH+INNERLENGTH-1)*3);i++) {
@@ -175,45 +171,18 @@ void pushInner(byte r,byte g,byte b,byte dir) {
     pixels[(OUTERLENGTH*3)+2]=b;
   }
 }
-  
+
 void smoothInner() { //set the inner pixels to averages of the outer pixels. 
   //Aligned = (outer + outer + right + left) >>2  //between (right + left)>>1)
-  pixels[24]=; //G 
-  pixels[25]=; //R
-  pixels[26]=; //B
-  pixels[27]=; //G
-  pixels[28]=; //R
-  pixels[29]=; //B
-  pixels[30]=; //G
-  pixels[31]=; //R
-  pixels[32]=; //B
-  
-}
-
-void updatePattern() {
-  if (currentMode == 0) {
-    for (unsigned int i = 0; i < LENGTH * 3; i++) {
-      pixels[i] = currentColor[i%3]);
-    }
-    
-  } else if (currentMode == 1) {
-    updatePatternDrift();
-  } else if (currentMode == 3) {
-    updatePatternPulse();
-  } else if (currentMode == 4) {
-    updatePatternRainbow();
-  } else if (currentMode == 5) {
-    updatePatternDots();
-  } else if (currentMode == 6) {
-    updatePatternFade();
-  } else if (currentMode == 7) {
-    updatePatternWave();
-  } else if (currentMode == 8) {
-    updatePatternChase();
-  } else {
-    setMode(0);
-  }
-  frameNumber++;
+  pixels[24]=(pixels[0]+pixels[3]*2+pixels[6])>>2; //G 
+  pixels[25]=(pixels[1]+pixels[4]*2+pixels[7])>>2; //R
+  pixels[26]=(pixels[2]+pixels[5]*2+pixels[8])>>2; //B
+  pixels[27]=(pixels[9]+pixels[12])>>1; //G
+  pixels[28]=(pixels[10]+pixels[13])>>1; //R
+  pixels[29]=(pixels[11]+pixels[14])>>1; //B
+  pixels[30]=(pixels[18]+pixels[21])>>1; //G
+  pixels[31]=(pixels[19]+pixels[22])>>1; //R
+  pixels[32]=(pixels[20]+pixels[23])>>1; //B
 }
 
 
@@ -242,7 +211,7 @@ void updatePatternFade() {
     pixels[i+2]=b;
   }   
 }
-
+/*
 void updatePatternWave() {
   static byte bright=0;
     for (byte i=0;i<(1+pgm_read_byte_near(&maxValueRight[currentMode][1])-currentValueRight[1]);i++) { 
@@ -280,7 +249,6 @@ void updatePatternWave() {
     pixels[2] = b;
   }
 }
-
 void updatePatternChase() {
   static byte nextColorAt=0;
   static byte r;
@@ -310,7 +278,60 @@ void updatePatternChase() {
     pixels[2] = b;
   }
 }
+*/
+//length
+//direction
 
+void updatePatternRainbow() {
+  static byte dir=0;
+  static byte l=20;
+  byte f = ((dir?0:8)+frameNumber) % (3*l); 
+  byte r=0;
+  byte g=0;
+  byte b=0;
+  byte fal = 0.0;
+  byte rise = 0.0;
+  if (f % l) {
+    float tem = f % l;
+    tem /= l;
+    float temr = (tem * 255);
+    float temg = (tem * 255);
+    float temb = (tem * 255);
+    if (f < l) { // sector 1 - green rising red falling
+      g = temg + 0.5;
+      temr = 255 - temr;
+      r = temr + 0.5;
+      b = 0;
+    } else if (f < 2 * l) { // sector 2 - blue rising green falling
+      temg = 255 - temg;
+      g = temg + 0.5;
+      b = temb + 0.5;
+      r = 0;
+    } else { // sector 3 - red rising blue falling
+      temb = 255 - temb;
+      b = temb + 0.5;
+      r = temr + 0.5;
+      g = 0;
+    }
+  } else {
+    if (f == 0) {
+      r = 255);
+      g = 0;
+      b = 0;
+    } else if (f == l) {
+      r = 0;
+      g = getLeftVal(currentValueLeft[3]);
+      b = 0;
+    } else {
+      r = 0;
+      g = 0;
+      b = 255;
+    }
+  }
+  pushOuter(r,g,b,dir); 
+}
+
+/* //Old code, for reference. 
 void updatePatternRainbow() {
   byte maxVal = COLORTABLEMAX;
   byte l = 9 + (6 * currentValueRight[1]);
@@ -374,6 +395,7 @@ void updatePatternRainbow() {
     pixels[2] = b;
   }
 }
+*/
 
 void setupPins() {
   pinMode(LEDPIN, OUTPUT);
