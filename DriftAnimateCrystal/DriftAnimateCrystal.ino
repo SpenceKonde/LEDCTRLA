@@ -1,11 +1,6 @@
 #include <Adafruit_NeoPixel_Static.h>
 #include <avr/pgmspace.h>
 
-// UI + encoder involved globals
-//LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-
-
 
 #define COLORTABLEMAX 31
 const byte normalizedBrightnessTable[COLORTABLEMAX + 1] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 22, 27, 33, 39, 46, 54, 63, 73, 84, 95, 106, 117, 128, 139, 151, 163, 176, 189, 204, 220, 237, 255};
@@ -18,8 +13,9 @@ byte currentMode = 0;
 
 //animation related globals
 #define LENGTH 11
+#define OUTERLENGTH 8
+#define INNERLENGTH 3
 #define LEDPIN 10
-unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
 byte pixels[LENGTH * 3];
 unsigned long frameNumber = 0;
