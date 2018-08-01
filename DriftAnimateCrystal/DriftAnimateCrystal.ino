@@ -57,6 +57,9 @@ void setup() {
   setupRF();
   Serial.begin(115200);
   delay(2000);
+  pixels[0]=255;
+  pixels[4]=255;
+  pixels[8]=255;
 }
 
 void loop() {
@@ -73,7 +76,7 @@ void loop() {
 }
 
 byte getFrameDelay() {
-  return 40; 
+  return 400; 
 }
 
 void processRFPacket(byte rlen) {
@@ -93,28 +96,31 @@ void setMode(byte mode) {
 }
 
 byte initializeMode(byte mode) {
-  for (i=0;i<8;i++) {
+  for (byte i=0;i<8;i++) {
     updatePatternRainbow();
   }
 }
 
 
 void updatePattern() {
-  updatePatternRainbow();
-  smoothInner();
+  //updatePatternRainbow();
+  updatePatternSpinner();
   frameNumber++;
 }
 
 
 void rotateOuter(byte dir) {
+  byte r;
+  byte g;
+  byte b;
   if (dir) { //reverse 
-    byte g=pixels[0];
-    byte r=pixels[1];
-    byte b=pixels[2];
+    g=pixels[0];
+    r=pixels[1];
+    b=pixels[2];
   } else {
-    byte g=pixels[OUTERLENGTH*3-3];
-    byte r=pixels[OUTERLENGTH*3-2];
-    byte b=pixels[OUTERLENGTH*3-1];
+    g=pixels[OUTERLENGTH*3-3];
+    r=pixels[OUTERLENGTH*3-2];
+    b=pixels[OUTERLENGTH*3-1];
   }
   pushOuter(r,g,b,dir);
 }
@@ -128,7 +134,7 @@ void pushOuter(byte r,byte g,byte b,byte dir) {
     pixels[OUTERLENGTH*3-2]=r;
     pixels[OUTERLENGTH*3-1]=b;
   } else {
-    for (byte i=3;i<(OUTERLENGTH*3);i++) {
+    for (byte i=(OUTERLENGTH*3)-1;i>2;i--) {
       pixels[i]=pixels[i-3];
     }
     pixels[0]=g;
@@ -138,14 +144,17 @@ void pushOuter(byte r,byte g,byte b,byte dir) {
 }
 
 void rotateInner(byte dir) {
+  byte r;
+  byte g;
+  byte b;
   if (dir) { //reverse 
-    byte g=pixels[(OUTERLENGTH*3)];
-    byte r=pixels[(OUTERLENGTH*3)+1];
-    byte b=pixels[(OUTERLENGTH*3)+2];
+    g=pixels[(OUTERLENGTH*3)];
+    r=pixels[(OUTERLENGTH*3)+1];
+    b=pixels[(OUTERLENGTH*3)+2];
   } else {
-    byte g=pixels[((OUTERLENGTH+INNERLENGTH)*3)-3];
-    byte r=pixels[((OUTERLENGTH+INNERLENGTH)*3)-2];
-    byte b=pixels[((OUTERLENGTH+INNERLENGTH)*3)-1];
+    g=pixels[((OUTERLENGTH+INNERLENGTH)*3)-3];
+    r=pixels[((OUTERLENGTH+INNERLENGTH)*3)-2];
+    b=pixels[((OUTERLENGTH+INNERLENGTH)*3)-1];
   }
   pushInner(r,g,b,dir);
 }
@@ -159,7 +168,7 @@ void pushInner(byte r,byte g,byte b,byte dir) {
     pixels[((OUTERLENGTH+INNERLENGTH)*3)-2]=r;
     pixels[((OUTERLENGTH+INNERLENGTH)*3)-1]=b;
   } else {
-    for (byte i=(OUTERLENGTH+1)*3;i<((OUTERLENGTH+INNERLENGTH)*3);i++) {
+    for (byte i=((OUTERLENGTH+INNERLENGTH)*3);i>((OUTERLENGTH)*3+2);i--) {
       pixels[i]=pixels[i-3];
     }
     pixels[(OUTERLENGTH*3)]=g;
@@ -173,12 +182,12 @@ void smoothInner() { //set the inner pixels to averages of the outer pixels.
   pixels[24]=(pixels[0]+pixels[3]*2+pixels[6])>>2; //G 
   pixels[25]=(pixels[1]+pixels[4]*2+pixels[7])>>2; //R
   pixels[26]=(pixels[2]+pixels[5]*2+pixels[8])>>2; //B
-  pixels[27]=(pixels[9]+pixels[12])>>1; //G
-  pixels[28]=(pixels[10]+pixels[13])>>1; //R
-  pixels[29]=(pixels[11]+pixels[14])>>1; //B
-  pixels[30]=(pixels[18]+pixels[21])>>1; //G
-  pixels[31]=(pixels[19]+pixels[22])>>1; //R
-  pixels[32]=(pixels[20]+pixels[23])>>1; //B
+  pixels[30]=(pixels[9]+pixels[12])>>1; //G
+  pixels[31]=(pixels[10]+pixels[13])>>1; //R
+  pixels[32]=(pixels[11]+pixels[14])>>1; //B
+  pixels[27]=(pixels[18]+pixels[21])>>1; //G
+  pixels[28]=(pixels[19]+pixels[22])>>1; //R
+  pixels[29]=(pixels[20]+pixels[23])>>1; //B
 }
 
 
@@ -186,9 +195,14 @@ void smoothInner() { //set the inner pixels to averages of the outer pixels.
 //length
 //direction
 
+void updatePatternSpinner() {
+  rotateOuter(1);
+  smoothInner();
+}
+
 void updatePatternRainbow() {
   static byte dir=0;
-  static byte l=20;
+  static byte l=66;
   byte f = ((dir?0:8)+frameNumber) % (3*l); 
   byte r=0;
   byte g=0;
@@ -219,12 +233,12 @@ void updatePatternRainbow() {
     }
   } else {
     if (f == 0) {
-      r = 255);
+      r = 255;
       g = 0;
       b = 0;
     } else if (f == l) {
       r = 0;
-      g = getLeftVal(currentValueLeft[3]);
+      g = 255;
       b = 0;
     } else {
       r = 0;
@@ -233,6 +247,7 @@ void updatePatternRainbow() {
     }
   }
   pushOuter(r,g,b,dir); 
+  smoothInner();
 }
 
 
