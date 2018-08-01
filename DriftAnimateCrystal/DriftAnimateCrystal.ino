@@ -57,9 +57,8 @@ void setup() {
   setupRF();
   Serial.begin(115200);
   delay(2000);
-  pixels[0]=255;
-  pixels[4]=255;
-  pixels[8]=255;
+  initGradient(0,100,255,0,255,100);
+  smoothInner();
 }
 
 void loop() {
@@ -70,6 +69,7 @@ void loop() {
     if (millis() - lastFrameAt > getFrameDelay()) {
       lastFrameAt = millis();
       updatePattern();
+      frameNumber++;
       leds.show();
     }
   }
@@ -103,9 +103,35 @@ byte initializeMode(byte mode) {
 
 
 void updatePattern() {
+  updateSpinner();
   //updatePatternRainbow();
-  updatePatternSpinner();
-  frameNumber++;
+}
+
+void initGradient(r1,g1,b1,r2,g2,b2) {
+  pixels[0]=g1;
+  pixels[1]=r1;
+  pixels[2]=b1;
+  pixels[3]=(g1*3+g2)>>2;
+  pixels[4]=(r1*3+r2)>>2;
+  pixels[5]=(b1*3+b2)>>2;
+  pixels[6]=(g1+g2)>>1;
+  pixels[7]=(r1+r2)>>1;
+  pixels[8]=(b1+b2)>>1;
+  pixels[9]=(g1+g2*3)>>2;
+  pixels[10]=(r1+r2*3)>>2;
+  pixels[11]=(b1+b2*3)>>2;
+  pixels[12]=g2;
+  pixels[13]=r2;
+  pixels[14]=b2;
+  pixels[15]=(g1+g2*3)>>2;
+  pixels[16]=(r1+r2*3)>>2;
+  pixels[17]=(b1+b2*3)>>2;
+  pixels[18]=(g1+g2)>>1;
+  pixels[19]=(r1+r2)>>1;
+  pixels[20]=(b1+b2)>>1;
+  pixels[21]=(g1*3+g2)>>2;
+  pixels[22]=(r1*3+r2)>>2;
+  pixels[23]=(b1*3+b2)>>2;
 }
 
 
@@ -197,7 +223,7 @@ void smoothInner() { //set the inner pixels to averages of the outer pixels.
 
 void updatePatternSpinner() {
   rotateOuter(1);
-  smoothInner();
+  rotateInner(0);
 }
 
 void updatePatternRainbow() {
