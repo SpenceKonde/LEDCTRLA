@@ -1,5 +1,6 @@
 #include <Adafruit_NeoPixel_Static.h>
 #include <avr/pgmspace.h>
+#include <util/crc16.h>
 
 
 #define COLORTABLEMAX 31
@@ -22,7 +23,7 @@ unsigned long frameNumber = 0;
 Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800, pixels);
 
 //RF related globals
-const byte MyAddress = 0;
+const byte MyAddress = 40;
 volatile byte receiving = 0;
 volatile byte bitnum = 0; //current bit received
 volatile byte gotMessage = 0;
@@ -59,6 +60,7 @@ unsigned int transitionFrames = 200;
 byte waveColorCount = 3;
 byte waveColors[8][3] = {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {255, 128, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 byte waveDirection = 1;
+byte spinMode = 0;
 
 void setup() {
   setupPins();
@@ -86,38 +88,85 @@ byte getFrameDelay() {
 }
 
 void processRFPacket(byte rlen) {
-
+  Serial.println("Received");
   byte vers = (rlen & 196) >> 6;
   rlen &= 0x3F;
   if (rlen == 32) {
-    clearPixels();
-    if (recvMessage[1] == 0x58) {
-      byte t=(recvMessage[3] >> 4);
-      switch (t) {
-        case 0:
-          currentMode = 3;
-          break;
-        case 1:
-          currentMode = 2;
-          break;
-        default:
-          currentMode = 0;
-      }
-      waveDirection = !!(recvMessage[3] & 8);
-      waveColorCount = (recvMessage[3] & 7) + 1;
-      for (byte i = 0; i < 8; i++) {
-        for (byte j = 0; j < 3; j++) {
-          waveColors[i][j] = recvMessage[3 + (i * 3) + j];
-        }
-      }
-      dwellFrames = recvMessage[28] >> 4;
-      dwellFrames = dwellFrames << 8 + recvMessage[29];
-      transitionFrames = recvMessage[28] & 15;
-      transitionFrames = transitionFrames << 8 + recvMessage[30];
-      initializeMode();
+    setMode32(vers);
+  } else if (rlen == 16) {
+    setMode16(vers);
+  } else if (rlen == 4) {
+    if (recvMessage[1] == 0x5F) {
+      currentMode = 0;
+      clearPixels();
     }
   }
+}
 
+void setMode32(byte vers) {
+  if (recvMessage[1] == 0x58) {
+    /*
+        WAVE MODE
+    */
+    clearPixels();
+    byte t = (recvMessage[3] >> 4);
+    switch (t) {
+      case 0:
+        currentMode = 3;
+        break;
+      case 1:
+        currentMode = 2;
+        break;
+      default:
+        currentMode = 0;
+    }
+    waveDirection = !!(recvMessage[3] & 8);
+    waveColorCount = (recvMessage[3] & 7) + 1;
+    for (byte i = 0; i < 8; i++) {
+      for (byte j = 0; j < 3; j++) {
+        waveColors[i][j] = recvMessage[4 + (i * 3) + j];
+      }
+    }
+    dwellFrames = recvMessage[28] >> 4;
+    dwellFrames = dwellFrames << 8 + recvMessage[29];
+    transitionFrames = recvMessage[28] & 15;
+    transitionFrames = (transitionFrames << 8) + recvMessage[30];
+    initializeMode();
+  } else if (recvMessage[1] == 0x59) {
+    /*
+       SPIN MODE
+    */
+    clearPixels();
+    currentMode = 1;
+    spinMode = recvMessage[3];
+    for (byte i = 0; i < 24; i += 3) {
+    pixels[i] = recvMessage[i + 5];
+      pixels[i + 1] = recvMessage[i + 4]; //stupid GRB colors!
+      pixels[i + 2] = recvMessage[i + 6];
+    }
+    initializeMode();
+  }
+}
+
+void setMode16(byte vers) {
+  if (recvMessage[1] == 0x59) {
+    /*
+        SPIN MODE - INNER PIXELS SPECIFIED
+    */
+    clearPixels();
+    /*
+       SPIN MODE
+    */
+    clearPixels();
+    currentMode = 1;
+    spinMode = recvMessage[3];
+    for (byte i = 24; i < 33; i += 3) {
+      pixels[i] = recvMessage[i -19];
+      pixels[i + 1] = recvMessage[i -20]; //stupid GRB colors!
+      pixels[i + 2] = recvMessage[i -18];
+    }
+    initializeMode();
+  }
 }
 
 void clearPixels() {
@@ -130,9 +179,16 @@ byte initializeMode() {
     case 2:
       updatePattern();
       break;
-case3:
+    case 3:
       for (byte i = 0; i < 8; i++) {
         updatePattern();
+      }
+      break;
+    case 1:
+      if( spinMode>>4 == 3 ) {
+        smoothOuter();
+      } else if (spinMode&15==3){
+        smoothInner();
       }
       break;
     default:
@@ -344,10 +400,31 @@ void setAll(byte r, byte g, byte b) {
 //direction
 
 void updatePatternSpinner() {
-  rotateOuter(1);
-  if (!(frameNumber % 3)) {
-    rotateInner(0);
+  byte spinModeOuter = spinMode >> 4;
+  byte spinModeInner = spinMode & 0x0F;
+  switch (spinModeOuter) {
+    case 0:
+      break;
+    case 1:
+    case 2:
+      rotateOuter(spinModeOuter - 1);
+      break;
+    case 3:
+      smoothOuter();
+      break;
   }
+  switch (spinModeInner) {
+    case 0:
+      break;
+    case 1:
+    case 2:
+      rotateInner(spinModeInner - 1);
+      break;
+    case 3:
+      smoothInner();
+      break;
+  }
+
 }
 
 void updatePatternRainbow() {
@@ -510,11 +587,9 @@ void resetReceive() {
 byte checkCSC() {
   byte rxchecksum = 0;
   byte rxchecksum2 = 0;
-  byte rxc2;
   for (byte i = 0; i < pktLength >> 3; i++) {
     rxchecksum = rxchecksum ^ rxBuffer[i];
-    rxc2 = rxchecksum2 & 128 ? 1 : 0;
-    rxchecksum2 = (rxchecksum2 << 1 + rxc2)^rxBuffer[i];
+    rxchecksum2 = _crc8_ccitt_update(rxchecksum2, rxBuffer[i]);
   }
   if (pktLength >> 3 == 3) {
     rxchecksum = (rxchecksum & 0x0F) ^ (rxchecksum >> 4) ^ ((rxBuffer[3] & 0xF0) >> 4);
@@ -523,7 +598,7 @@ byte checkCSC() {
     return (rxBuffer[3] & 0x0F) == rxchecksum ? 1 : ((rxBuffer[3] & 0x0F) == rxchecksum2 ) ? 2 : 0;
   } else {
     if (rxchecksum == rxchecksum2)rxchecksum2++;
-    return ((rxBuffer[pktLength >> 3] == rxchecksum) ? 1 : ((rxBuffer[bitnum >> 3] == rxchecksum2 ) ? 2 : 0));
+    return ((rxBuffer[pktLength >> 3] == rxchecksum) ? 1 : ((rxBuffer[pktLength >> 3] == rxchecksum2 ) ? 2 : 0));
   }
 }
 
