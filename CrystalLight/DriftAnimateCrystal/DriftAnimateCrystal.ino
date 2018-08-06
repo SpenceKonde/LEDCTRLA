@@ -427,56 +427,6 @@ void updatePatternSpinner() {
 
 }
 
-void updatePatternRainbow() {
-  static byte dir = 0;
-  static byte l = 66;
-  byte f = ((dir ? 0 : 8) + frameNumber) % (3 * l);
-  byte r = 0;
-  byte g = 0;
-  byte b = 0;
-  byte fal = 0.0;
-  byte rise = 0.0;
-  if (f % l) {
-    float tem = f % l;
-    tem /= l;
-    float temr = (tem * 255);
-    float temg = (tem * 255);
-    float temb = (tem * 255);
-    if (f < l) { // sector 1 - green rising red falling
-      g = temg + 0.5;
-      temr = 255 - temr;
-      r = temr + 0.5;
-      b = 0;
-    } else if (f < 2 * l) { // sector 2 - blue rising green falling
-      temg = 255 - temg;
-      g = temg + 0.5;
-      b = temb + 0.5;
-      r = 0;
-    } else { // sector 3 - red rising blue falling
-      temb = 255 - temb;
-      b = temb + 0.5;
-      r = temr + 0.5;
-      g = 0;
-    }
-  } else {
-    if (f == 0) {
-      r = 255;
-      g = 0;
-      b = 0;
-    } else if (f == l) {
-      r = 0;
-      g = 255;
-      b = 0;
-    } else {
-      r = 0;
-      g = 0;
-      b = 255;
-    }
-  }
-  pushOuter(r, g, b, dir);
-  smoothInner();
-}
-
 void getModeColors(byte * r, byte * g, byte * b) {
   unsigned long tem = frameNumber % (waveColorCount * (dwellFrames + transitionFrames));
   unsigned int cyclepos = tem % (dwellFrames + transitionFrames);
@@ -510,6 +460,53 @@ void updatePatternFade() {
   setAll(r, g, b);
 }
 
+void updatePatternDrift() {
+  byte driftchance=64;
+  byte randinc=255-driftchance;
+  byte randdec=driftchance;
+  for (byte i=0;i<3;i++) {
+  byte rand = random(255);
+  if (rand > (pixels[i] > 32 ? randinc : (randinc + driftchance / 2)) && (pixels[i] < waveColors[1][(i?(i==2?2:0):1)])) /*rgb/grb*/ {
+      if (pixels[i] > 128 && pixels[i] < 254) {
+        pixels[i] += 2;
+      } else {
+        pixels[i]++;
+      }
+    } else if (rand < (pixels[i] > 32 ? randdec : (randdec - driftchance / 2)) && (pixels[i] > waveColors[1][(i?(i==2?2:0):1)])) {
+      if (pixels[i] > 128) {
+        pixels[i] -= 2;
+      } else {
+        pixels[i]--;
+      }
+    }
+  }
+  setAll(pixels[1], pixels[0], pixels[2]);
+}
+/*
+void updatePatternDrift() {
+  byte driftchance = 16 + currentValueRight[0] * 10;
+  byte randinc = 255 - driftchance;
+  byte randdec = driftchance;
+  for (unsigned int i = 0; i < (LENGTH * 3); i++) {
+    byte tem = i % 3;
+    tem *= 2;
+    byte rand = random(255);
+    if (rand > (pixels[i] > 32 ? randinc : (randinc + driftchance / 2)) && (pixels[i] < getLeftVal(currentValueLeft[tem + 1]))) {
+      if (pixels[i] > 128 && pixels[i] < 254) {
+        pixels[i] += 2;
+      } else {
+        pixels[i]++;
+      }
+    } else if (rand < (pixels[i] > 32 ? randdec : (randdec - driftchance / 2)) && (pixels[i] > getLeftVal(currentValueLeft[tem]))) {
+      if (pixels[i] > 128) {
+        pixels[i] -= 2;
+      } else {
+        pixels[i]--;
+      }
+    }
+  }
+}
+*/
 
 
 void updatePatternWave() {
@@ -518,7 +515,7 @@ void updatePatternWave() {
   static byte g;
   static byte b;
   getModeColors(&r, &g, &b);
-  pushOuter(r, g, b, 0);
+  pushOuter(r, g, b, waveDirection);
   smoothInner();
 }
 
@@ -671,6 +668,59 @@ ISR (TIMER1_CAPT_vect)
     }
   }
 }
+
+/* pre-generalized updatePatternRainbow. 
+void updatePatternRainbow() {
+  static byte dir = 0;
+  static byte l = 66;
+  byte f = ((dir ? 0 : 8) + frameNumber) % (3 * l);
+  byte r = 0;
+  byte g = 0;
+  byte b = 0;
+  byte fal = 0.0;
+  byte rise = 0.0;
+  if (f % l) {
+    float tem = f % l;
+    tem /= l;
+    float temr = (tem * 255);
+    float temg = (tem * 255);
+    float temb = (tem * 255);
+    if (f < l) { // sector 1 - green rising red falling
+      g = temg + 0.5;
+      temr = 255 - temr;
+      r = temr + 0.5;
+      b = 0;
+    } else if (f < 2 * l) { // sector 2 - blue rising green falling
+      temg = 255 - temg;
+      g = temg + 0.5;
+      b = temb + 0.5;
+      r = 0;
+    } else { // sector 3 - red rising blue falling
+      temb = 255 - temb;
+      b = temb + 0.5;
+      r = temr + 0.5;
+      g = 0;
+    }
+  } else {
+    if (f == 0) {
+      r = 255;
+      g = 0;
+      b = 0;
+    } else if (f == l) {
+      r = 0;
+      g = 255;
+      b = 0;
+    } else {
+      r = 0;
+      g = 0;
+      b = 255;
+    }
+  }
+  pushOuter(r, g, b, dir);
+  smoothInner();
+}
+*/
+
 /* //Old code, for reference.
   void updatePatternRainbow() {
   byte maxVal = COLORTABLEMAX;
