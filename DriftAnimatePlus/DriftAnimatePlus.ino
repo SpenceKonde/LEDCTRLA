@@ -2,6 +2,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 #include <avr/pgmspace.h>
+#include <util/crc16.h>
 
 // UI + encoder involved globals
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
@@ -916,11 +917,9 @@ void resetReceive() {
 byte checkCSC() {
   byte rxchecksum = 0;
   byte rxchecksum2 = 0;
-  byte rxc2;
   for (byte i = 0; i < pktLength >> 3; i++) {
     rxchecksum = rxchecksum ^ rxBuffer[i];
-    rxc2 = rxchecksum2 & 128 ? 1 : 0;
-    rxchecksum2 = (rxchecksum2 << 1 + rxc2)^rxBuffer[i];
+    rxchecksum2 = _crc8_ccitt_update(rxchecksum2, rxBuffer[i]);
   }
   if (pktLength >> 3 == 3) {
     rxchecksum = (rxchecksum & 0x0F) ^ (rxchecksum >> 4) ^ ((rxBuffer[3] & 0xF0) >> 4);
@@ -929,7 +928,7 @@ byte checkCSC() {
     return (rxBuffer[3] & 0x0F) == rxchecksum ? 1 : ((rxBuffer[3] & 0x0F) == rxchecksum2 ) ? 2 : 0;
   } else {
     if (rxchecksum == rxchecksum2)rxchecksum2++;
-    return ((rxBuffer[pktLength >> 3] == rxchecksum) ? 1 : ((rxBuffer[bitnum >> 3] == rxchecksum2 ) ? 2 : 0));
+    return ((rxBuffer[pktLength >> 3] == rxchecksum) ? 1 : ((rxBuffer[pktLength >> 3] == rxchecksum2 ) ? 2 : 0));
   }
 }
 
