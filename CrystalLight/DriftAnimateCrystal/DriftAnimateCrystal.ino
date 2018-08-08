@@ -452,10 +452,9 @@ void getModeColors(byte * r, byte * g, byte * b) {
 }
 
 void updatePatternFade() {
-  static byte modestep = 0;
-  static byte r;
-  static byte g;
-  static byte b;
+  byte r;
+  byte g;
+  byte b;
   getModeColors(&r, &g, &b);
   setAll(r, g, b);
 }
@@ -510,10 +509,9 @@ void updatePatternDrift() {
 
 
 void updatePatternWave() {
-  static byte modestep = 0;
-  static byte r;
-  static byte g;
-  static byte b;
+  byte r;
+  byte g;
+  byte b;
   getModeColors(&r, &g, &b);
   pushOuter(r, g, b, waveDirection);
   smoothInner();
