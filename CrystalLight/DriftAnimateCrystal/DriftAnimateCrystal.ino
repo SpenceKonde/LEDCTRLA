@@ -58,7 +58,9 @@ const int commandForgetTime = 5000;
 unsigned int dwellFrames = 100;
 unsigned int transitionFrames = 200;
 byte waveColorCount = 3;
-byte waveColors[8][3] = {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {255, 128, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+byte waveColors[8][3] = {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+byte outerStatic[8][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+byte innerStatic[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 byte waveDirection = 1;
 byte spinMode = 0;
 
@@ -152,10 +154,6 @@ void setMode16(byte vers) {
   if (recvMessage[1] == 0x59) {
     /*
         SPIN MODE - INNER PIXELS SPECIFIED
-    */
-    clearPixels();
-    /*
-       SPIN MODE
     */
     clearPixels();
     currentMode = 1;
@@ -395,10 +393,6 @@ void setAll(byte r, byte g, byte b) {
   setAllOuter(r, g, b);
 }
 
-
-//length
-//direction
-
 void updatePatternSpinner() {
   byte spinModeOuter = spinMode >> 4;
   byte spinModeInner = spinMode & 0x0F;
@@ -450,6 +444,31 @@ void getModeColors(byte * r, byte * g, byte * b) {
     *b = 0.5 + (waveColors[m][2] * ratio) + (waveColors[cyclenum][2] * (1 - ratio));
   }
 }
+
+void getDriftColors(byte * r, byte * g, byte * b) {
+  unsigned long tem = frameNumber % (waveColorCount * (dwellFrames + transitionFrames));
+  unsigned int cyclepos = tem % (dwellFrames + transitionFrames);
+  byte cyclenum = tem / (dwellFrames + transitionFrames);
+  if (cyclepos < dwellFrames) {
+    *r = waveColors[cyclenum][0];
+    *g = waveColors[cyclenum][1];
+    *b = waveColors[cyclenum][2];
+    return;
+  } else {
+    cyclepos -= dwellFrames;
+    byte m = ((cyclenum + 1) >= waveColorCount) ? 0 : cyclenum + 1;
+    float ratio = ((float)cyclepos) / transitionFrames;
+    if (ratio > 1.001 || ratio < 0.0) {
+      Serial.print(F("ERROR: ratio out of range"));
+      Serial.println(ratio);
+      Serial.flush();
+    }
+    *r = 0.5 + (waveColors[m][0] * ratio) + (waveColors[cyclenum][0] * (1 - ratio));
+    *g = 0.5 + (waveColors[m][1] * ratio) + (waveColors[cyclenum][1] * (1 - ratio));
+    *b = 0.5 + (waveColors[m][2] * ratio) + (waveColors[cyclenum][2] * (1 - ratio));
+  }
+}
+
 
 void updatePatternFade() {
   byte r;
