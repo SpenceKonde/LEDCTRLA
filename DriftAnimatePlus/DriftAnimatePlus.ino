@@ -60,15 +60,15 @@ const char * const modesL[][8] PROGMEM = {
 };
 
 const char * const modesR[][8] PROGMEM = {
-  {mode0R0},
-  {mode1R0, mode1R1},
-  {mode1R0, mode1R1, mode2R2},
-  {mode1R0, mode5R1},
-  {mode1R0, mode2R2, mode4R2},
-  {mode1R0, mode5R1, mode4R2},
-  {mode1R0},
-  {mode1R0, mode2R2, mode4R2},
-  {mode1R0, mode2R2, mode4R2}
+  {mode0R0}, //solid
+  {mode1R0, mode1R1}, //drift
+  {mode1R0, mode1R1, mode2R2}, //comet
+  {mode1R0, mode5R1}, //pulse
+  {mode1R0, mode2R2, mode4R2}, //rainbow
+  {mode1R0, mode5R1, mode4R2}, //dots
+  {mode1R0}, //fade
+  {mode1R0, mode2R2, mode4R2}, //wave
+  {mode1R0, mode2R2, mode4R2} //chase
 
 };
 
@@ -151,6 +151,20 @@ volatile byte UIChanged = 7;
 volatile unsigned long lastRFUpdateAt=0;
 
 byte currentMode = 0;
+
+const byte colorPallete[][8][3] PROGMEM={
+  {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+  {{255,196,64}, {255, 128, 64}, {196,160,140}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+}
+const byte colorCount[] PROGMEM = {3,3}
+
+const char pallete0[] PROGMEM = "RAINBOW ";
+const char pallete1[] PROGMEM = "  WARM  ";
+const char pallete2[] PROGMEM = " SPOOKY ";
+const char pallete3[] PROGMEM = "   USA  ";
+
+const char * const modeNames[] PROGMEM = {pallete0, pallete1, pallete2, pallete3};
+
 
 volatile unsigned long lastUserAction = 0;
 
@@ -722,7 +736,7 @@ void updatePatternChase() {
     pixels[2] = b;
   }
 }
-
+/*
 void updatePatternRainbow() {
   byte maxVal = COLORTABLEMAX;
   byte l = 9 + (6 * currentValueRight[1]);
@@ -786,6 +800,80 @@ void updatePatternRainbow() {
     pixels[2] = b;
   }
 }
+*/
+
+void updatePatternRainbow() {
+  byte r = 0;
+  byte g = 0;
+  byte b = 0;
+  getModeColors(&r, &g, &b);
+  pushPixel(r,g,b,currentValueRight[2]);
+}
+
+
+
+void pushPixel(byte r,byte g,byte b,byte dir) {
+  if (dir) { //reverse
+    for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
+      pixels [i] = pixels[i + 3];
+    }
+    pixels[(LENGTH * 3) - 3] = r;
+    pixels[(LENGTH * 3) - 2] = g;
+    pixels[(LENGTH * 3) - 1] = b;
+  } else {//forward
+    for (unsigned int i = ((LENGTH) * 3)-1; i > 2; i--) {
+      pixels [i] = pixels[i - 3];
+    }
+    pixels[0] = r;
+    pixels[1] = g;
+    pixels[2] = b;
+  }
+}
+
+unsigned int getDwellFrames() {
+  if (mode==4) {
+    return 0;
+  }
+  return 0; //TO DO
+}
+unsigned int getTransitionFrames() {
+  return 9 + (6 * currentValueRight[1]);
+}
+byte getPalleteNumber() {
+  if (mode==4) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
+void getModeColors(byte * r, byte * g, byte * b) {
+  unsigned int dwellFrames=getDwellFrames();
+  unsigned int transitionFrames=getTransitionFrames();
+  byte colors=getPalleteNumber();
+  unsigned long tem = ((currentValueRight[2] ? 0 : LENGTH) + frameNumber) % (pgm_read_byte_near(&colorCount[colors]) * (dwellFrames + transitionFrames));
+  unsigned int cyclepos = tem % (dwellFrames + transitionFrames);
+  byte cyclenum = tem / (dwellFrames + transitionFrames);
+  if (cyclepos < dwellFrames) {
+    *r = pgm_read_byte_near(&colorPallete[colors][cyclenum][0]);
+    *g = pgm_read_byte_near(&colorPallete[colors][cyclenum][1]);
+    *b = pgm_read_byte_near(&colorPallete[colors][cyclenum][2]);
+    return;
+  } else {
+    cyclepos -= dwellFrames;
+    byte m = ((cyclenum + 1) >= pgm_read_byte_near(&colorCount[colors])) ? 0 : cyclenum + 1;
+    float ratio = ((float)cyclepos) / transitionFrames;
+    if (ratio > 1.001 || ratio < 0.0) {
+      Serial.print(F("ERROR: ratio out of range"));
+      Serial.println(ratio);
+      Serial.flush();
+    }
+    *r = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][0]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][0]) * (1 - ratio));
+    *g = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][1]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][1]) * (1 - ratio));
+    *b = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][2]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][2]) * (1 - ratio));
+  }
+}
+
 
 void setupPins() {
   pinMode(LEDPIN, OUTPUT);
