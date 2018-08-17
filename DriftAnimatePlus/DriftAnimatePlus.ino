@@ -135,7 +135,7 @@ const byte maxSetting[][2] PROGMEM = {
   {255, 2}, //rainbow
   {5, 2}, //dots
   {5, 0}, //fade
-  {5, 3}, //wave
+  {0, 3}, //wave
   {5, 2} //chase
 };
 
@@ -462,14 +462,13 @@ void updatePattern() {
   } else if (currentMode == 3) {
     updatePatternPulse();
   } else if (currentMode == 4) {
-    updatePatternRainbow();
+    updatePatternWave(); //rainbow is just a subset of wave
   } else if (currentMode == 5) {
     updatePatternDots();
   } else if (currentMode == 6) {
     updatePatternFade();
   } else if (currentMode == 7) {
-    //updatePatternWave();
-    updatePatternRainbow();
+    updatePatternWave();
   } else if (currentMode == 8) {
     updatePatternChase();
   } else {
@@ -478,6 +477,143 @@ void updatePattern() {
   frameNumber++;
 }
 
+void updatePatternDots() {
+  byte r,g,b;
+  if (!(frameNumber % (13 - currentValueRight[1]))) {
+    r = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
+    g = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
+    b = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
+  } else {
+    r = 0; g = 0; b = 0;
+  }
+  pushPixel(r, g, b, currentValueRight[2]);
+}
+
+void updatePatternDots2() {
+  static byte r,g,b;
+  if (!(frameNumber % (13 - currentValueRight[1]))) {
+    getModeColors(&r, &g, &b,random(0,pgm_read_byte_near(&colorCount[getPalleteNumber()])*(getTransitionFrames()+getDwellFrames())));
+  } else {
+    r = 0; g = 0; b = 0;
+  }
+  pushPixel(r, g, b, currentValueRight[2]);
+}
+
+void updatePatternFade() {
+  static byte bright = 0;
+  if (bright & 128) {
+    if (bright & 63) {
+      bright--;
+    } else {
+      bright = 0;
+    }
+  } else {
+    if (bright >= 63) {
+      bright = 0xBF;
+    } else {
+      bright++;
+    }
+  }
+  byte nbright = pgm_read_byte_near(&pulseBrightnessTable[63 & bright]);
+  byte r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
+  byte g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
+  byte b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
+  setAll(r,g,b);
+}
+
+void updatePatternFade2() {
+  byte r,g,b;
+  getModeColors(&r, &g, &b,frameNumber);
+  setAll(r,g,b);
+}
+
+
+void updatePatternWave() {
+  byte r,g,b;
+  getModeColors(&r, &g, &b,frameNumber);
+  pushPixel(r, g, b, currentValueRight[currentMode==4?2:3]);
+}
+
+
+void setAll(byte r,byte g, byte b) {
+  for (unsigned int i = 0; i < ((LENGTH) * 3); i+=3) {
+    pixels [i] = r;
+    pixels[i+1]=g;
+    pixels[i+2]=b;
+  }
+}
+
+void pushPixel(byte r, byte g, byte b, byte dir) {
+  if (dir) { //reverse
+    for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
+      pixels [i] = pixels[i + 3];
+    }
+    pixels[(LENGTH * 3) - 3] = r;
+    pixels[(LENGTH * 3) - 2] = g;
+    pixels[(LENGTH * 3) - 1] = b;
+  } else {//forward
+    for (unsigned int i = ((LENGTH) * 3) - 1; i > 2; i--) {
+      pixels [i] = pixels[i - 3];
+    }
+    pixels[0] = r;
+    pixels[1] = g;
+    pixels[2] = b;
+  }
+}
+
+unsigned int getDwellFrames() {
+  if (currentMode == 4) {
+    return 2;
+  } else if (currentMode==7) {
+    return 2+(4*currentValueRight[2]);
+  } 
+  return 0; //TO DO
+}
+unsigned int getTransitionFrames() {
+  if (currentMode==4) {
+  return 9 + (6 * currentValueRight[1]);
+  } else {
+    return 6*currentValueRight[1];
+  }
+}
+byte getPalleteNumber() {
+  if (currentMode == 4) {
+    return 0;
+  } else {
+    return currentValueLeft[0];
+  }
+}
+
+void getModeColors(byte * r, byte * g, byte * b,unsigned long fnumber) {
+  unsigned int dwellFrames = getDwellFrames();
+  unsigned int transitionFrames = getTransitionFrames();
+  byte colors = getPalleteNumber();
+  unsigned long tem = ((currentValueRight[currentMode==4?2:3] ? 0 : LENGTH) + fnumber) % (pgm_read_byte_near(&colorCount[colors]) * (dwellFrames + transitionFrames));
+  unsigned int cyclepos = tem % (dwellFrames + transitionFrames);
+  byte cyclenum = tem / (dwellFrames + transitionFrames);
+  if (cyclepos < dwellFrames) {
+    *r = pgm_read_byte_near(&colorPallete[colors][cyclenum][0]);
+    *g = pgm_read_byte_near(&colorPallete[colors][cyclenum][1]);
+    *b = pgm_read_byte_near(&colorPallete[colors][cyclenum][2]);
+    return;
+  } else {
+    cyclepos -= dwellFrames;
+    byte m = ((cyclenum + 1) >= pgm_read_byte_near(&colorCount[colors])) ? 0 : cyclenum + 1;
+    float ratio = ((float)cyclepos) / transitionFrames;
+    if (ratio > 1.001 || ratio < 0.0) {
+      Serial.print(F("ERROR: ratio out of range"));
+      Serial.println(ratio);
+      Serial.flush();
+    }
+    *r = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][0]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][0]) * (1 - ratio));
+    *g = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][1]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][1]) * (1 - ratio));
+    *b = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][2]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][2]) * (1 - ratio));
+  }
+}
+
+/*
+ * Below this are pattern handlers that have not been updated since getModeColors()
+ */
 void updatePatternDrift() {
   byte driftchance = 16 + currentValueRight[0] * 10;
   byte randinc = 255 - driftchance;
@@ -498,112 +634,6 @@ void updatePatternDrift() {
       } else {
         pixels[i]--;
       }
-    }
-  }
-}
-
-void updatePatternDots() {
-  if (currentValueRight[2]) {//reverse
-    for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
-      pixels [i] = pixels[i + 3];
-    }
-    if (!(frameNumber % (13 - currentValueRight[1]))) {
-      pixels[(3 * LENGTH) - 3] = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
-      pixels[(3 * LENGTH) - 2] = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
-      pixels[(3 * LENGTH) - 1] = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
-    } else {
-      pixels[LENGTH - 3] = 0;
-      pixels[LENGTH - 2] = 0;
-      pixels[LENGTH - 1] = 0;
-    }
-  } else { //forward
-    for (unsigned int i = (LENGTH - 1) * 3; i > 2; i--) {
-      pixels [i] = pixels[i - 3];
-    }
-    if (!(frameNumber % (13 - currentValueRight[1]))) {
-      pixels[0] = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
-      pixels[1] = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
-      pixels[2] = random(getLeftVal(currentValueLeft[4]), getLeftVal(currentValueLeft[5]));
-    } else {
-      pixels[0] = 0;
-      pixels[1] = 0;
-      pixels[2] = 0;
-    }
-  }
-}
-
-void updatePatternComets() {
-  static byte nextCometIn = 0;
-  memset(pixels, 0, 600);
-  for (byte i = 0; (i + 1) * 20 <= (LENGTH); i++) {
-    if (i == 0) {
-      Serial.println(scratch[i * 60]);
-    }
-    if (scratch[i * 60]) {
-
-      if (!frameNumber % (scratch[i * 60 + 3] + 1)) {
-        scratch[i * 60 + 1] += 1;
-      }
-      if ((scratch[i * 60 + 1] + scratch[i * 60 + 2]) > LENGTH) {
-        removeComet(i);
-      } else {
-        for (byte j = 0; (j < (scratch[i * 60 + 2] * 3)); j++) {
-          if (j <= (scratch[i * 60 + 1] * 3)) {
-            pixels[(scratch[i * 60 + 1] * 3) - j] = scratch[i * 60 + 12 + j];
-          }
-        }
-
-      }
-    }
-  }
-  if (nextCometIn == 0) {
-    nextCometIn = random(30 - 2 * currentValueRight[2], 200 - 10 * currentValueRight[2]);
-  } else {
-
-    nextCometIn--;
-  }
-}
-
-//comet data:
-// last 48 bytes are the comet
-// Byte 0: active - 0 = inactive 1 = active
-// byte 1: starts at position
-// byte 2: length
-// byte 3: speed
-
-
-byte createComet() {
-  for (byte i = 0; (i + 1) * 20 <= (LENGTH); i++) {
-    if (scratch[i * 60] == 0) {
-      unsigned int index = i * 60;
-      scratch[index] = 1;
-      scratch[index + 1] = 0; //start at position 0.
-      scratch[index + 2] = random(3, currentValueRight[1] + 6);
-      scratch[index + 3] = random(0, 3);
-      unsigned int l = 3 * scratch[index + 2];
-      byte r = random(currentValueLeft[0], currentValueLeft[1]);
-      byte g = random(currentValueLeft[2], currentValueLeft[3]);
-      byte b = random(currentValueLeft[4], currentValueLeft[5]);
-      for (byte j = 0; j < l; j += 3) {
-        if (!j || random(0, 1)) {
-          scratch[i * 60 + 12 + j] = r;
-          scratch[i * 60 + 13 + j] = g;
-          scratch[i * 60 + 14 + j] = b;
-        } else {
-          scratch[i * 60 + 12 + j] = 0;
-          scratch[i * 60 + 13 + j] = 0;
-          scratch[i * 60 + 14 + j] = 0;
-        }
-      }
-      return 1;
-    }
-  }
-  return 0;
-}
-void removeComet(byte index) {
-  if ((index + 1) * 20 <= (LENGTH)) {
-    for (byte i = 0; i < 60; i++) {
-      scratch[index * 60 + i] = 0;
     }
   }
 }
@@ -664,70 +694,6 @@ void updatePatternPulse() {
   }
 }
 
-void updatePatternFade() {
-  static byte bright = 0;
-  if (bright & 128) {
-    if (bright & 63) {
-      bright--;
-    } else {
-      bright = 0;
-    }
-  } else {
-    if (bright >= 63) {
-      bright = 0xBF;
-    } else {
-      bright++;
-    }
-  }
-  byte nbright = pgm_read_byte_near(&pulseBrightnessTable[63 & bright]);
-  byte r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
-  byte g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
-  byte b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
-  for (unsigned int i = 0; i < (LENGTH * 3); i += 3) {
-    pixels[i] = r;
-    pixels[i + 1] = g;
-    pixels[i + 2] = b;
-  }
-}
-
-void updatePatternWave() {
-  static byte bright = 0;
-  for (byte i = 0; i < (1 + pgm_read_byte_near(&maxValueRight[currentMode][1]) - currentValueRight[1]); i++) {
-    if (bright & 128) {
-      if (bright & 63) {
-        bright--;
-      } else {
-        bright = 0;
-      }
-    } else {
-      if (bright >= 63) {
-        bright = 0xBF;
-      } else {
-        bright++;
-      }
-    }
-  }
-  byte nbright = pgm_read_byte_near(&pulseBrightnessTable[63 & bright]);
-  byte r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
-  byte g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
-  byte b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
-  if (currentValueRight[2]) { //reverse
-    for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
-      pixels [i] = pixels[i + 3];
-    }
-    pixels[(LENGTH * 3) - 3] = r;
-    pixels[(LENGTH * 3) - 2] = g;
-    pixels[(LENGTH * 3) - 1] = b;
-  } else {//forward
-    for (unsigned int i = ((LENGTH) * 3) - 1; i > 2; i--) {
-      pixels [i] = pixels[i - 3];
-    }
-    pixels[0] = r;
-    pixels[1] = g;
-    pixels[2] = b;
-  }
-}
-
 void updatePatternChase() {
   static byte nextColorAt = 0;
   static byte r;
@@ -755,149 +721,6 @@ void updatePatternChase() {
     pixels[0] = r;
     pixels[1] = g;
     pixels[2] = b;
-  }
-}
-/*
-  void updatePatternRainbow() {
-  byte maxVal = COLORTABLEMAX;
-  byte l = 9 + (6 * currentValueRight[1]);
-  byte f = ((currentValueRight[2] ? 0 : LENGTH) + frameNumber) % (3 * l); //if in forward direction, add 200, otherwise don't - this keeps the color from skipping when reversing the direction.
-  byte r = 0;
-  byte g = 0;
-  byte b = 0;
-  byte fal = 0.0;
-  byte rise = 0.0;
-  if (f % l) {
-
-    float tem = f % l;
-    tem /= l;
-    float temr = (tem * (getLeftVal(currentValueLeft[1]) - getLeftVal(currentValueLeft[0])) + getLeftVal(currentValueLeft[0]));
-    float temg = (tem * (getLeftVal(currentValueLeft[3]) - getLeftVal(currentValueLeft[2])) + getLeftVal(currentValueLeft[2]));
-    float temb = (tem * (getLeftVal(currentValueLeft[5]) - getLeftVal(currentValueLeft[4])) + getLeftVal(currentValueLeft[4]));
-    if (f < l) { // sector 1 - green rising red falling
-      g = temg + 0.5;
-      temr = 255 - temr;
-      r = temr + 0.5;
-      b = getLeftVal(currentValueLeft[4]);
-    } else if (f < 2 * l) { // sector 2 - blue rising green falling
-      temg = 255 - temg;
-      g = temg + 0.5;
-      b = temb + 0.5;
-      r = getLeftVal(currentValueLeft[0]);
-    } else { // sector 3 - red rising blue falling
-      temb = 255 - temb;
-      b = temb + 0.5;
-      r = temr + 0.5;
-      g = getLeftVal(currentValueLeft[2]);
-    }
-  } else {
-    if (f == 0) {
-      r = getLeftVal(currentValueLeft[1]);
-      g = getLeftVal(currentValueLeft[2]);
-      b = getLeftVal(currentValueLeft[4]);
-    } else if (f == l) {
-      r = getLeftVal(currentValueLeft[0]);
-      g = getLeftVal(currentValueLeft[3]);
-      b = getLeftVal(currentValueLeft[4]);
-    } else {
-      r = getLeftVal(currentValueLeft[0]);
-      g = getLeftVal(currentValueLeft[2]);
-      b = getLeftVal(currentValueLeft[5]);
-    }
-  }
-  if (currentValueRight[2]) { //reverse
-    for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
-      pixels [i] = pixels[i + 3];
-    }
-    pixels[(LENGTH * 3) - 3] = r;
-    pixels[(LENGTH * 3) - 2] = g;
-    pixels[(LENGTH * 3) - 1] = b;
-  } else {//forward
-    for (unsigned int i = ((LENGTH) * 3)-1; i > 2; i--) {
-      pixels [i] = pixels[i - 3];
-    }
-    pixels[0] = r;
-    pixels[1] = g;
-    pixels[2] = b;
-  }
-  }
-*/
-
-void updatePatternRainbow() {
-  byte r = 0;
-  byte g = 0;
-  byte b = 0;
-  getModeColors(&r, &g, &b);
-  pushPixel(r, g, b, currentValueRight[currentMode==4?2:3]);
-}
-
-
-
-void pushPixel(byte r, byte g, byte b, byte dir) {
-  if (dir) { //reverse
-    for (unsigned int i = 0; i < ((LENGTH - 1) * 3); i++) {
-      pixels [i] = pixels[i + 3];
-    }
-    pixels[(LENGTH * 3) - 3] = r;
-    pixels[(LENGTH * 3) - 2] = g;
-    pixels[(LENGTH * 3) - 1] = b;
-  } else {//forward
-    for (unsigned int i = ((LENGTH) * 3) - 1; i > 2; i--) {
-      pixels [i] = pixels[i - 3];
-    }
-    pixels[0] = r;
-    pixels[1] = g;
-    pixels[2] = b;
-  }
-}
-
-unsigned int getDwellFrames() {
-  if (currentMode == 4) {
-    return 2;
-  } else if (currentMode==7) {
-    return 2+(4*currentValueRight[2]);
-  } 
-  return 0; //TO DO
-}
-unsigned int getTransitionFrames() {
-  if (currentMode==4) {
-  return 9 + (6 * currentValueRight[1]);
-  } else {
-    return 6*currentValueRight[1];
-  }
-}
-byte getPalleteNumber() {
-  if (currentMode == 4) {
-    return 0;
-  } else {
-    return currentValueLeft[0];
-  }
-}
-
-void getModeColors(byte * r, byte * g, byte * b) {
-  unsigned int dwellFrames = getDwellFrames();
-  unsigned int transitionFrames = getTransitionFrames();
-  byte colors = getPalleteNumber();
-  unsigned long tem = ((currentValueRight[currentMode==4?2:3] ? 0 : LENGTH) + frameNumber) % (pgm_read_byte_near(&colorCount[colors]) * (dwellFrames + transitionFrames));
-  unsigned int cyclepos = tem % (dwellFrames + transitionFrames);
-  byte cyclenum = tem / (dwellFrames + transitionFrames);
-  if (cyclepos < dwellFrames) {
-    *r = pgm_read_byte_near(&colorPallete[colors][cyclenum][0]);
-    *g = pgm_read_byte_near(&colorPallete[colors][cyclenum][1]);
-    *b = pgm_read_byte_near(&colorPallete[colors][cyclenum][2]);
-    return;
-  } else {
-    cyclepos -= dwellFrames;
-    byte m = ((cyclenum + 1) >= pgm_read_byte_near(&colorCount[colors])) ? 0 : cyclenum + 1;
-    float ratio = ((float)cyclepos) / transitionFrames;
-    if (ratio > 1.001 || ratio < 0.0) {
-      Serial.print(F("ERROR: ratio out of range"));
-      Serial.println(ratio);
-      Serial.flush();
-    }
-    *r = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][0]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][0]) * (1 - ratio));
-    *g = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][1]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][1]) * (1 - ratio));
-    *b = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][2]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][2]) * (1 - ratio));
   }
 }
 
@@ -1119,3 +942,80 @@ ISR (TIMER1_CAPT_vect)
   }
 }
 
+/* Doesn't work 
+void updatePatternComets() {
+  static byte nextCometIn = 0;
+  memset(pixels, 0, 600);
+  for (byte i = 0; (i + 1) * 20 <= (LENGTH); i++) {
+    if (i == 0) {
+      Serial.println(scratch[i * 60]);
+    }
+    if (scratch[i * 60]) {
+
+      if (!frameNumber % (scratch[i * 60 + 3] + 1)) {
+        scratch[i * 60 + 1] += 1;
+      }
+      if ((scratch[i * 60 + 1] + scratch[i * 60 + 2]) > LENGTH) {
+        removeComet(i);
+      } else {
+        for (byte j = 0; (j < (scratch[i * 60 + 2] * 3)); j++) {
+          if (j <= (scratch[i * 60 + 1] * 3)) {
+            pixels[(scratch[i * 60 + 1] * 3) - j] = scratch[i * 60 + 12 + j];
+          }
+        }
+
+      }
+    }
+  }
+  if (nextCometIn == 0) {
+    nextCometIn = random(30 - 2 * currentValueRight[2], 200 - 10 * currentValueRight[2]);
+  } else {
+
+    nextCometIn--;
+  }
+}
+
+//comet data:
+// last 48 bytes are the comet
+// Byte 0: active - 0 = inactive 1 = active
+// byte 1: starts at position
+// byte 2: length
+// byte 3: speed
+
+
+byte createComet() {
+  for (byte i = 0; (i + 1) * 20 <= (LENGTH); i++) {
+    if (scratch[i * 60] == 0) {
+      unsigned int index = i * 60;
+      scratch[index] = 1;
+      scratch[index + 1] = 0; //start at position 0.
+      scratch[index + 2] = random(3, currentValueRight[1] + 6);
+      scratch[index + 3] = random(0, 3);
+      unsigned int l = 3 * scratch[index + 2];
+      byte r = random(currentValueLeft[0], currentValueLeft[1]);
+      byte g = random(currentValueLeft[2], currentValueLeft[3]);
+      byte b = random(currentValueLeft[4], currentValueLeft[5]);
+      for (byte j = 0; j < l; j += 3) {
+        if (!j || random(0, 1)) {
+          scratch[i * 60 + 12 + j] = r;
+          scratch[i * 60 + 13 + j] = g;
+          scratch[i * 60 + 14 + j] = b;
+        } else {
+          scratch[i * 60 + 12 + j] = 0;
+          scratch[i * 60 + 13 + j] = 0;
+          scratch[i * 60 + 14 + j] = 0;
+        }
+      }
+      return 1;
+    }
+  }
+  return 0;
+}
+void removeComet(byte index) {
+  if ((index + 1) * 20 <= (LENGTH)) {
+    for (byte i = 0; i < 60; i++) {
+      scratch[index * 60 + i] = 0;
+    }
+  }
+}
+*/
