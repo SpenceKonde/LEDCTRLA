@@ -16,6 +16,9 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 #define MODE_BTN 2
 #define LDR_PIN A6
 
+
+#define MODE_DRIFT2 10
+
 #define FLASH(flashptr) (reinterpret_cast<const __FlashStringHelper *>(pgm_read_word_near(&flashptr)))
 
 // Names of mode settings - these get stuffed into modesL and modesR below.
@@ -113,7 +116,7 @@ const byte maxValueRight[][8] PROGMEM = {
   {10, 10, 1},
   {10, 12, 1},
   {10},
-  {10, 20,20, 1},
+  {10, 20, 20, 1},
   {10, 20, 1}
 };
 const byte defaultValueRight[][8] PROGMEM = {
@@ -124,7 +127,7 @@ const byte defaultValueRight[][8] PROGMEM = {
   {5, 10, 0},
   {5, 10, 0},
   {5},
-  {5, 10,2, 0},
+  {5, 10, 2, 0},
   {5, 10, 0}
 };
 const byte maxSetting[][2] PROGMEM = {
@@ -155,11 +158,11 @@ byte currentMode = 0;
 
 const byte colorPallete[][8][3] PROGMEM = {
   {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
-  {{255, 196, 64}, {255, 128, 64}, {196, 160, 140}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
-  {{255, 0, 64}, {0, 64, 255}, {0, 160, 160}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+  {{255, 196, 64}, {255, 100, 40}, {196, 160, 140}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+  {{255, 0, 64}, {0, 64, 255}, {0, 160, 160}, {160, 0, 160}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
   {{255, 0, 0}, {128, 128, 128}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
 };
-const byte colorCount[] PROGMEM = {3, 3, 3, 3};
+const byte colorCount[] PROGMEM = {3, 3, 4, 3};
 
 const char pallete0[] PROGMEM = "RAINBOW";
 const char pallete1[] PROGMEM = "  WARM ";
@@ -307,13 +310,36 @@ void setMode(byte mode) {
       currentValueRight[i] = pgm_read_byte_near(&defaultValueRight[currentMode][i]);
     }
   }
+  if (currentMode == MODE_DRIFT2) {
+    initLookupDrift2();
+    initColorsDrift2();
+  }
   // start with the first setting selected, in case we had a setting now out of index.
   frameNumber = 0;
   currentSettingLeft = 0;
   currentSettingRight = 0;
 }
 
+void initColorsDrift2() {
+  int len = (pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getDwellFrames() + getTransitionFrames()));
+  for (int j=0; j < LENGTH; j++) {
+  unsigned int r = random(0, len);
+    scratch[((j * 3) / 2)] = r & 0xFF;
+    if (j & 1) {
+      scratch[(j / 2) * 3 + 2] &= ((r >> 4) & 0xF0);
+    } else {
+      scratch[(j / 2) * 3 + 2] = r >> 8;
+    }
+  }
+}
 
+void initLookupDrift2() {
+  unsigned int start = (LENGTH * 3 + 1) / 2;
+  for (unsigned int i = 0; i < getTransitionFrames(); i++) {
+    byte r, g, b;
+    scratch[start + i] = getModeRatio(i);
+  }
+}
 
 void handleUI() {
   static byte lastBtnState = 7;
@@ -363,6 +389,7 @@ byte getLeftVal(byte t) {
 }
 
 void handleLCD() {
+  static byte drift2_colors = 255;
   static unsigned long lastInputAt;
   static byte attractmode = 0;
   byte uichg = 0;
@@ -398,6 +425,17 @@ void handleLCD() {
   if (attractmode) {
     lcd.clear();
   }
+  if (uichg & 1 && currentMode == MODE_DRIFT2) {
+    if (getPalleteNumber != drift2_colors) {
+      initColorsDrift2();
+    }
+    initLookupDrift2();
+  }
+  if (currentMode == MODE_DRIFT2) {
+    if (getPalleteNumber() != drift2_colors) {
+      drift2_colors = getPalleteNumber();
+    }
+  }
   lastInputAt = millis();
   if ((uichg & 6) || attractmode ) { //if setting or mode has changed, redraw settings
     lcd.setCursor(0, 0);
@@ -411,7 +449,7 @@ void handleLCD() {
   }
   if ((uichg & 7) || attractmode) { //if mode, setting, or value has changed, redraw second line
     byte tval;
-    if (currentMode==7){
+    if (currentMode == 7) {
       lcd.setCursor(0, 0);
       lcd.print(FLASH(palleteNames[currentValueLeft[0]]));
       lcd.setCursor(0, 1);
@@ -478,7 +516,7 @@ void updatePattern() {
 }
 
 void updatePatternDots() {
-  byte r,g,b;
+  byte r, g, b;
   if (!(frameNumber % (13 - currentValueRight[1]))) {
     r = random(getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[1]));
     g = random(getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[3]));
@@ -490,9 +528,9 @@ void updatePatternDots() {
 }
 
 void updatePatternDots2() {
-  static byte r,g,b;
+  static byte r, g, b;
   if (!(frameNumber % (13 - currentValueRight[1]))) {
-    getModeColors(&r, &g, &b,random(0,pgm_read_byte_near(&colorCount[getPalleteNumber()])*(getTransitionFrames()+getDwellFrames())));
+    getModeColors(&r, &g, &b, random(0, pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getTransitionFrames() + getDwellFrames())));
   } else {
     r = 0; g = 0; b = 0;
   }
@@ -518,28 +556,28 @@ void updatePatternFade() {
   byte r = map(nbright, 0, 255, getLeftVal(currentValueLeft[0]), getLeftVal(currentValueLeft[3]));
   byte g = map(nbright, 0, 255, getLeftVal(currentValueLeft[1]), getLeftVal(currentValueLeft[4]));
   byte b = map(nbright, 0, 255, getLeftVal(currentValueLeft[2]), getLeftVal(currentValueLeft[5]));
-  setAll(r,g,b);
+  setAll(r, g, b);
 }
 
 void updatePatternFade2() {
-  byte r,g,b;
-  getModeColors(&r, &g, &b,frameNumber);
-  setAll(r,g,b);
+  byte r, g, b;
+  getModeColors(&r, &g, &b, frameNumber);
+  setAll(r, g, b);
 }
 
 
 void updatePatternWave() {
-  byte r,g,b;
-  getModeColors(&r, &g, &b,frameNumber);
-  pushPixel(r, g, b, currentValueRight[currentMode==4?2:3]);
+  byte r, g, b;
+  getModeColors(&r, &g, &b, frameNumber);
+  pushPixel(r, g, b, currentValueRight[currentMode == 4 ? 2 : 3]);
 }
 
 
-void setAll(byte r,byte g, byte b) {
-  for (unsigned int i = 0; i < ((LENGTH) * 3); i+=3) {
+void setAll(byte r, byte g, byte b) {
+  for (unsigned int i = 0; i < ((LENGTH) * 3); i += 3) {
     pixels [i] = r;
-    pixels[i+1]=g;
-    pixels[i+2]=b;
+    pixels[i + 1] = g;
+    pixels[i + 2] = b;
   }
 }
 
@@ -564,16 +602,16 @@ void pushPixel(byte r, byte g, byte b, byte dir) {
 unsigned int getDwellFrames() {
   if (currentMode == 4) {
     return 2;
-  } else if (currentMode==7) {
-    return 2+(4*currentValueRight[2]);
-  } 
+  } else if (currentMode == 7) {
+    return 2 + (4 * currentValueRight[2]);
+  }
   return 0; //TO DO
 }
 unsigned int getTransitionFrames() {
-  if (currentMode==4) {
-  return 9 + (6 * currentValueRight[1]);
+  if (currentMode == 4) {
+    return 9 + (6 * currentValueRight[1]);
   } else {
-    return 6*currentValueRight[1];
+    return 6 * currentValueRight[1];
   }
 }
 byte getPalleteNumber() {
@@ -584,11 +622,11 @@ byte getPalleteNumber() {
   }
 }
 
-void getModeColors(byte * r, byte * g, byte * b,unsigned long fnumber) {
+void getModeColors(byte * r, byte * g, byte * b, unsigned long fnumber) {
   unsigned int dwellFrames = getDwellFrames();
   unsigned int transitionFrames = getTransitionFrames();
   byte colors = getPalleteNumber();
-  unsigned long tem = ((currentValueRight[currentMode==4?2:3] ? 0 : LENGTH) + fnumber) % (pgm_read_byte_near(&colorCount[colors]) * (dwellFrames + transitionFrames));
+  unsigned long tem = ((currentValueRight[currentMode == 4 ? 2 : 3] ? 0 : LENGTH) + fnumber) % (pgm_read_byte_near(&colorCount[colors]) * (dwellFrames + transitionFrames));
   unsigned int cyclepos = tem % (dwellFrames + transitionFrames);
   byte cyclenum = tem / (dwellFrames + transitionFrames);
   if (cyclepos < dwellFrames) {
@@ -611,9 +649,22 @@ void getModeColors(byte * r, byte * g, byte * b,unsigned long fnumber) {
   }
 }
 
+byte getModeRatio(unsigned int fnumber) {
+  {
+    float ratio = ((float)fnumber) / getTransitionFrames();
+    if (ratio > 1.001 || ratio < 0.0) {
+      Serial.print(F("ERROR: ratio out of range"));
+      Serial.println(ratio);
+      Serial.flush();
+    }
+
+    return (byte)(ratio * 255.5);
+  }
+}
+
 /*
- * Below this are pattern handlers that have not been updated since getModeColors()
- */
+   Below this are pattern handlers that have not been updated since getModeColors()
+*/
 void updatePatternDrift() {
   byte driftchance = 16 + currentValueRight[0] * 10;
   byte randinc = 255 - driftchance;
@@ -942,8 +993,8 @@ ISR (TIMER1_CAPT_vect)
   }
 }
 
-/* Doesn't work 
-void updatePatternComets() {
+/* Doesn't work
+  void updatePatternComets() {
   static byte nextCometIn = 0;
   memset(pixels, 0, 600);
   for (byte i = 0; (i + 1) * 20 <= (LENGTH); i++) {
@@ -973,17 +1024,17 @@ void updatePatternComets() {
 
     nextCometIn--;
   }
-}
+  }
 
-//comet data:
-// last 48 bytes are the comet
-// Byte 0: active - 0 = inactive 1 = active
-// byte 1: starts at position
-// byte 2: length
-// byte 3: speed
+  //comet data:
+  // last 48 bytes are the comet
+  // Byte 0: active - 0 = inactive 1 = active
+  // byte 1: starts at position
+  // byte 2: length
+  // byte 3: speed
 
 
-byte createComet() {
+  byte createComet() {
   for (byte i = 0; (i + 1) * 20 <= (LENGTH); i++) {
     if (scratch[i * 60] == 0) {
       unsigned int index = i * 60;
@@ -1010,12 +1061,12 @@ byte createComet() {
     }
   }
   return 0;
-}
-void removeComet(byte index) {
+  }
+  void removeComet(byte index) {
   if ((index + 1) * 20 <= (LENGTH)) {
     for (byte i = 0; i < 60; i++) {
       scratch[index * 60 + i] = 0;
     }
   }
-}
+  }
 */
