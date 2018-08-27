@@ -3,10 +3,11 @@
 #include <Wire.h>
 #include <avr/pgmspace.h>
 #include <util/crc16.h>
+#include <EEPROM.h>
 
 // UI + encoder involved globals
-LiquidCrystal_I2C lcd(0x3F, 16, 2);
-//LiquidCrystal_I2C lcd(0x27, 16, 2);
+//LiquidCrystal_I2C lcd(0x3F, 16, 2);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define ENC1_PINA 14
 #define ENC1_PINB 15
 #define ENC2_PINA 16
@@ -46,7 +47,7 @@ const char mode4Name[] PROGMEM = " RAINBOW";
 const char mode5Name[] PROGMEM = "  DOTS  ";
 const char mode6Name[] PROGMEM = "  FADE  ";
 const char mode7Name[] PROGMEM = "  WAVE  ";
-const char mode8Name[] PROGMEM = " CHASE  ";
+const char mode8Name[] PROGMEM = " DOTS2  ";
 
 
 //Names of settings by mode
@@ -55,11 +56,11 @@ const char * const modesL[][8] PROGMEM = {
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode0R0},
+  {mode0R0}, //rainbow
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
   {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5}, //different order!
-  {mode0R0}, //different order!
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5}
+  {mode0R0}, //wave
+  {mode0R0} //chase
 
 };
 
@@ -72,7 +73,7 @@ const char * const modesR[][8] PROGMEM = {
   {mode1R0, mode5R1, mode4R2}, //dots
   {mode1R0}, //fade
   {mode1R0, mode2R2, mode7R2, mode4R2}, //wave
-  {mode1R0, mode2R2, mode4R2} //chase
+  {mode1R0, mode5R1, mode4R2} //dots with pallete
 
 };
 
@@ -91,7 +92,7 @@ const byte maxValueLeft[][8] PROGMEM = {
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {3},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX}
+  {3}
 };
 const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
   {255, 255, 255},
@@ -102,7 +103,7 @@ const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pic
   {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
   {255, 255, 255, 255, 255, 255},
   {0},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX}
+  {0}
 };
 
 //if above max is COLORTABLEMAX, use this value - otherwise use raw value.
@@ -117,7 +118,7 @@ const byte maxValueRight[][8] PROGMEM = {
   {10, 12, 1},
   {10},
   {10, 20, 20, 1},
-  {10, 20, 1}
+  {10, 12, 1}
 };
 const byte defaultValueRight[][8] PROGMEM = {
   {0},
@@ -139,7 +140,7 @@ const byte maxSetting[][2] PROGMEM = {
   {5, 2}, //dots
   {5, 0}, //fade
   {0, 3}, //wave
-  {5, 2} //chase
+  {0, 2} //dots2
 };
 
 const byte maxMode = 8;
@@ -229,6 +230,7 @@ void setup() {
   lcd.print(F("party down!"));
   delay(2000);
   lcd.clear();
+  loadMode();
 }
 
 void loop() {
@@ -322,8 +324,8 @@ void setMode(byte mode) {
 
 void initColorsDrift2() {
   int len = (pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getDwellFrames() + getTransitionFrames()));
-  for (int j=0; j < LENGTH; j++) {
-  unsigned int r = random(0, len);
+  for (int j = 0; j < LENGTH; j++) {
+    unsigned int r = random(0, len);
     scratch[((j * 3) / 2)] = r & 0xFF;
     if (j & 1) {
       scratch[(j / 2) * 3 + 2] &= ((r >> 4) & 0xF0);
@@ -336,8 +338,39 @@ void initColorsDrift2() {
 void initLookupDrift2() {
   unsigned int start = (LENGTH * 3 + 1) / 2;
   for (unsigned int i = 0; i < getTransitionFrames(); i++) {
-    byte r, g, b;
     scratch[start + i] = getModeRatio(i);
+  }
+}
+
+
+void saveMode() {
+  EEPROM.write(0x0F, currentMode);
+  for (byte i = 0; i < 8; i++) {
+    EEPROM.write(0x10 + i, currentValueLeft[i]);
+    EEPROM.write(0x18 + i, currentValueRight[i]);
+  }
+
+}
+
+void clearMode() {
+  for (byte i = 0x0F; i < 0x20; i++) {
+    EEPROM.write(i, 255);
+  }
+  currentMode = 0;
+  for (byte i = 0; i < 8; i++) {
+    currentValueLeft[i] = 0;
+    currentValueRight[i] = 0;
+  }
+
+}
+
+void loadMode() {
+  if (EEPROM.read(0x0F) != 255) {
+    currentMode = EEPROM.read(0x0F);
+    for (byte i = 0; i < 8; i++) {
+      currentValueLeft[i] = EEPROM.read(0x10 + i);
+      currentValueRight[i] = EEPROM.read(0x18 + i);
+    }
   }
 }
 
@@ -345,20 +378,43 @@ void handleUI() {
   static byte lastBtnState = 7;
   static byte lastBtnBounceState = 7;
   static unsigned long lastBtnAt = 0;
+  static unsigned long lastPressAt = 0;
   byte btnRead = (PIND & 0x1C) >> 2;
   if (!(btnRead == lastBtnBounceState)) { //debounce all buttons at once.
     lastBtnBounceState = btnRead;
     lastBtnAt = millis();
   } else {
     if (millis() - lastBtnAt > 50) { //has been stable for 50ms
-      if (btnRead > lastBtnState) {
-        //do nothing - was button being released
-      } else {
-        if ((!(btnRead & 1)) && (lastBtnState & 1)) {
-          advanceMode();
-          UIChanged |= 4;
+      if (btnRead < lastBtnState) {
+        if (!lastPressAt) {
+          lastPressAt = millis();
         }
-        if ((!(btnRead & 2)) && (lastBtnState & 2)) {
+        //do nothing - was button being pressed
+      } else {
+        if (((btnRead & 1)) && !(lastBtnState & 1)) {
+          Serial.println(millis() - lastPressAt);
+          if (millis() - lastPressAt > 10000) {
+            lcd.clear();
+            clearMode();
+            lcd.setCursor(3, 0);
+            lcd.print(F("Saved mode"));
+            lcd.setCursor(5, 1);
+            lcd.print(F("cleared"));
+            delay(1000);
+            UIChanged |= 4;
+          } else if (millis() - lastPressAt > 3000) {
+            saveMode();
+            lcd.clear();
+            lcd.setCursor(3, 0);
+            lcd.print(F("Mode Saved"));
+            delay(1000);
+          } else {
+            advanceMode();
+            UIChanged |= 4;
+          }
+          lastPressAt = 0;
+        }
+        if (((btnRead & 2)) && !(lastBtnState & 2)) {
           if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
             currentSettingLeft = 0;
           } else {
@@ -366,7 +422,7 @@ void handleUI() {
           }
           UIChanged |= 2;
         }
-        if ((!(btnRead & 4)) && (lastBtnState & 4)) {
+        if (((btnRead & 4)) && !(lastBtnState & 4)) {
           if (currentSettingRight >= pgm_read_byte_near(&maxSetting[currentMode][1])) {
             currentSettingRight = 0;
           } else {
@@ -402,8 +458,9 @@ void handleLCD() {
   sei();
   if (uichg == 0) {
     if (millis() - lastInputAt > 60000) {
-      if (!attractmode) {
+      if (!attractmode || (millis() - lastInputAt > 120000)) {
         attractmode = 1;
+        lastInputAt = millis() - 60000;
         lcd.clear();
         lcd.setCursor(2, 0);
         lcd.print(F("PLAY WITH ME"));
@@ -439,7 +496,7 @@ void handleLCD() {
   lastInputAt = millis();
   if ((uichg & 6) || attractmode ) { //if setting or mode has changed, redraw settings
     lcd.setCursor(0, 0);
-    if (currentMode != 7) {
+    if (currentMode < 7 ) {
       lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
     } else {
       lcd.print(FLASH(palleteNames[currentValueLeft[0]]));
@@ -449,7 +506,7 @@ void handleLCD() {
   }
   if ((uichg & 7) || attractmode) { //if mode, setting, or value has changed, redraw second line
     byte tval;
-    if (currentMode == 7) {
+    if (currentMode > 6) {
       lcd.setCursor(0, 0);
       lcd.print(FLASH(palleteNames[currentValueLeft[0]]));
       lcd.setCursor(0, 1);
@@ -508,7 +565,7 @@ void updatePattern() {
   } else if (currentMode == 7) {
     updatePatternWave();
   } else if (currentMode == 8) {
-    updatePatternChase();
+    updatePatternDots2();
   } else {
     setMode(0);
   }
@@ -659,6 +716,29 @@ byte getModeRatio(unsigned int fnumber) {
     }
 
     return (byte)(ratio * 255.5);
+  }
+}
+
+void getDrift2Colors(byte * r, byte * g, byte * b, unsigned long fnumber) {
+  unsigned int dwellFrames = getDwellFrames();
+  unsigned int transitionFrames = getTransitionFrames();
+  byte colors = getPalleteNumber();
+  unsigned long tem = ((currentValueRight[currentMode == 4 ? 2 : 3] ? 0 : LENGTH) + fnumber) % (pgm_read_byte_near(&colorCount[colors]) * (dwellFrames + transitionFrames));
+  unsigned int cyclepos = tem % (dwellFrames + transitionFrames);
+  byte cyclenum = tem / (dwellFrames + transitionFrames);
+  if (cyclepos < dwellFrames) {
+    *r = pgm_read_byte_near(&colorPallete[colors][cyclenum][0]);
+    *g = pgm_read_byte_near(&colorPallete[colors][cyclenum][1]);
+    *b = pgm_read_byte_near(&colorPallete[colors][cyclenum][2]);
+    return;
+  } else {
+    cyclepos -= dwellFrames;
+    byte m = ((cyclenum + 1) >= pgm_read_byte_near(&colorCount[colors])) ? 0 : cyclenum + 1;
+    unsigned int start = (LENGTH * 3 + 1) >>1 ;
+    byte ratio=scratch[start+cyclepos]
+    *r = (((unsigned int)(pgm_read_byte_near(&colorPallete[colors][m][0]) * ratio)) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][0]) * (255 - ratio)))>>8;
+    *g = (((unsigned int)(pgm_read_byte_near(&colorPallete[colors][m][1]) * ratio)) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][1]) * (255 - ratio)))>>8;
+    *b = (((unsigned int)(pgm_read_byte_near(&colorPallete[colors][m][2]) * ratio)) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][2]) * (255 - ratio)))>>8;
   }
 }
 
