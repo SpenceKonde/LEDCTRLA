@@ -18,7 +18,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define LDR_PIN A6
 
 
-#define MODE_DRIFT2 10
+#define MODE_DRIFT2 9
 
 #define FLASH(flashptr) (reinterpret_cast<const __FlashStringHelper *>(pgm_read_word_near(&flashptr)))
 
@@ -48,6 +48,8 @@ const char mode5Name[] PROGMEM = "  DOTS  ";
 const char mode6Name[] PROGMEM = "  FADE  ";
 const char mode7Name[] PROGMEM = "  WAVE  ";
 const char mode8Name[] PROGMEM = " DOTS2  ";
+const char mode9Name[] PROGMEM = " FADE2  ";
+const char mode10Name[] PROGMEM = " DRIFT2 ";
 
 
 //Names of settings by mode
@@ -60,7 +62,9 @@ const char * const modesL[][8] PROGMEM = {
   {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
   {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5}, //different order!
   {mode0R0}, //wave
-  {mode0R0} //chase
+  {mode0R0}, //dots with pallete
+  {mode0R0}, //fade with pallete
+  {mode0R0} //drift with pallete
 
 };
 
@@ -73,12 +77,14 @@ const char * const modesR[][8] PROGMEM = {
   {mode1R0, mode5R1, mode4R2}, //dots
   {mode1R0}, //fade
   {mode1R0, mode2R2, mode7R2, mode4R2}, //wave
-  {mode1R0, mode5R1, mode4R2} //dots with pallete
+  {mode1R0, mode5R1, mode4R2}, //dots with pallete
+  {mode1R0, mode2R2, mode7R2, mode4R2}, //fade with pallete
+  {mode1R0, mode2R2, mode7R2} //drift with pallete
 
 };
 
 // names of modes
-const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name, mode6Name, mode7Name, mode8Name};
+const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name, mode6Name, mode7Name, mode8Name, mode9Name, mode10Name};
 
 #define COLORTABLEMAX 31
 
@@ -92,6 +98,8 @@ const byte maxValueLeft[][8] PROGMEM = {
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
   {3},
+  {3},
+  {3},
   {3}
 };
 const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
@@ -102,6 +110,8 @@ const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pic
   {0},
   {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
   {255, 255, 255, 255, 255, 255},
+  {0},
+  {0},
   {0},
   {0}
 };
@@ -118,7 +128,9 @@ const byte maxValueRight[][8] PROGMEM = {
   {10, 12, 1},
   {10},
   {10, 20, 20, 1},
-  {10, 12, 1}
+  {10, 12, 1},
+  {10, 20, 20, 1},
+  {10, 20, 20}
 };
 const byte defaultValueRight[][8] PROGMEM = {
   {0},
@@ -129,7 +141,9 @@ const byte defaultValueRight[][8] PROGMEM = {
   {5, 10, 0},
   {5},
   {5, 10, 2, 0},
-  {5, 10, 0}
+  {5, 10, 0},
+  {5, 10, 2,0},
+  {5, 10, 2}
 };
 const byte maxSetting[][2] PROGMEM = {
   {2, 0}, //solid
@@ -140,10 +154,12 @@ const byte maxSetting[][2] PROGMEM = {
   {5, 2}, //dots
   {5, 0}, //fade
   {0, 3}, //wave
-  {0, 2} //dots2
+  {0, 2}, //dots2
+  {0, 2}, //fade2
+  {0, 2} //drift2
 };
 
-const byte maxMode = 8;
+const byte maxMode = 10;
 
 const byte pulseBrightnessTable[] PROGMEM = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 59, 63, 67, 71, 75, 79, 83, 87, 92, 97, 102, 107, 112, 117, 122, 127, 133, 139, 145, 151, 157, 163, 169, 175, 182, 189, 196, 203, 210, 217, 224, 231, 239, 247, 255};
 
@@ -312,7 +328,7 @@ void setMode(byte mode) {
       currentValueRight[i] = pgm_read_byte_near(&defaultValueRight[currentMode][i]);
     }
   }
-  if (currentMode == MODE_DRIFT2) {
+  if (currentMode == 10) {
     initLookupDrift2();
     initColorsDrift2();
   }
@@ -482,13 +498,13 @@ void handleLCD() {
   if (attractmode) {
     lcd.clear();
   }
-  if (uichg & 1 && currentMode == MODE_DRIFT2) {
+  if (uichg & 1 && currentMode == 10) {
     if (getPalleteNumber != drift2_colors) {
       initColorsDrift2();
     }
     initLookupDrift2();
   }
-  if (currentMode == MODE_DRIFT2) {
+  if (currentMode == 10) {
     if (getPalleteNumber() != drift2_colors) {
       drift2_colors = getPalleteNumber();
     }
@@ -562,10 +578,15 @@ void updatePattern() {
     updatePatternDots();
   } else if (currentMode == 6) {
     updatePatternFade();
+    
   } else if (currentMode == 7) {
-    updatePatternWave();
+   updatePatternWave();
   } else if (currentMode == 8) {
     updatePatternDots2();
+  } else if (currentMode == 9) {
+    updatePatternFade2();
+  } else if (currentMode == 10) {
+    updatePatternDrift2();
   } else {
     setMode(0);
   }
@@ -659,7 +680,7 @@ void pushPixel(byte r, byte g, byte b, byte dir) {
 unsigned int getDwellFrames() {
   if (currentMode == 4) {
     return 2;
-  } else if (currentMode == 7) {
+  } else {
     return 2 + (4 * currentValueRight[2]);
   }
   return 0; //TO DO
@@ -676,6 +697,52 @@ byte getPalleteNumber() {
     return 0;
   } else {
     return currentValueLeft[0];
+  }
+}
+/*
+ * void initColorsDrift2() {
+  int len = (pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getDwellFrames() + getTransitionFrames()));
+  for (int j = 0; j < LENGTH; j++) {
+    unsigned int r = random(0, len);
+    scratch[((j * 3) / 2)] = r & 0xFF;
+    if (j & 1) {
+      scratch[(j / 2) * 3 + 2] &= ((r >> 4) & 0xF0);
+    } else {
+      scratch[(j / 2) * 3 + 2] = r >> 8;
+    }
+  }
+}
+ * 
+ */
+void updatePatternDrift2() {
+  byte driftchance = 16 + currentValueRight[0] * 10;
+  byte randinc = 255 - driftchance;
+  byte randdec = driftchance;
+  int len = (pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getDwellFrames() + getTransitionFrames()));
+  for (byte i = 0; i < LENGTH; i+=2) {
+    unsigned int rand = random(65535);
+    unsigned int f1=scratch[(i*3)>>1]+((scratch[(i>>1)*3+2]&0x0F)<<8);
+    unsigned int f2=scratch[1+((i*3)>>1)]+((scratch[(i>>1)*3+2]&0xF0)<<4);
+    if ((byte)rand > randinc) {
+      f1++;
+      if (f1>len){f1=0;}
+    } else if ((byte)rand < randdec) {
+      f1--;
+      if (f1>len){f1=len;}
+    }
+    rand=rand>>8;
+    if (rand > randinc) {
+      f2++;
+      if (f2>len){f2=0;}
+    } else if (rand < randdec) {
+      f2--;
+      if (f2>len){f2=len;}
+    }
+    scratch[(i*3)>>1]=f1&0xFF;
+    scratch[1+((i*3)>>1)]=f2&0xFF;
+    scratch[(i>>1)*3+2]=(f1>>8)&((f2>>4)&0xF0);
+    getDrift2Colors(&pixels[i*3], &pixels[i*3]+1, &pixels[i*3]+2, f1);
+    getDrift2Colors(&pixels[i*3]+3, &pixels[i*3]+4, &pixels[i*3]+5, f2);
   }
 }
 
@@ -735,7 +802,7 @@ void getDrift2Colors(byte * r, byte * g, byte * b, unsigned long fnumber) {
     cyclepos -= dwellFrames;
     byte m = ((cyclenum + 1) >= pgm_read_byte_near(&colorCount[colors])) ? 0 : cyclenum + 1;
     unsigned int start = (LENGTH * 3 + 1) >>1 ;
-    byte ratio=scratch[start+cyclepos]
+    byte ratio=scratch[start+cyclepos];
     *r = (((unsigned int)(pgm_read_byte_near(&colorPallete[colors][m][0]) * ratio)) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][0]) * (255 - ratio)))>>8;
     *g = (((unsigned int)(pgm_read_byte_near(&colorPallete[colors][m][1]) * ratio)) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][1]) * (255 - ratio)))>>8;
     *b = (((unsigned int)(pgm_read_byte_near(&colorPallete[colors][m][2]) * ratio)) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][2]) * (255 - ratio)))>>8;
