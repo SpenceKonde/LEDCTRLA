@@ -1,13 +1,27 @@
 #include <Adafruit_NeoPixel_Static.h>
-#include <LiquidCrystal_I2C.h>
-#include <Wire.h>
 #include <avr/pgmspace.h>
 #include <util/crc16.h>
 #include <EEPROM.h>
 
 // UI + encoder involved globals
-LiquidCrystal_I2C lcd(0x3F, 16, 2);
-//LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+
+
+#ifndef __AVR_ATmega1284P__
+#ifdef TWILCD //ATmega328p with LCD connected via I2C
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+//LiquidCrystal_I2C lcd(0x3F, 16, 2);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+#define LDR_PIN A6
+#else //ATmega328pb with LCD connected in 4-bit mode
+#include <LiquidCrystal.h> 
+LiquidCrystal lcd(5, 6, 7, 23, 24, 25, 26);
+//LiquidCrystal lcd(5, 6, 7, 26, 25, 24, 23);
+#define LDR_PIN A5
+#endif
+#define RX_PIN_STATE (PINB&1) //RX on pin 8 for input capture. 
+#define LEDPIN 10
 #define ENC1_PINA 14
 #define ENC1_PINB 15
 #define ENC2_PINA 16
@@ -15,7 +29,20 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 #define ENC1_BTN 3
 #define ENC2_BTN 4
 #define MODE_BTN 2
-#define LDR_PIN A6
+#else
+#include <LiquidCrystal.h> //ATmega1284p with LCD connected in 4-bit mode
+LiquidCrystal lcd(2, 3, 4, 24, 25, 26, 27);
+#define RX_PIN_STATE (PIND&64) //RX on PD6 for input capture. 
+#define LEDPIN 21
+#define LDR_PIN A4
+#define ENC1_PINA 16
+#define ENC1_PINB 17
+#define ENC2_PINA 18
+#define ENC2_PINB 19
+#define ENC1_BTN 12
+#define ENC2_BTN 11
+#define MODE_BTN 10
+#endif
 
 
 #define MODE_DRIFT2 9
@@ -31,9 +58,10 @@ const byte colorPallete[][8][3] PROGMEM = {
   {{0, 255, 0}, {0, 128, 16}, {0, 32, 0}, {64, 160, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},  //Lizard
   {{255, 0, 16}, {196, 0, 64}, {255, 16, 100}, {255, 0, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //sextime
   {{255, 64, 0}, {196, 32, 0}, {220, 64, 0}, {255, 16, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //fire
-  {{255, 0, 0}, {128, 128, 128}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //USA
+  {{255, 0, 0}, {128, 128, 128}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //USA
+  {{255, 0, 0}, {0, 0, 0}, {0, 255, 0}, {0, 0, 0}, {255, 200, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //xmas
 };
-const byte colorCount[] PROGMEM = {3, 4, 4, 5, 4, 4, 4, 3};
+const byte colorCount[] PROGMEM = {3, 4, 4, 5, 4, 4, 4, 3, 6};
 
 const char pallete0[] PROGMEM = "RAINBOW";
 const char pallete1[] PROGMEM = "  WARM ";
@@ -43,9 +71,10 @@ const char pallete4[] PROGMEM = "LIZARD ";
 const char pallete5[] PROGMEM = "SEXTIME";
 const char pallete6[] PROGMEM = "  FIRE ";
 const char pallete7[] PROGMEM = "  USA  ";
+const char pallete8[] PROGMEM = "  XMAS ";
 
-const char * const palleteNames[] PROGMEM = {pallete0, pallete1, pallete2, pallete3, pallete4, pallete5, pallete6, pallete7};
-#define PALLETEMAX 7
+const char * const palleteNames[] PROGMEM = {pallete0, pallete1, pallete2, pallete3, pallete4, pallete5, pallete6, pallete7,pallete8};
+#define PALLETEMAX 8
 
 // Names of mode settings - these get stuffed into modesL and modesR below.
 const char mode0L0[] PROGMEM = "  RED  ";
@@ -152,7 +181,7 @@ const byte maxValueRight[][8] PROGMEM = {
   {10, 10, 1},
   {10, 12, 1},
   {10},
-  {10, 20, 20, 1},
+  {10, 40, 20, 1},
   {10, 12, 1},
   {10, 20, 20, 1},
   {10, 20, 20}
@@ -165,7 +194,7 @@ const byte defaultValueRight[][8] PROGMEM = {
   {5, 10, 0},
   {5, 10, 0},
   {5},
-  {5, 10, 2, 0},
+  {5, 20, 2, 0},
   {5, 10, 0},
   {5, 10, 2, 0},
   {5, 10, 2}
@@ -203,7 +232,6 @@ volatile unsigned long lastUserAction = 0;
 
 //animation related globals
 #define LENGTH 200
-#define LEDPIN 10
 unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
 byte pixels[LENGTH * 3];
@@ -222,7 +250,6 @@ volatile byte pktLength = 31;
 volatile unsigned long lastRFMsgAt = 0;
 volatile byte rxBuffer[32];
 byte recvMessage[32];
-#define RX_PIN_STATE (PINB&1) //RX on pin 8 for input capture. 
 
 unsigned long lastPacketTime = 0;
 unsigned long lastPacketSig = 0;
@@ -244,13 +271,27 @@ const unsigned int rxLowMax  = 600 TIME_MULT;
 const int commandForgetTime = 5000;
 
 void setup() {
+  #ifdef TWILCD
   Wire.begin();
   lcd.begin();
+  #else 
+  lcd.begin(16,2);
+  #endif
   setupPins();
   setupPCINT();
   setupRF();
   Serial.begin(115200);
+  #ifdef TWILCD
   lcd.backlight();
+  #else
+  #ifndef __AVR_ATmega1284P__
+  pinMode(18,OUTPUT);
+  digitalWrite(18,1);
+  #else
+  pinMode(20,OUTPUT);
+  digitalWrite(20,1);
+  #endif
+  #endif
   lcd.print(F(" Hello - Let's"));
   lcd.setCursor(2, 1);
   lcd.print(F("party down!"));
@@ -322,6 +363,7 @@ void processRFPacket(byte rlen) {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print(F("REMOTE OVERRIDE"));
+    delay(1000);
     UIChanged = 7;
   }
 }
@@ -456,7 +498,11 @@ void handleUI() {
           }
           lastPressAt = 0;
         }
-        if (((btnRead & 2)) && !(lastBtnState & 2)) {
+        #ifndef __AVR_ATmega1284P__
+        if (((btnRead & 2)) && !(lastBtnState & 2)) { //328p(b) based boards
+        #else
+        if (((btnRead & 4)) && !(lastBtnState & 4)) { //1284p based boards
+        #endif
           if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
             currentSettingLeft = 0;
           } else {
@@ -464,7 +510,11 @@ void handleUI() {
           }
           UIChanged |= 2;
         }
-        if (((btnRead & 4)) && !(lastBtnState & 4)) {
+        #ifndef __AVR_ATmega1284P__
+        if (((btnRead & 4)) && !(lastBtnState & 4)) { //328p(b) based boards
+        #else
+        if (((btnRead & 2)) && !(lastBtnState & 2)) { //1284p based boards
+        #endif
           if (currentSettingRight >= pgm_read_byte_near(&maxSetting[currentMode][1])) {
             currentSettingRight = 0;
           } else {
@@ -512,7 +562,7 @@ void handleLCD() {
     lcd.clear();
   }
   if (uichg & 1 && currentMode == 10) {
-    if (getPalleteNumber != drift2_colors) {
+    if (getPalleteNumber() != drift2_colors) {
       initColorsDrift2();
     }
     initLookupDrift2();
@@ -577,9 +627,9 @@ void doAttractLCD() {
   byte s = random(0, 3);
   if (!s) {
   lcd.setCursor(0, 0);
-    lcd.print(F("ShoPa XII: NoPa"));
+    lcd.print(F("Ho Ho Ho! "));
     lcd.setCursor(0, 1);
-    lcd.print(F("We're not a cult"));
+    lcd.print(F("Merry XMas!"));
   } else {
   lcd.setCursor(2, 0);
     lcd.print(F("PLAY WITH ME"));
@@ -592,7 +642,7 @@ void doAttractLCD() {
     } else if (r == 2) {
       lcd.print(F("ADJUST LIGHTING"));
     } else {
-      lcd.print(F(" LIGHTS ARE FUN!"));
+      lcd.print(F("Merry Christmas!"));
     }
   }
 }
@@ -727,7 +777,7 @@ unsigned int getTransitionFrames() {
   } else if (currentMode == 8) {
     return 255;
   } else {
-    return 6 * currentValueRight[1];
+    return 3 * currentValueRight[1];
   }
 }
 byte getPalleteNumber() {
@@ -983,13 +1033,22 @@ void setupPins() {
 }
 
 void setupPCINT() {
+#ifndef __AVR_ATmega1284P__ //encoders are PCINT8~15 range on 328p
   PCMSK1 = 0x0F;
   PCICR = 2;
+#else //encoders are PCINT16~24 range on 1284p
+  PCMSK2 = 0x0F;
+  PCICR = 4;
+#endif
 }
 
 // ISR based on: https://www.circuitsathome.com/mcu/rotary-encoder-interrupt-service-routine-for-avr-micros/
 // by Oleg Mazurov
+#ifndef __AVR_ATmega1284P__
 ISR(PCINT1_vect)
+#else
+ISR(PCINT2_vect)
+#endif
 {
   static uint8_t old_ABl = 3;  //lookup table index
   static int8_t enclval = 0;   //encoder value
@@ -999,8 +1058,13 @@ ISR(PCINT1_vect)
   static const int8_t enc_states [] PROGMEM = {0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0}; // reversed encoder table
   old_ABl <<= 2; //remember previous state
   old_ABr <<= 2; //remember previous state
+  #ifndef __AVR_ATmega1284P__
   old_ABl |= ( PINC & 0x03 );
   old_ABr |= (( PINC & 0x0C ) >> 2);
+  #else
+  old_ABr |= ( PINC & 0x03 );
+  old_ABl |= (( PINC & 0x0C ) >> 2);
+  #endif
   enclval += pgm_read_byte(&(enc_states[( old_ABl & 0x0f )]));
   encrval += pgm_read_byte(&(enc_states[( old_ABr & 0x0f )]));
   /* post "Navigation forward/reverse" event */
@@ -1045,7 +1109,7 @@ ISR(PCINT1_vect)
 void setupRF() {
   TCCR1A = 0;
   TCCR1B = 0;
-  TIFR1 = bit (ICF1) | bit (TOV1);  // clear flags so we don't get a bogus interrupt
+  TIFR1 = (1<<ICF1) | (1<<TOV1);  // clear flags so we don't get a bogus interrupt
   TCNT1 = 0;          // Counter to zero
   TIMSK1 = 1 << ICIE1; // interrupt on Timer 1 input capture
   // start Timer 1, prescalar of 8, edge select on falling edge
@@ -1074,7 +1138,7 @@ byte handleReceive() {
     lastPacketTime = millis();
     byte rlen = ((pktLength >> 3) + 1) | ((vers - 1) << 6);
 
-    memcpy(recvMessage, rxBuffer, 32);
+    memcpy((void*)recvMessage, (const void*)rxBuffer, 32); //copy received message - safe because we haven't called resetReceive, so IC int is off. 
     resetReceive();
     return rlen;
   } else {
@@ -1092,7 +1156,7 @@ void resetReceive() {
     lastRFMsgAt = millis();
   }
   bitnum = 0;
-  memset(rxBuffer, 0, 32);
+  memset((void*)rxBuffer, 0, 32); //clear buffer - safe because haven't reenabled IC interrupt yet. 
   gotMessage = 0;
   TIMSK1 = 1 << ICIE1;
   return;
@@ -1147,7 +1211,7 @@ ISR (TIMER1_CAPT_vect)
       if (duration > rxLowMax) {
         receiving = 0;
         bitnum = 0; // reset to bit zero
-        memset(rxBuffer, 0, 32); //clear buffer
+        memset((void*)rxBuffer, 0, 32); //clear buffer - memset on rxBuffer is safe because interrupts disabled in ISR
       }
     } else {
       if (duration > rxSyncMin && duration < rxSyncMax) {
@@ -1163,7 +1227,7 @@ ISR (TIMER1_CAPT_vect)
       } else {
         receiving = 0;
         bitnum = 0; // reset to bit zero
-        memset(rxBuffer, 0, 32); //clear buffer
+        memset((void*)rxBuffer, 0, 32); //clear buffer - memset on rxBuffer is safe because interrupts disabled in ISR
         return;
       }
       if ((bitnum & 7) == 7) {
