@@ -15,13 +15,13 @@
 #define BUTTON_3 6
 #define BUTTON_4 5 
 #define BUTTON_5 4 
+#define BUTTON_6 3 
 
-#define PCMSK0_SLEEP 0x79 //0b01111001
+#define PCMSK0_SLEEP 0xF9 //0b11111001
 
 unsigned char txrxbuffer[RX_MAX_LEN >> 3];
 byte btnst = 0;
 byte myid;
-byte mytarget=0x33;
 byte sleeping = 0;
 byte TXLength = 0;
 
@@ -33,13 +33,17 @@ unsigned int txSyncTime  = 2000;
 unsigned int txTrainLen  = 200;
 byte txTrainRep  = 20;
 
-const byte commands[][13] PROGMEM={ //mode,first six left settings,first six right settings
+#define MAXMODE 6
+
+const byte commands[MAXMODE][13] PROGMEM={ //mode,first six left settings,first six right settings
   {1,0,15,0,15,0,15,10,0,0,0,0,0},
   {7,31,0,31,0,31,15,9,4,0,0,0,0},
   {8,0,31,0,31,0,31,8,4,0,0,0,0},
   {4,0,31,0,31,0,31,8,4,0,0,0,0},
   {0,0,0,0,0,0,0,0,0,0,0,0,0}
 };
+
+const byte targets[MAXMODE] = {0x2A, 0x2A, 0x29, 0x29, 0,0};
 /*
 unsigned int rxSyncMin  = 1750;
 unsigned int rxSyncMax  = 2250;
@@ -68,22 +72,20 @@ void setup() {
     delay(50); //let's be cautious;
   }
   byte tval = EEPROM.read(8);
-  mytarget = (tval == 255) ? mytarget : tval;
-  tval = EEPROM.read(9);
   myid = (tval == 255) ? myid : tval;
   pinMode(txpin,OUTPUT);
-  //pinMode(LED5,OUTPUT);
-  pinMode(4, INPUT_PULLUP);
-  pinMode(5, INPUT_PULLUP);
-  pinMode(6, INPUT_PULLUP);
-  pinMode(7, INPUT_PULLUP);
-  pinMode(10, INPUT_PULLUP);
+  pinMode(BUTTON_1, INPUT_PULLUP);
+  pinMode(BUTTON_2, INPUT_PULLUP);
+  pinMode(BUTTON_3, INPUT_PULLUP);
+  pinMode(BUTTON_4, INPUT_PULLUP);
+  pinMode(BUTTON_5, INPUT_PULLUP);
+  pinMode(BUTTON_6, INPUT_PULLUP);
   GIMSK |= 1 << PCIE0; //enable PCINT on port A
   PCMSK0 = 0;
   ADCSRA &= 127; //turn off ADC, we don't need it and it's just gonna waste power.
   Serial.begin(9600);
   delay(500);
-  Serial.println("ROAR");
+  Serial.println(F("ROAR"));
 
 }
 
@@ -100,7 +102,8 @@ byte getBtnst() {
   retval+=digitalRead(BUTTON_3)<<2; //pin3
   retval+=digitalRead(BUTTON_4)<<3; //pin4
   retval+=digitalRead(BUTTON_5)<<4; //pin5
-  return (~retval) & 0x1F;
+  retval+=digitalRead(BUTTON_6)<<5; //pin6
+  return (~retval) & 0x3F;
 }
 
 
@@ -111,15 +114,17 @@ void loop() {
   if (btnst) {
     Serial.println(btnst);
     if (btnst == 1 ) {
-      preparePayload16(0,0);
+      preparePayload(0);
     } else if (btnst == 2) {
-      preparePayload16(1,0);
+      preparePayload(1);
     } else if (btnst == 4) {
-      preparePayload16(2,0);
+      preparePayload(2);
     } else if (btnst == 8) {
-      preparePayload16(3,0);
+      preparePayload(3);
     } else if (btnst ==16){
-      preparePayload16(4,0);
+      preparePayload(4);
+    } else if (btnst ==32){
+      preparePayload(5);
     }
     doTransmit(10);
   }
@@ -139,31 +144,13 @@ void loop() {
   }
 }
 
-void preparePayload(byte btn,byte rover) {
-  byte plen = txrxbuffer[0] >> 6;
-  plen = 4 << plen;
-  txrxbuffer[0] = mytarget;
-  txrxbuffer[1] = 0x55;
-  txrxbuffer[2] = ((myid & 0x0F) << 4) + btn;
-  txrxbuffer[3] = (rover?0x50:0x20);
-  TXLength = 4;
-}
-void preparePayload8(byte btn,byte rover) {
-  byte plen = txrxbuffer[0] >> 6;
-  plen = 4 << plen;
-  txrxbuffer[0] = 64|mytarget;
-  txrxbuffer[1] = 0x55;
-  txrxbuffer[2] = ((myid & 0x0F) << 4) + btn;
-  txrxbuffer[3] = (rover?0x50:0x20);
-  txrxbuffer[4] = 0x54;
-  txrxbuffer[5] = 0x55;
-  txrxbuffer[6] = 0x56;
+void preparePayload(byte btn) {
   
-  TXLength = 8;
-}
-void preparePayload16(byte btn,byte notused) {
-  if (btn > 4) btn=4;
-  txrxbuffer[0] = 128|mytarget;
+  if (btn > MAXMODE) {
+    Serial.print(F("BAD CMD: "));
+    Serial.println(btn);
+  }
+  txrxbuffer[0] = 128|targets[btn];
   txrxbuffer[1] = 0x54;
   txrxbuffer[2] = pgm_read_byte_near(&commands[btn][0]);
   txrxbuffer[3] = pgm_read_byte_near(&commands[btn][1]);
@@ -180,44 +167,7 @@ void preparePayload16(byte btn,byte notused) {
   txrxbuffer[14] = pgm_read_byte_near(&commands[btn][12]);
   TXLength = 16;
 }
-void preparePayload32(byte btn,byte rover) {
-  byte plen = txrxbuffer[0] >> 6;
-  plen = 4 << plen;
-  txrxbuffer[0] = 128|64|mytarget;
-  txrxbuffer[1] = 0x55;
-  txrxbuffer[2] = ((myid & 0x0F) << 4) + btn;
-  txrxbuffer[3] = (rover?0x50:0x20);
-  txrxbuffer[4] = 0x54;
-  txrxbuffer[5] = 0x55;
-  txrxbuffer[6] = 0x56;
-  txrxbuffer[7] = 0x54;
-  txrxbuffer[8] = 0x55;
-  txrxbuffer[9] = 0x56;
-  txrxbuffer[10] = 0x54;
-  txrxbuffer[11] = 0x55;
-  txrxbuffer[12] = 0x56;
-  txrxbuffer[13] = 0x54;
-  txrxbuffer[14] = 0x55;
-  txrxbuffer[15] = 0x55;
-  txrxbuffer[16] = 0x55;
-  txrxbuffer[17] = 0x55;
-  txrxbuffer[18] = 0x55;
-  txrxbuffer[19] = 0x55;
-  txrxbuffer[20] = 0x10;
-  txrxbuffer[21] = 0x25;
-  txrxbuffer[22] = 0xFF;
-  txrxbuffer[23] = 0x57;
-  txrxbuffer[24] = 0x55;
-  txrxbuffer[25] = 0x0F;
-  txrxbuffer[26] = 0xF0;
-  txrxbuffer[27] = 0x55;
-  txrxbuffer[28] = 0x55;
-  txrxbuffer[29] = 0x55;
-  txrxbuffer[30] = 0x55;
-  txrxbuffer[31] = 0x55;
-  
-  TXLength = 32;
-}
+
 
 
 
