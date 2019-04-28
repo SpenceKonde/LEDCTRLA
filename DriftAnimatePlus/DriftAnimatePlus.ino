@@ -21,7 +21,7 @@ LiquidCrystal lcd(5, 6, 7, 23, 24, 25, 26);
 #define LDR_PIN A5
 #endif
 #define RX_PIN_STATE (PINB&1) //RX on pin 8 for input capture. 
-#define LEDPIN 10
+#define LEDPIN 9
 #define ENC1_PINA 14
 #define ENC1_PINB 15
 #define ENC2_PINA 16
@@ -498,10 +498,10 @@ void handleUI() {
           }
           lastPressAt = 0;
         }
-        #ifndef __AVR_ATmega1284P__
-        if (((btnRead & 2)) && !(lastBtnState & 2)) { //328p(b) based boards
+        #ifdef __AVR_ATmega328P__
+        if (((btnRead & 2)) && !(lastBtnState & 2)) { //Rev - boards based on pro minis
         #else
-        if (((btnRead & 4)) && !(lastBtnState & 4)) { //1284p based boards
+        if (((btnRead & 4)) && !(lastBtnState & 4)) { //Rev B 328pb/1284p based boards
         #endif
           if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
             currentSettingLeft = 0;
@@ -510,10 +510,10 @@ void handleUI() {
           }
           UIChanged |= 2;
         }
-        #ifndef __AVR_ATmega1284P__
-        if (((btnRead & 4)) && !(lastBtnState & 4)) { //328p(b) based boards
+        #ifdef __AVR_ATmega328P__
+        if (((btnRead & 4)) && !(lastBtnState & 4)) { //Rev - boards based on pro minis
         #else
-        if (((btnRead & 2)) && !(lastBtnState & 2)) { //1284p based boards
+        if (((btnRead & 2)) && !(lastBtnState & 2)) { //Rev B 328pb/1284p based boards
         #endif
           if (currentSettingRight >= pgm_read_byte_near(&maxSetting[currentMode][1])) {
             currentSettingRight = 0;
@@ -1058,7 +1058,7 @@ ISR(PCINT2_vect)
   static const int8_t enc_states [] PROGMEM = {0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0}; // reversed encoder table
   old_ABl <<= 2; //remember previous state
   old_ABr <<= 2; //remember previous state
-  #ifndef __AVR_ATmega1284P__
+  #ifdef __AVR_ATmega328P__
   old_ABl |= ( PINC & 0x03 );
   old_ABr |= (( PINC & 0x0C ) >> 2);
   #else
