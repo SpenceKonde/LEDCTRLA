@@ -627,9 +627,9 @@ void doAttractLCD() {
   byte s = random(0, 3);
   if (!s) {
   lcd.setCursor(0, 0);
-    lcd.print(F("Ho Ho Ho! "));
+    lcd.print(F("Cabin Weekend"));
     lcd.setCursor(0, 1);
-    lcd.print(F("Merry XMas!"));
+    lcd.print(F("Let's get weird"));
   } else {
   lcd.setCursor(2, 0);
     lcd.print(F("PLAY WITH ME"));
@@ -642,7 +642,7 @@ void doAttractLCD() {
     } else if (r == 2) {
       lcd.print(F("ADJUST LIGHTING"));
     } else {
-      lcd.print(F("Merry Christmas!"));
+      lcd.print(F("CABIN PARTYYYY!"));
     }
   }
 }
