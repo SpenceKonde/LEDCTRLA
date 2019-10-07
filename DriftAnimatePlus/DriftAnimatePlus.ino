@@ -5,14 +5,14 @@
 
 // UI + encoder involved globals
 
-
+#define TWILCD
 
 #ifndef __AVR_ATmega1284P__
 #ifdef TWILCD //ATmega328p with LCD connected via I2C
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
-//LiquidCrystal_I2C lcd(0x3F, 16, 2);
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal_I2C lcd(0x3F, 16, 2);
+//LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define LDR_PIN A6
 #else //ATmega328pb with LCD connected in 4-bit mode
 #include <LiquidCrystal.h> 
@@ -21,7 +21,7 @@ LiquidCrystal lcd(5, 6, 7, 23, 24, 25, 26);
 #define LDR_PIN A5
 #endif
 #define RX_PIN_STATE (PINB&1) //RX on pin 8 for input capture. 
-#define LEDPIN 9
+#define LEDPIN 10
 #define ENC1_PINA 14
 #define ENC1_PINB 15
 #define ENC2_PINA 16
@@ -292,9 +292,9 @@ void setup() {
   digitalWrite(20,1);
   #endif
   #endif
-  lcd.print(F(" Hello - Let's"));
-  lcd.setCursor(2, 1);
-  lcd.print(F("party down!"));
+  lcd.print(F("Goodbye Charles!"));
+  lcd.setCursor(1, 1);
+  lcd.print(F("24 misses you!"));
   delay(2000);
   lcd.clear();
   loadMode();
@@ -627,23 +627,21 @@ void doAttractLCD() {
   byte s = random(0, 3);
   if (!s) {
   lcd.setCursor(0, 0);
-    lcd.print(F("Cabin Weekend"));
+    lcd.print(F("Goodbye Charles"));
     lcd.setCursor(0, 1);
-    lcd.print(F("Let's get weird"));
+    lcd.print(F(" Come visit us!"));
   } else {
   lcd.setCursor(2, 0);
     lcd.print(F("PLAY WITH ME"));
     lcd.setCursor(0, 1);
-    byte r = random(0, 3);
+    byte r = random(0, 2);
     if (r == 0) {
       lcd.print(F("USE KNOBS&BUTTON"));
     } else if (r == 1) {
       lcd.print(F("TURN MY KNOBS ;)"));
-    } else if (r == 2) {
-      lcd.print(F("ADJUST LIGHTING"));
     } else {
-      lcd.print(F("CABIN PARTYYYY!"));
-    }
+      lcd.print(F("ADJUST LIGHTING"));
+    } 
   }
 }
 
