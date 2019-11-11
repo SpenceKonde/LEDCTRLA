@@ -5,23 +5,22 @@
 
 // UI + encoder involved globals
 
-#define TWILCD
-
 #ifndef __AVR_ATmega1284P__
-#ifdef TWILCD //ATmega328p with LCD connected via I2C
-#include <LiquidCrystal_I2C.h>
-#include <Wire.h>
-LiquidCrystal_I2C lcd(0x3F, 16, 2);
-//LiquidCrystal_I2C lcd(0x27, 16, 2);
-#define LDR_PIN A6
-#else //ATmega328pb with LCD connected in 4-bit mode
+#ifdef __AVR_ATmega328PB__
 #include <LiquidCrystal.h> 
 LiquidCrystal lcd(5, 6, 7, 23, 24, 25, 26);
 //LiquidCrystal lcd(5, 6, 7, 26, 25, 24, 23);
 #define LDR_PIN A5
+#define LEDPIN 10
+#else //ATmega328p with I2C LCD
+#define LEDPIN 9
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+LiquidCrystal_I2C lcd(0x3F, 16, 2); //red dot
+//LiquidCrystal_I2C lcd(0x27, 16, 2); //green dot
+#define LDR_PIN A6
 #endif
 #define RX_PIN_STATE (PINB&1) //RX on pin 8 for input capture. 
-#define LEDPIN 10
 #define ENC1_PINA 14
 #define ENC1_PINB 15
 #define ENC2_PINA 16
@@ -58,10 +57,14 @@ const byte colorPallete[][8][3] PROGMEM = {
   {{0, 255, 0}, {0, 128, 16}, {0, 32, 0}, {64, 160, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},  //Lizard
   {{255, 0, 16}, {196, 0, 64}, {255, 16, 100}, {255, 0, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //sextime
   {{255, 64, 0}, {196, 32, 0}, {220, 64, 0}, {255, 16, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //fire
-  {{255, 0, 0}, {128, 128, 128}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //USA
-  {{255, 0, 0}, {0, 0, 0}, {0, 255, 0}, {0, 0, 0}, {255, 200, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //xmas
+  //{{255, 0, 0}, {128, 128, 128}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //USA
+  {{0, 255, 0}, {32, 255, 0}, {0, 255, 32}, {32, 255, 32}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Jungle
+  //{{255, 0, 0}, {0, 0, 0}, {0, 255, 0}, {0, 0, 0}, {255, 200, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //xmas
+  {{255, 64, 0}, {196, 32, 0}, {220, 64, 0}, {32, 255, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Pumpkin
+  {{192, 0, 96}, {196, 0, 64}, {255, 16, 100}, {255, 0, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Purples
+  {{160,160,140}, {228,228,200}, {128,128, 110}, {60, 60, 50}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //static
 };
-const byte colorCount[] PROGMEM = {3, 4, 4, 5, 4, 4, 4, 3, 6};
+const byte colorCount[] PROGMEM = {3, 4, 4, 5, 4, 4, 4, 4, 4,4,4};
 
 const char pallete0[] PROGMEM = "RAINBOW";
 const char pallete1[] PROGMEM = "  WARM ";
@@ -70,11 +73,15 @@ const char pallete3[] PROGMEM = "SUNSET ";
 const char pallete4[] PROGMEM = "LIZARD ";
 const char pallete5[] PROGMEM = "SEXTIME";
 const char pallete6[] PROGMEM = "  FIRE ";
-const char pallete7[] PROGMEM = "  USA  ";
-const char pallete8[] PROGMEM = "  XMAS ";
+//const char pallete7[] PROGMEM = "  USA  ";
+const char pallete7[] PROGMEM = "JUNGLE ";
+//const char pallete8[] PROGMEM = "  XMAS ";
+const char pallete8[] PROGMEM = "PUMPKIN";
+const char pallete9[] PROGMEM = "PURPLE ";
+const char pallete10[] PROGMEM ="STATIC ";
 
-const char * const palleteNames[] PROGMEM = {pallete0, pallete1, pallete2, pallete3, pallete4, pallete5, pallete6, pallete7,pallete8};
-#define PALLETEMAX 8
+const char * const palleteNames[] PROGMEM = {pallete0, pallete1, pallete2, pallete3, pallete4, pallete5, pallete6, pallete7,pallete8,pallete9,pallete10};
+#define PALLETEMAX 10
 
 // Names of mode settings - these get stuffed into modesL and modesR below.
 const char mode0L0[] PROGMEM = "  RED  ";
@@ -271,7 +278,7 @@ const unsigned int rxLowMax  = 600 TIME_MULT;
 const int commandForgetTime = 5000;
 
 void setup() {
-  #ifdef TWILCD
+  #ifdef __AVR_ATmega328P__
   Wire.begin();
   lcd.begin();
   #else 
@@ -281,7 +288,7 @@ void setup() {
   setupPCINT();
   setupRF();
   Serial.begin(115200);
-  #ifdef TWILCD
+  #ifdef __AVR_ATmega328P__
   lcd.backlight();
   #else
   #ifndef __AVR_ATmega1284P__
@@ -292,9 +299,9 @@ void setup() {
   digitalWrite(20,1);
   #endif
   #endif
-  lcd.print(F("Goodbye Charles!"));
-  lcd.setCursor(1, 1);
-  lcd.print(F("24 misses you!"));
+  lcd.print(F("Hello Cabin!!"));
+  lcd.setCursor(0, 1);
+  lcd.print(F("Lets party down!"));
   delay(2000);
   lcd.clear();
   loadMode();
@@ -626,12 +633,18 @@ void doAttractLCD() {
   lcd.clear();
   byte s = random(0, 3);
   if (!s) {
-  lcd.setCursor(0, 0);
-    lcd.print(F("Goodbye Charles"));
+    lcd.setCursor(0, 0);
+    lcd.print(F("TRICK OR TREAT!"));
     lcd.setCursor(0, 1);
-    lcd.print(F(" Come visit us!"));
+    lcd.print(F("Let's get weird!"));
+  } else if (s==1) {
+    lcd.setCursor(0, 0);
+    lcd.print(F("Cabin Weekend VI"));
+    lcd.setCursor(0, 1);
+    lcd.print(F(" ~HALLOWEEKEND"));
+    lcd.write(0x7F);
   } else {
-  lcd.setCursor(2, 0);
+    lcd.setCursor(2, 0);
     lcd.print(F("PLAY WITH ME"));
     lcd.setCursor(0, 1);
     byte r = random(0, 2);
