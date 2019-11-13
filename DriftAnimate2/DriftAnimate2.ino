@@ -4,6 +4,8 @@
 #include <EEPROM.h>
 #include "pinconfig.h"
 #include "patterns.h"
+#include "driftUI.h"
+
 
 volatile byte lastEncPins = 0;
 volatile byte currentSettingLeft = 0;
@@ -27,36 +29,6 @@ byte scratch[LENGTH * 3];
 unsigned long frameNumber = 0;
 Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800, pixels);
 
-//RF related globals
-const byte MyAddress = 0;
-volatile byte receiving = 0;
-volatile byte bitnum = 0; //current bit received
-
-volatile byte gotMessage = 0;
-volatile byte dataIn = 0;
-volatile byte pktLength = 31;
-volatile unsigned long lastRFMsgAt = 0;
-volatile byte rxBuffer[32];
-byte recvMessage[32];
-
-unsigned long lastPacketTime = 0;
-unsigned long lastPacketSig = 0;
-
-// Version 2.2/2.3
-#if(F_CPU==8000000)
-#define TIME_MULT * 1
-#elif(F_CPU==16000000)
-#define TIME_MULT * 2
-#endif
-
-const unsigned int rxSyncMin  = 1750 TIME_MULT;
-const unsigned int rxSyncMax  = 2250 TIME_MULT;
-const unsigned int rxZeroMin  = 100 TIME_MULT;
-const unsigned int rxZeroMax  = 390 TIME_MULT;
-const unsigned int rxOneMin  = 410 TIME_MULT;
-const unsigned int rxOneMax  = 700 TIME_MULT;
-const unsigned int rxLowMax  = 600 TIME_MULT;
-const int commandForgetTime = 5000;
 
 void setup() {
   setupLCD();
@@ -65,9 +37,7 @@ void setup() {
   setupRF();
   Serial.begin(115200);
   backlightOn();
-  lcd.print(F("Hello Cabin!!"));
-  lcd.setCursor(0, 1);
-  lcd.print(F("Lets party down!"));
+  printWelcome();
   delay(2000);
   lcd.clear();
   loadMode();
@@ -80,11 +50,7 @@ void loop() {
   } else if ((!receiving)  && (millis() - lastRFMsgAt > 100)) { //will be if not receiving, but we don't know where we're saving the RXing status.
     if (currentMode == 0) {
       if (currentValueLeft[0] + currentValueLeft[1] + currentValueLeft[2] > 88) {
-        lcd.clear();
-        lcd.setCursor(2, 0);
-        lcd.print(F("Maximum power"));
-        lcd.setCursor(3, 1);
-        lcd.print(F("exceeded"));
+        printMaxCurrent();
         currentValueLeft[0] -= 2;
         currentValueLeft[1] -= 2;
         currentValueLeft[2] -= 2;
@@ -133,9 +99,7 @@ void processRFPacket(byte rlen) {
     currentValueRight[3] = recvMessage[12];
     currentValueRight[4] = recvMessage[13];
     currentValueRight[5] = recvMessage[14];
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print(F("REMOTE OVERRIDE"));
+    printOverride();
     delay(1000);
     UIChanged = 7;
   }
@@ -230,198 +194,12 @@ void loadMode() {
   }
 }
 
-void handleUI() {
-  static byte lastBtnState = 7;
-  static byte lastBtnBounceState = 7;
-  static unsigned long lastBtnAt = 0;
-  static unsigned long lastPressAt = 0;
-  byte btnRead = (PIND & 0x1C) >> 2;
-  if (!(btnRead == lastBtnBounceState)) { //debounce all buttons at once.
-    lastBtnBounceState = btnRead;
-    lastBtnAt = millis();
-  } else {
-    if (millis() - lastBtnAt > 50) { //has been stable for 50ms
-      if (btnRead < lastBtnState ) {
-        if (!lastPressAt && !(btnRead & 1)) {
-          lastPressAt = millis();
-        }
-        //do nothing - was button being pressed
-      } else {
-        if (((btnRead & 1)) && !(lastBtnState & 1)) {
-          if (lastPressAt && millis() - lastPressAt > 10000) {
-
-            lcd.clear();
-            clearMode();
-            lcd.setCursor(3, 0);
-            lcd.print(F("Saved mode"));
-            lcd.setCursor(5, 1);
-            lcd.print(F("cleared"));
-            delay(1000);
-            UIChanged = 7;
-          } else if (lastPressAt && millis() - lastPressAt > 3000) {
-            saveMode();
-            lcd.clear();
-            lcd.setCursor(3, 0);
-            lcd.print(F("Mode Saved"));
-            delay(1000);
-            UIChanged = 7;
-          } else {
-            advanceMode();
-            UIChanged |= 4;
-          }
-          lastPressAt = 0;
-        }
-        #ifdef __AVR_ATmega328P__
-        if (((btnRead & 2)) && !(lastBtnState & 2)) { //Rev - boards based on pro minis
-        #else
-        if (((btnRead & 4)) && !(lastBtnState & 4)) { //Rev B 328pb/1284p based boards
-        #endif
-          if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
-            currentSettingLeft = 0;
-          } else {
-            currentSettingLeft++;
-          }
-          UIChanged |= 2;
-        }
-        #ifdef __AVR_ATmega328P__
-        if (((btnRead & 4)) && !(lastBtnState & 4)) { //Rev - boards based on pro minis
-        #else
-        if (((btnRead & 2)) && !(lastBtnState & 2)) { //Rev B 328pb/1284p based boards
-        #endif
-          if (currentSettingRight >= pgm_read_byte_near(&maxSetting[currentMode][1])) {
-            currentSettingRight = 0;
-          } else {
-            currentSettingRight++;
-          }
-          UIChanged |= 2;
-        }
-      }
-      lastBtnState = btnRead;
-    }
-  }
-}
-
 byte getLeftVal(byte t) {
   if (pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]) == COLORTABLEMAX) {
     if (t > COLORTABLEMAX) t = COLORTABLEMAX;
     return pgm_read_byte_near(&leftValues[t]);
   }
   return t;
-}
-
-void handleLCD() {
-  static byte drift2_colors = 255;
-  static unsigned long lastInputAt;
-  static byte attractmode = 0;
-  byte uichg = 0;
-  if (millis() - lastRFUpdateAt < 5000 && lastRFUpdateAt) {
-    return;
-  }
-  cli();
-  uichg = UIChanged;
-  UIChanged = 0;
-  sei();
-  if (uichg == 0) {
-    if (millis() - lastInputAt > 60000) {
-      if (!attractmode || (millis() - lastInputAt > 120000)) {
-        attractmode = 1;
-        lastInputAt = millis() - 60000;
-        doAttractLCD();
-      }
-    }
-    return;
-  }
-  if (attractmode) {
-    lcd.clear();
-  }
-  if (uichg & 1 && currentMode == 10) {
-    if (getPalleteNumber() != drift2_colors) {
-      initColorsDrift2();
-    }
-    initLookupDrift2();
-  }
-  if (currentMode == 10) {
-    if (getPalleteNumber() != drift2_colors) {
-      drift2_colors = getPalleteNumber();
-    }
-  }
-  lastInputAt = millis();
-  if ((uichg & 6) || attractmode ) { //if setting or mode has changed, redraw settings
-    lcd.setCursor(0, 0);
-    if (currentMode < 7 ) {
-      lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
-    } else {
-      lcd.print(FLASH(palleteNames[currentValueLeft[0]]));
-    }
-    lcd.print(' ');
-    lcd.print(FLASH(modesR[currentMode][currentSettingRight]));
-  }
-  if ((uichg & 7) || attractmode) { //if mode, setting, or value has changed, redraw second line
-    byte tval;
-    if (currentMode > 6) {
-      lcd.setCursor(0, 0);
-      lcd.print(FLASH(palleteNames[currentValueLeft[0]]));
-      lcd.setCursor(0, 1);
-      lcd.print(F("    "));
-    } else if (pgm_read_byte_near(&maxSetting[currentMode][0]) != 255) {
-      lcd.setCursor(0, 1);
-      tval = getLeftVal(currentValueLeft[currentSettingLeft]);
-      lcd.print(tval);
-      lcd.print(' ');
-      if (tval < 10) lcd.print(' ');
-    } else {
-      lcd.setCursor(0, 1);
-      lcd.print(F("    "));
-    }
-    lcd.setCursor(4, 1);
-    lcd.print(FLASH(modeNames[currentMode]));
-    lcd.setCursor(13, 1);
-    if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]) == 1) { //if max is 1, that means it's forward/reverse
-      if (currentValueRight[currentSettingRight]) {
-        lcd.print(F("REV"));
-      } else {
-        lcd.print(F("FWD"));
-      }
-    } else {
-      tval = currentValueRight[currentSettingRight];
-      if (tval < 100) lcd.print(' ');
-      if (tval < 10) lcd.print(' ');
-      if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])) { //if max is 0, then this is blank
-        lcd.print(tval);
-      } else {
-        lcd.print(' ');
-      }
-    }
-  }
-  attractmode = 0;
-}
-void doAttractLCD() {
-  lcd.clear();
-  byte s = random(0, 3);
-  if (!s) {
-    lcd.setCursor(0, 0);
-    lcd.print(F("TRICK OR TREAT!"));
-    lcd.setCursor(0, 1);
-    lcd.print(F("Let's get weird!"));
-  } else if (s==1) {
-    lcd.setCursor(0, 0);
-    lcd.print(F("Cabin Weekend VI"));
-    lcd.setCursor(0, 1);
-    lcd.print(F(" ~HALLOWEEKEND"));
-    lcd.write(0x7F);
-  } else {
-    lcd.setCursor(2, 0);
-    lcd.print(F("PLAY WITH ME"));
-    lcd.setCursor(0, 1);
-    byte r = random(0, 2);
-    if (r == 0) {
-      lcd.print(F("USE KNOBS&BUTTON"));
-    } else if (r == 1) {
-      lcd.print(F("TURN MY KNOBS ;)"));
-    } else {
-      lcd.print(F("ADJUST LIGHTING"));
-    } 
-  }
 }
 
 void updatePattern() {
@@ -796,215 +574,6 @@ void updatePatternChase() {
 }
 
 
-
-
-// ISR based on: https://www.circuitsathome.com/mcu/rotary-encoder-interrupt-service-routine-for-avr-micros/
-// by Oleg Mazurov
-#ifndef __AVR_ATmega1284P__
-ISR(PCINT1_vect)
-#else
-ISR(PCINT2_vect)
-#endif
-{
-  static uint8_t old_ABl = 3;  //lookup table index
-  static int8_t enclval = 0;   //encoder value
-  static uint8_t old_ABr = 3;  //lookup table index
-  static int8_t encrval = 0;   //encoder value
-  //static const int8_t enc_states [] PROGMEM = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};  //encoder lookup table
-  static const int8_t enc_states [] PROGMEM = {0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0}; // reversed encoder table
-  old_ABl <<= 2; //remember previous state
-  old_ABr <<= 2; //remember previous state
-  #ifdef __AVR_ATmega328P__
-  old_ABl |= ( PINC & 0x03 );
-  old_ABr |= (( PINC & 0x0C ) >> 2);
-  #else
-  old_ABr |= ( PINC & 0x03 );
-  old_ABl |= (( PINC & 0x0C ) >> 2);
-  #endif
-  enclval += pgm_read_byte(&(enc_states[( old_ABl & 0x0f )]));
-  encrval += pgm_read_byte(&(enc_states[( old_ABr & 0x0f )]));
-  /* post "Navigation forward/reverse" event */
-  if ( enclval > 3 ) { //four steps forward
-    if (currentValueLeft[currentSettingLeft] < pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]))currentValueLeft[currentSettingLeft]++;
-    //hackjob to handle min exceeding max or vice versa.
-    if ((currentMode == 1 || currentMode == 2 || currentMode == 3 || currentMode == 4 || currentMode == 5) && currentSettingLeft < 6) {
-      if (!(currentSettingLeft & 1)) {
-        if (currentValueLeft[currentSettingLeft] > currentValueLeft[currentSettingLeft + 1]) {
-          currentValueLeft[currentSettingLeft + 1] = currentValueLeft[currentSettingLeft];
-        }
-      }
-    }
-    UIChanged |= 1;
-    enclval = 0;
-  }
-  else if ( enclval < -3 ) { //four steps backwards
-    if (currentValueLeft[currentSettingLeft])currentValueLeft[currentSettingLeft]--;
-    //hackjob to handle min exceeding max or vice versa.
-    if ((currentMode == 1 || currentMode == 2) && currentSettingLeft < 6) {
-      if (currentSettingLeft & 1) {
-        if (currentValueLeft[currentSettingLeft] < currentValueLeft[currentSettingLeft - 1]) {
-          currentValueLeft[currentSettingLeft - 1] = currentValueLeft[currentSettingLeft];
-        }
-      }
-    }
-    UIChanged |= 1;
-    enclval = 0;
-  }
-  if ( encrval > 3 ) { //four steps forward
-    if (currentValueRight[currentSettingRight] < pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]))currentValueRight[currentSettingRight]++;
-    UIChanged |= 1;
-    encrval = 0;
-  }
-  else if ( encrval < -3 ) { //four steps backwards
-    if (currentValueRight[currentSettingRight])currentValueRight[currentSettingRight]--;
-    UIChanged |= 1;
-    encrval = 0;
-  }
-}
-
-void setupRF() {
-  TCCR1A = 0;
-  TCCR1B = 0;
-  TIFR1 = (1<<ICF1) | (1<<TOV1);  // clear flags so we don't get a bogus interrupt
-  TCNT1 = 0;          // Counter to zero
-  TIMSK1 = 1 << ICIE1; // interrupt on Timer 1 input capture
-  // start Timer 1, prescalar of 8, edge select on falling edge
-  TCCR1B =  ((F_CPU == 1000000L) ? (1 << CS10) : (1 << CS11)) | 1 << ICNC1; //prescalar 8 except at 1mhz, where we use prescalar of 1, noise cancler active
-  //ready to rock and roll
-}
-
-byte handleReceive() {
-  if (gotMessage) {
-    byte vers = checkCSC(); //checkCSC() gives 0 on failed CSC, 1 on v1 structure (ACD...), 2 on v2 structure (DSCD...)
-    if (!vers) { //if vers=0, unknown format ot bad CSC
-      resetReceive();
-      return 0;
-    }
-    if (!isForMe()) { //matches on MyAddress==0, destination address==0, destination address==MyAddress.
-      resetReceive();
-      return 0;
-    }
-    if (lastPacketSig == getPacketSig() && lastPacketTime) {
-
-      lastPacketTime = millis();
-      resetReceive();
-      return 0;
-    }
-    lastPacketSig = getPacketSig();
-    lastPacketTime = millis();
-    byte rlen = ((pktLength >> 3) + 1) | ((vers - 1) << 6);
-
-    memcpy((void*)recvMessage, (const void*)rxBuffer, 32); //copy received message - safe because we haven't called resetReceive, so IC int is off. 
-    resetReceive();
-    return rlen;
-  } else {
-    unsigned long t = (millis() - lastPacketTime);
-    if (lastPacketTime && (t > commandForgetTime)) {
-      lastPacketTime = 0;
-      lastPacketSig = 0;
-    }
-    return 0;
-  }
-}
-
-void resetReceive() {
-  if (bitnum > 4) {
-    lastRFMsgAt = millis();
-  }
-  bitnum = 0;
-  memset((void*)rxBuffer, 0, 32); //clear buffer - safe because haven't reenabled IC interrupt yet. 
-  gotMessage = 0;
-  TIMSK1 = 1 << ICIE1;
-  return;
-}
-
-byte checkCSC() {
-  byte rxchecksum = 0;
-  byte rxchecksum2 = 0;
-  for (byte i = 0; i < pktLength >> 3; i++) {
-    rxchecksum = rxchecksum ^ rxBuffer[i];
-    rxchecksum2 = _crc8_ccitt_update(rxchecksum2, rxBuffer[i]);
-  }
-  if (pktLength >> 3 == 3) {
-    rxchecksum = (rxchecksum & 0x0F) ^ (rxchecksum >> 4) ^ ((rxBuffer[3] & 0xF0) >> 4);
-    rxchecksum2 = (rxchecksum2 & 0x0F) ^ (rxchecksum2 >> 4) ^ ((rxBuffer[3] & 0xF0) >> 4);
-    if (rxchecksum == rxchecksum2)rxchecksum2++;
-    return (rxBuffer[3] & 0x0F) == rxchecksum ? 1 : ((rxBuffer[3] & 0x0F) == rxchecksum2 ) ? 2 : 0;
-  } else {
-    if (rxchecksum == rxchecksum2)rxchecksum2++;
-    return ((rxBuffer[pktLength >> 3] == rxchecksum) ? 1 : ((rxBuffer[pktLength >> 3] == rxchecksum2 ) ? 2 : 0));
-  }
-}
-
-byte isForMe() {
-  if ((rxBuffer[0] & 0x3F) == MyAddress || MyAddress == 0 || (rxBuffer[0] & 0x3F) == 0) {
-    return 1;
-  }
-  return 0;
-}
-
-unsigned long getPacketSig() {
-  byte len = pktLength >> 3;
-  unsigned long lastpacketsig = 0;
-  for (byte i = (len == 3 ? 0 : 1); i < (len == 3 ? 3 : 4); i++) {
-    lastpacketsig += rxBuffer[i];
-    lastpacketsig = lastpacketsig << 8;
-  }
-  lastpacketsig += rxBuffer[len];
-  return lastpacketsig;
-}
-
-ISR (TIMER1_CAPT_vect)
-{
-  static unsigned long lasttime = 0;
-  unsigned int newTime = ICR1; //immediately get the ICR value
-  byte state = (RX_PIN_STATE);
-  TCCR1B = state ? (1 << CS11 | 1 << ICNC1) : (1 << CS11 | 1 << ICNC1 | 1 << ICES1); //and set edge
-  unsigned int duration = newTime - lasttime;
-  lasttime = newTime;
-  if (state) {
-    if (receiving) {
-      if (duration > rxLowMax) {
-        receiving = 0;
-        bitnum = 0; // reset to bit zero
-        memset((void*)rxBuffer, 0, 32); //clear buffer - memset on rxBuffer is safe because interrupts disabled in ISR
-      }
-    } else {
-      if (duration > rxSyncMin && duration < rxSyncMax) {
-        receiving = 1;
-      }
-    }
-  } else {
-    if (receiving) {
-      if (duration > rxZeroMin && duration < rxZeroMax) {
-        dataIn = dataIn << 1;
-      } else if (duration > rxOneMin && duration < rxOneMax) {
-        dataIn = (dataIn << 1) + 1;
-      } else {
-        receiving = 0;
-        bitnum = 0; // reset to bit zero
-        memset((void*)rxBuffer, 0, 32); //clear buffer - memset on rxBuffer is safe because interrupts disabled in ISR
-        return;
-      }
-      if ((bitnum & 7) == 7) {
-        rxBuffer[bitnum >> 3] = dataIn;
-        if (bitnum == 7) {
-          byte t = dataIn >> 6;
-          pktLength = t ? (t == 1 ? 63 : (t == 2 ? 127 : 255)) : 31;
-        }
-        dataIn = 0;
-      }
-      if (bitnum >= pktLength) {
-        bitnum = 0;
-        receiving = 0;
-        gotMessage = 1;
-        TIMSK1 = 0; //turn off input capture;
-      } else {
-        bitnum++;
-      }
-    }
-  }
-}
 
 /* Doesn't work
   void updatePatternComets() {
