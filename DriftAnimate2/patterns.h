@@ -1,10 +1,10 @@
-
-
-
 #define MODE_DRIFT2 9
 
-#define FLASH(flashptr) (reinterpret_cast<const __FlashStringHelper *>(pgm_read_word_near(&flashptr)))
-
+#ifndef MegaTinyCore
+#define pgmem PROGMEM
+#else
+#define pgmem
+#endif
 
 const byte colorPallete[][8][3] PROGMEM = {
   {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Rainbow
