@@ -116,7 +116,14 @@ void setup() {
 }
 
 void loop() {
-  selfTest();
+  static byte pattern=0;
+  switch (pattern){
+    case 0:
+      selfTest();
+      break;
+    case 1:
+      //...
+  }   
 }
 
 //##################
