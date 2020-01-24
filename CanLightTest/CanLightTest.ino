@@ -1,5 +1,3 @@
-// NeoPixel simple sketch (c) 2013 Shae Erisson, adapted to tinyNeoPixel library by Spence Konde 2019.
-// released under the GPLv3 license to match the rest of the AdaFruit NeoPixel library
 
 #include <tinyNeoPixel_Static.h>
 
