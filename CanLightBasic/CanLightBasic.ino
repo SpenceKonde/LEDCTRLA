@@ -4,15 +4,28 @@
 
 #define NEOPIXELPIN            0
 
-// How many NeoPixels are attached to the Arduino?
+#if defined(RGBWW_WWA_RGBW)
 #define OUTERLEDS 18
 #define OUTERCHAN 4
 #define MIDLEDS 12
 #define MIDCHAN 3
 #define INNERLEDS 7
 #define INNERCHAN 4
+#elif defined(RGBW_RGBW_RGBWW)
+#define OUTERLEDS 18
+#define OUTERCHAN 4
+#define MIDLEDS 12
+#define MIDCHAN 4
+#define INNERLEDS 7
+#define INNERCHAN 4
+#endif
+
+
+
+
 #define BUFFUSED ((OUTERLEDS*OUTERCHAN)+(INNERLEDS*INNERCHAN)+(MIDLEDS*MIDCHAN)) //Bytes of buffer used for ONE can light
 #define NUMPIXELS  (((BUFFUSED/3)*2)+(((BUFFUSED*2)%3)?1:0)+1) //This ensures that the pixel buffer will fit all the LEDs
+
 
 //These are the bytes in the buffer that correspond to the three rings of the two can lights.
 #define OUTERSTARTA 0
@@ -42,13 +55,25 @@ tinyNeoPixel leds = tinyNeoPixel(NUMPIXELS, PIN, NEO_GRB, pixels);
 
 //WWA leds have Amber in place of Red, Cool White in place of Green, Warm White in place of Blue
 
-int delayval = 250; // delay for half a second
-
 void setup() {
   pinMode(PIN, OUTPUT);
   Serial.begin(9600);
   delay(100);
 }
+
+void loop() {
+  selfTest();
+}
+
+//##################
+// Pattern handling
+//##################
+
+
+
+//####################
+//LED control functions
+//####################
 
 void setOuterAll(byte r, byte g, byte b, byte w = 0) {
   setOuterA(r,g,b,w);
@@ -63,149 +88,6 @@ void setInnerAll(byte r, byte g, byte b, byte w = 0) {
   setInnerB(r,g,b,e);
 }
 
-
-void loop() {
-  selfTest();
-}
-
-
-void selfTest() { //long selftest showing all the max-brightness possibilities for color
-  
-  setMidAll(255,0,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,255,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,255,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,255);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,0);
-  setOuterAll(255,0,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,255,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,0,255,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(255,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,255,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,0,255,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,0,0,255);
-  leds.show();
-  delay(1000);
-  setMidAll(255,0,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(255,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,255,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,255,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,255,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,0,255,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,255);
-  setOuterAll(0,255,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,255);
-  setOuterAll(255,255,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,0,255,0);
-  setInnerAll(0,0,0,255);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,0,255);
-  setOuterAll(255,255,0,0);
-  setInnerAll(0,0,0,255);
-  leds.show();
-  delay(1000);
-  setMidAll(255,255,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(255,255,0,0);
-  leds.show();
-  delay(1000);
-  setMidAll(0,255,255,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,255,255,0);
-  leds.show();
-  delay(1000);
-  setMidAll(255,0,255,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(255,0,255,0);
-  leds.show();
-  delay(1000);
-  setMidAll(255,255,255,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(255,255,255,0);
-  leds.show();
-  delay(1000);
-  setMidAll(255,0,0,255);
-  setOuterAll(255,255,255,0);
-  setInnerAll(255,0,0,255);
-  leds.show();
-  delay(1000);
-  setMidAll(0,255,0,255);
-  setOuterAll(255,255,255,0);
-  setInnerAll(0,255,0,255);
-  leds.show();
-  delay(1000);
-  setMidAll(0,0,255,255);
-  setOuterAll(255,255,255,0);
-  setInnerAll(0,0,255,255);
-  leds.show();
-  delay(1000);
-}
-
-//####################
-//LED control functions
-//####################
 
 void setOuterA(byte r, byte g, byte b, byte w = 0) {
   int i = OUTERSTARTA;
@@ -273,6 +155,213 @@ void setMidB(byte r, byte g, byte b, byte w = 0) {
       pixels[i++] = w;
     }
   }
+}
+
+//##########
+//Self Test
+//##########
+
+void selfTest() { //long selftest showing all the max-brightness possibilities for color
+  
+  setOuterAll(255,0,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,255,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,255,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,255);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,0);
+  setMidAll(255,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,0);
+  setMidAll(0,255,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,0);
+  setMidAll(0,0,255,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  #if defined(RGBW_RGBW_RGBWW)
+  setOuterAll(0,0,0,0);
+  setMidAll(0,0,0,255);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  #endif
+  setOuterAll(0,0,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(255,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,255,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,0,255,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,0,0,255);
+  leds.show();
+  delay(1000);
+  #if defined(RGBW_RGBW_RGBWW)
+  setOuterAll(255,0,0,0);
+  setMidAll(255,0,0,0);
+  setInnerAll(255,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,255,0,0);
+  setMidAll(0,255,0,0);
+  setInnerAll(0,255,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,255,0);
+  setMidAll(0,0,255,0);
+  setInnerAll(0,0,255,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,255);
+  setMidAll(0,0,0,255);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,255);
+  setMidAll(0,0,0,255);
+  setInnerAll(0,0,0,255);
+  leds.show();
+  delay(1000);
+  setOuterAll(255,255,0,0);
+  setMidAll(255,255,0,0);
+  setInnerAll(255,255,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,255,255,0);
+  setMidAll(0,255,255,0);
+  setInnerAll(0,255,255,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(255,0,255,0);
+  setMidAll(255,0,255,0);
+  setInnerAll(255,0,255,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(255,255,255,0);
+  setMidAll(255,255,255,0);
+  setInnerAll(255,255,255,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(255,0,0,255);
+  setMidAll(255,0,0,255);
+  setInnerAll(255,0,0,255);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,255,0,255);
+  setMidAll(0,255,0,255);
+  setInnerAll(0,255,0,255);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,255,255);
+  setMidAll(0,0,255,255);
+  setInnerAll(0,0,255,255);
+  leds.show();
+  #elif defined(RGBWW_WWA_RGBW)
+  setOuterAll(255,0,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(255,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,255,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,255,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,255,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,0,255,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,255);
+  setMidAll(0,255,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,255);
+  setMidAll(255,255,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,0);
+  setMidAll(0,0,255,0);
+  setInnerAll(0,0,0,255);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,0,255);
+  setMidAll(255,255,0,0);
+  setInnerAll(0,0,0,255);
+  leds.show();
+  delay(1000);
+  setOuterAll(255,255,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(255,255,0,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,255,255,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,255,255,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(255,0,255,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(255,0,255,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(255,255,255,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(255,255,255,0);
+  leds.show();
+  delay(1000);
+  setOuterAll(255,0,0,255);
+  setMidAll(255,255,255,0);
+  setInnerAll(255,0,0,255);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,255,0,255);
+  setMidAll(255,255,255,0);
+  setInnerAll(0,255,0,255);
+  leds.show();
+  delay(1000);
+  setOuterAll(0,0,255,255);
+  setMidAll(255,255,255,0);
+  setInnerAll(0,0,255,255);
+  leds.show();
+  #endif
+  delay(1000);
+  setOuterAll(0,0,0,0);
+  setMidAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
 }
 
 //###########################
