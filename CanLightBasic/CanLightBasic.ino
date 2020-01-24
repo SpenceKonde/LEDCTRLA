@@ -2,9 +2,7 @@
 #include <tinyNeoPixel_Static.h>
 
 
-// Which pin on the Arduino is connected to the NeoPixels?
-// This example uses pin 3, which is on PORTA on all megaTinyCore boards, so default menu option will work.
-#define PIN            0
+#define NEOPIXELPIN            0
 
 // How many NeoPixels are attached to the Arduino?
 #define OUTERLEDS 18
@@ -13,16 +11,24 @@
 #define MIDCHAN 3
 #define INNERLEDS 7
 #define INNERCHAN 4
-#define BUFFUSED ((OUTERLEDS*OUTERCHAN)+(INNERLEDS*INNERCHAN)+(MIDLEDS*MIDCHAN))
-#define NUMPIXELS  ((BUFFUSED/3)+((BUFFUSED%3)?1:0)+1)
+#define BUFFUSED ((OUTERLEDS*OUTERCHAN)+(INNERLEDS*INNERCHAN)+(MIDLEDS*MIDCHAN)) //Bytes of buffer used for ONE can light
+#define NUMPIXELS  (((BUFFUSED/3)*2)+(((BUFFUSED*2)%3)?1:0)+1) //This ensures that the pixel buffer will fit all the LEDs
 
-//index of pixels[] with first pixel of outer ring
-#define OUTERSTART 0
-#define OUTEREND ((OUTERLEDS*OUTERCHAN)-1)
-#define MIDSTART OUTEREND+1
-#define MIDEND (MIDSTART+(MIDLEDS*MIDCHAN)-1)
-#define INNERSTART MIDEND+1
-#define INNEREND BUFFUSED-1
+//These are the bytes in the buffer that correspond to the three rings of the two can lights.
+#define OUTERSTARTA 0
+#define OUTERENDA ((OUTERLEDS*OUTERCHANA)-1)
+#define MIDSTARTA OUTERENDA+1
+#define MIDENDA (MIDSTARTB+(MIDLEDS*MIDCHANB)-1)
+#define INNERSTARTA MIDENDA+1
+#define INNERENDA BUFFUSED-1
+#define OUTERSTARTB BUFFUSED
+#define OUTERENDB BUFFUSED+((OUTERLEDS*OUTERCHAN)-1)
+#define MIDSTARTB OUTERENDB+1
+#define MIDENDB (MIDSTARTB+(MIDLEDS*MIDCHAN)-1)
+#define INNERSTARTB MIDENDB+1
+#define INNERENDB (2*BUFFUSED)-1
+
+
 
 // Since this is for the static version of the library, we need to supply the pixel array
 // This saves space by eliminating use of malloc() and free(), and makes the RAM used for
@@ -30,38 +36,180 @@
 
 byte pixels[NUMPIXELS * 3];
 
-// When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
-// Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
-// example for more information on possible values.
-
 tinyNeoPixel leds = tinyNeoPixel(NUMPIXELS, PIN, NEO_GRB, pixels);
+
+//IMPORTANT NOTE: Since we have a mixture of 3 and 4 color LEDs, we cannot use any of the abstractions for writing to LEDs - we must directly write to the buffer!
+
+//WWA leds have Amber in place of Red, Cool White in place of Green, Warm White in place of Blue
 
 int delayval = 250; // delay for half a second
 
 void setup() {
   pinMode(PIN, OUTPUT);
-  /*
   Serial.begin(9600);
   delay(100);
-  
-  Serial.println(NUMPIXELS);
-  Serial.println(BUFFUSED);
-  Serial.println(OUTERSTART);
-  Serial.println(OUTEREND);
-  Serial.println(MIDSTART);
-  Serial.println(MIDEND);
-  Serial.println(INNERSTART);
-  Serial.println(INNEREND);
-  */
-  //with tinyNeoPixel_Static, you need to set pinMode yourself. This means you can eliminate pinMode()
-  //and replace with direct port writes to save a couple hundred bytes in sketch size (note that this
-  //savings is only present when you eliminate *all* references to pinMode).
-  //leds.begin() not needed on tinyNeoPixel
 }
 
 void setOuterAll(byte r, byte g, byte b, byte w = 0) {
-  int i = OUTERSTART;
-  while (i < OUTEREND) {
+  setOuterA(r,g,b,w);
+  setOuterB(r,g,b,e);
+}
+void setMidAll(byte r, byte g, byte b, byte w = 0) {
+  setMidA(r,g,b,w);
+  setMidB(r,g,b,e);
+}
+void setInnerAll(byte r, byte g, byte b, byte w = 0) {
+  setInnerA(r,g,b,w);
+  setInnerB(r,g,b,e);
+}
+
+
+void loop() {
+  selfTest();
+}
+
+
+void selfTest() { //long selftest showing all the max-brightness possibilities for color
+  
+  setMidAll(255,0,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,255,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,255,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,255);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,0);
+  setOuterAll(255,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,0);
+  setOuterAll(0,255,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,0);
+  setOuterAll(0,0,255,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(255,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,255,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,0,255,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,0,0,255);
+  leds.show();
+  delay(1000);
+  setMidAll(255,0,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(255,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,255,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,255,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,255,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,0,255,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,255);
+  setOuterAll(0,255,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,255);
+  setOuterAll(255,255,0,0);
+  setInnerAll(0,0,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,0);
+  setOuterAll(0,0,255,0);
+  setInnerAll(0,0,0,255);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,0,255);
+  setOuterAll(255,255,0,0);
+  setInnerAll(0,0,0,255);
+  leds.show();
+  delay(1000);
+  setMidAll(255,255,0,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(255,255,0,0);
+  leds.show();
+  delay(1000);
+  setMidAll(0,255,255,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(0,255,255,0);
+  leds.show();
+  delay(1000);
+  setMidAll(255,0,255,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(255,0,255,0);
+  leds.show();
+  delay(1000);
+  setMidAll(255,255,255,0);
+  setOuterAll(0,0,0,0);
+  setInnerAll(255,255,255,0);
+  leds.show();
+  delay(1000);
+  setMidAll(255,0,0,255);
+  setOuterAll(255,255,255,0);
+  setInnerAll(255,0,0,255);
+  leds.show();
+  delay(1000);
+  setMidAll(0,255,0,255);
+  setOuterAll(255,255,255,0);
+  setInnerAll(0,255,0,255);
+  leds.show();
+  delay(1000);
+  setMidAll(0,0,255,255);
+  setOuterAll(255,255,255,0);
+  setInnerAll(0,0,255,255);
+  leds.show();
+  delay(1000);
+}
+
+//####################
+//LED control functions
+//####################
+
+void setOuterA(byte r, byte g, byte b, byte w = 0) {
+  int i = OUTERSTARTA;
+  while (i < OUTERENDA) {
     pixels[i++] = g;
     pixels[i++] = r;
     pixels[i++] = b;
@@ -70,20 +218,20 @@ void setOuterAll(byte r, byte g, byte b, byte w = 0) {
     }
   }
 }
-void setInnerAll(byte r, byte g, byte b, byte w = 0) {
-  
-  for (byte i = INNERSTART;i < INNEREND;i+=INNERCHAN) {
-    pixels[i] = g;
-    pixels[i+1] = r;
-    pixels[i+2] = b;
+void setInnerA(byte r, byte g, byte b, byte w = 0) {
+  byte i = INNERSTARTA
+  while (i < INNERENDA) {
+    pixels[i++] = g;
+    pixels[i++] = r;
+    pixels[i++] = b;
     if (INNERCHAN == 4) {
-      pixels[i+3] = w;
+      pixels[i++] = w;
     }
   }
 }
-void setMidAll(byte r, byte g, byte b, byte w = 0) {
-  byte i = MIDSTART;
-  while (i < MIDEND) {
+void setMidA(byte r, byte g, byte b, byte w = 0) {
+  byte i = MIDSTARTA;
+  while (i < MIDENDA) {
     pixels[i++] = g;
     pixels[i++] = r;
     pixels[i++] = b;
@@ -93,26 +241,43 @@ void setMidAll(byte r, byte g, byte b, byte w = 0) {
   }
 }
 
-void loop() {
-  
-  setMidAll(0,0,0,0);
-  setOuterAll(255,0,0,0);
-  setInnerAll(255,0,0,0);
-  leds.show();
-  delay(2000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,255,0,0);
-  setInnerAll(0,255,0,0);
-  leds.show();
-  delay(2000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,0,255,0);
-  setInnerAll(0,0,255,0);
-  leds.show();
-  delay(2000);
-  setMidAll(0,0,0,0);
-  setOuterAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
-  leds.show();
-  delay(2000);
+void setOuterB(byte r, byte g, byte b, byte w = 0) {
+  int i = OUTERSTARTA;
+  while (i < OUTERENDA) {
+    pixels[i++] = g;
+    pixels[i++] = r;
+    pixels[i++] = b;
+    if (OUTERCHAN == 4) {
+      pixels[i++] = w;
+    }
+  }
 }
+void setInnerB(byte r, byte g, byte b, byte w = 0) {
+  byte i = INNERSTARTA
+  while (i < INNERENDA) {
+    pixels[i++] = g;
+    pixels[i++] = r;
+    pixels[i++] = b;
+    if (INNERCHAN == 4) {
+      pixels[i++] = w;
+    }
+  }
+}
+void setMidB(byte r, byte g, byte b, byte w = 0) {
+  byte i = MIDSTARTB;
+  while (i < MIDENDB) {
+    pixels[i++] = g;
+    pixels[i++] = r;
+    pixels[i++] = b;
+    if (MIDCHAN == 4) {
+      pixels[i++] = w;
+    }
+  }
+}
+
+//###########################
+//AzzyRF for remote control 
+//###########################
+
+// TO DO
+
