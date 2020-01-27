@@ -1,9 +1,10 @@
 
+#include <util/crc16.h>
 #include <tinyNeoPixel_Static.h>
 
 
 #define NEOPIXELPIN            0
-
+#define RGBWW_WWA_RGBW
 #if defined(RGBWW_WWA_RGBW)
 #define OUTERLEDS 18
 #define OUTERCHAN 4
@@ -24,14 +25,14 @@
 
 
 #define BUFFUSED ((OUTERLEDS*OUTERCHAN)+(INNERLEDS*INNERCHAN)+(MIDLEDS*MIDCHAN)) //Bytes of buffer used for ONE can light
-#define NUMPIXELS  (((BUFFUSED/3)*2)+(((BUFFUSED*2)%3)?1:0)+1) //This ensures that the pixel buffer will fit all the LEDs
+#define NUMPIXELS  (((BUFFUSED*2)/3)+(((BUFFUSED*2)%3)?1:0)+1) //This ensures that the pixel buffer will fit all the LEDs
 
 
 //These are the bytes in the buffer that correspond to the three rings of the two can lights.
 #define OUTERSTARTA 0
-#define OUTERENDA ((OUTERLEDS*OUTERCHANA)-1)
+#define OUTERENDA ((OUTERLEDS*OUTERCHAN)-1)
 #define MIDSTARTA OUTERENDA+1
-#define MIDENDA (MIDSTARTB+(MIDLEDS*MIDCHANB)-1)
+#define MIDENDA (MIDSTARTA+(MIDLEDS*MIDCHAN)-1)
 #define INNERSTARTA MIDENDA+1
 #define INNERENDA BUFFUSED-1
 #define OUTERSTARTB BUFFUSED
@@ -103,27 +104,30 @@ const int commandForgetTime = 5000;
 
 byte pixels[NUMPIXELS * 3];
 
-tinyNeoPixel leds = tinyNeoPixel(NUMPIXELS, PIN, NEO_GRB, pixels);
+tinyNeoPixel leds = tinyNeoPixel(NUMPIXELS, 0, NEO_GRB, pixels);
 
 //IMPORTANT NOTE: Since we have a mixture of 3 and 4 color LEDs, we cannot use any of the abstractions for writing to LEDs - we must directly write to the buffer!
 
 //WWA leds have Amber in place of Red, Cool White in place of Green, Warm White in place of Blue
 
 void setup() {
-  pinMode(PIN, OUTPUT);
+  pinMode(0, OUTPUT);
   Serial.begin(9600);
-  delay(100);
+  delay(500);
+    
+  Serial.println(NUMPIXELS);
+  Serial.println(BUFFUSED);
+  Serial.println(OUTERSTARTA);
+  Serial.println(OUTERENDA);
+  Serial.println(MIDSTARTA);
+  Serial.println(MIDENDA);
+  Serial.println(INNERSTARTA);
+  Serial.println(INNERENDA);
 }
 
 void loop() {
   static byte pattern=0;
-  switch (pattern){
-    case 0:
-      selfTest();
-      break;
-    case 1:
-      //...
-  }   
+  selfTest();
 }
 
 //##################
@@ -136,18 +140,7 @@ void loop() {
 //LED control functions
 //####################
 
-void setOuterAll(byte r, byte g, byte b, byte w = 0) {
-  setOuterA(r,g,b,w);
-  setOuterB(r,g,b,e);
-}
-void setMidAll(byte r, byte g, byte b, byte w = 0) {
-  setMidA(r,g,b,w);
-  setMidB(r,g,b,e);
-}
-void setInnerAll(byte r, byte g, byte b, byte w = 0) {
-  setInnerA(r,g,b,w);
-  setInnerB(r,g,b,e);
-}
+
 
 
 void setOuterA(byte r, byte g, byte b, byte w = 0) {
@@ -162,7 +155,7 @@ void setOuterA(byte r, byte g, byte b, byte w = 0) {
   }
 }
 void setInnerA(byte r, byte g, byte b, byte w = 0) {
-  byte i = INNERSTARTA
+  int i = INNERSTARTA;
   while (i < INNERENDA) {
     pixels[i++] = g;
     pixels[i++] = r;
@@ -171,9 +164,10 @@ void setInnerA(byte r, byte g, byte b, byte w = 0) {
       pixels[i++] = w;
     }
   }
+  Serial.println(i);
 }
 void setMidA(byte r, byte g, byte b, byte w = 0) {
-  byte i = MIDSTARTA;
+  int i = MIDSTARTA;
   while (i < MIDENDA) {
     pixels[i++] = g;
     pixels[i++] = r;
@@ -185,8 +179,8 @@ void setMidA(byte r, byte g, byte b, byte w = 0) {
 }
 
 void setOuterB(byte r, byte g, byte b, byte w = 0) {
-  int i = OUTERSTARTA;
-  while (i < OUTERENDA) {
+  int i = OUTERSTARTB;
+  while (i < OUTERENDB) {
     pixels[i++] = g;
     pixels[i++] = r;
     pixels[i++] = b;
@@ -196,8 +190,8 @@ void setOuterB(byte r, byte g, byte b, byte w = 0) {
   }
 }
 void setInnerB(byte r, byte g, byte b, byte w = 0) {
-  byte i = INNERSTARTA
-  while (i < INNERENDA) {
+  int i = INNERSTARTB;
+  while (i < INNERENDB) {
     pixels[i++] = g;
     pixels[i++] = r;
     pixels[i++] = b;
@@ -207,7 +201,7 @@ void setInnerB(byte r, byte g, byte b, byte w = 0) {
   }
 }
 void setMidB(byte r, byte g, byte b, byte w = 0) {
-  byte i = MIDSTARTB;
+  int i = MIDSTARTB;
   while (i < MIDENDB) {
     pixels[i++] = g;
     pixels[i++] = r;
@@ -216,6 +210,19 @@ void setMidB(byte r, byte g, byte b, byte w = 0) {
       pixels[i++] = w;
     }
   }
+}
+
+void setOuterAll(byte r, byte g, byte b, byte w = 0) {
+  setOuterA(r,g,b,w);
+  //setOuterB(r,g,b,w);
+}
+void setMidAll(byte r, byte g, byte b, byte w = 0) {
+  setMidA(r,g,b,w);
+  //setMidB(r,g,b,w);
+}
+void setInnerAll(byte r, byte g, byte b, byte w = 0) {
+  setInnerA(r,g,b,w);
+  //setInnerB(r,g,b,w);
 }
 
 //##########
@@ -538,7 +545,7 @@ void setupTimer() {
   TCB1.INTFLAGS=1; //clear flag
   TCB1.CNT=0; //count to 0
   TCB1.INTCTRL=0x01;
-  EVSYS.ASYNCCH0=RX_ASYNC0 //PA1 Set event channel for PA1 pin
+  EVSYS.ASYNCCH0=RX_ASYNC0; //PA1 Set event channel for PA1 pin
   EVSYS.ASYNCUSER11=0x03;
   TCB1.EVCTRL=0x51; //filter, falling edge, ICIE=1
   TCB1.CTRLA=0x03; //enable
@@ -636,4 +643,3 @@ ISR (TIMER1_CAPT_vect)
     }
   }
 }
-
