@@ -114,15 +114,6 @@ void setup() {
   pinMode(0, OUTPUT);
   Serial.begin(9600);
   delay(500);
-    
-  Serial.println(NUMPIXELS);
-  Serial.println(BUFFUSED);
-  Serial.println(OUTERSTARTA);
-  Serial.println(OUTERENDA);
-  Serial.println(MIDSTARTA);
-  Serial.println(MIDENDA);
-  Serial.println(INNERSTARTA);
-  Serial.println(INNERENDA);
 }
 
 void loop() {
@@ -164,7 +155,6 @@ void setInnerA(byte r, byte g, byte b, byte w = 0) {
       pixels[i++] = w;
     }
   }
-  Serial.println(i);
 }
 void setMidA(byte r, byte g, byte b, byte w = 0) {
   int i = MIDSTARTA;
@@ -214,15 +204,15 @@ void setMidB(byte r, byte g, byte b, byte w = 0) {
 
 void setOuterAll(byte r, byte g, byte b, byte w = 0) {
   setOuterA(r,g,b,w);
-  //setOuterB(r,g,b,w);
+  setOuterB(r,g,b,w);
 }
 void setMidAll(byte r, byte g, byte b, byte w = 0) {
   setMidA(r,g,b,w);
-  //setMidB(r,g,b,w);
+  setMidB(r,g,b,w);
 }
 void setInnerAll(byte r, byte g, byte b, byte w = 0) {
   setInnerA(r,g,b,w);
-  //setInnerB(r,g,b,w);
+  setInnerB(r,g,b,w);
 }
 
 //##########
