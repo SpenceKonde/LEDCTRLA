@@ -4,22 +4,27 @@
 
 
 #define NEOPIXELPIN            0
+
+// Color combinations
 #define RGBWW_WWA_RGBW
-#if defined(RGBWW_WWA_RGBW)
+
+// Number of LEDs in each ring
 #define OUTERLEDS 18
-#define OUTERCHAN 4
 #define MIDLEDS 12
-#define MIDCHAN 3
 #define INNERLEDS 7
+
+// LEDs per channel
+#if defined(RGBWW_WWA_RGBW)
+#define OUTERCHAN 4
+#define MIDCHAN 3
 #define INNERCHAN 4
 #elif defined(RGBW_RGBW_RGBWW)
-#define OUTERLEDS 18
 #define OUTERCHAN 4
-#define MIDLEDS 12
 #define MIDCHAN 4
-#define INNERLEDS 7
 #define INNERCHAN 4
 #endif
+
+
 
 
 
@@ -213,6 +218,20 @@ void setMidAll(byte r, byte g, byte b, byte w = 0) {
 void setInnerAll(byte r, byte g, byte b, byte w = 0) {
   setInnerA(r,g,b,w);
   setInnerB(r,g,b,w);
+}
+
+void setAllColor(byte r, byte g, byte b, byte w, byte ww, byte a) {
+  #ifdef RGBWW_WWA_RGBW
+  setOuterAll(r,g,b,ww);
+  setMidAll(a,w,ww);
+  setInnerAll(r,g,b,w);
+  #elifdef RGBW_RGBW_RGBWW
+  setOuterAll(r,g,b,w);
+  setMidAll(r,g,b,w);
+  setInnerAll(r,g,b,ww);
+  #else 
+  #error "Color combination not defined"
+  #end
 }
 
 //##########
@@ -467,6 +486,8 @@ byte handleReceive() {
     return 0;
   }
 }
+
+
 
 void resetReceive() {
 
