@@ -117,14 +117,33 @@ tinyNeoPixel leds = tinyNeoPixel(NUMPIXELS, 0, NEO_GRB, pixels);
 
 void setup() {
   pinMode(0, OUTPUT);
-  Serial.begin(9600);
-  delay(500);
+  selfTest();
+  
 }
 
 void loop() {
-  static byte pattern=0;
-  selfTest();
+  byte rlen = handleReceive();
+  if (rlen) {
+    processRFPacket(rlen);
+  }
 }
+
+
+void processRFPacket(byte rlen) {
+
+  byte vers = (rlen & 196) >> 6;
+  rlen &= 0x3F;
+  //if (vers==2) {
+    switch (recvMessage[1]) {
+      case 0x58: //set multicolor
+        if (rlen==8) {
+          setAllColor(recvMessage[1],recvMessage[2],recvMessage[3],recvMessage[1],recvMessage[1])
+        }
+    }
+    
+  //}
+}
+
 
 //##################
 // Pattern handling
