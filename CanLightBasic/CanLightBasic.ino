@@ -47,6 +47,11 @@
 #define INNERSTARTB MIDENDB+1
 #define INNERENDB (2*BUFFUSED)-1
 
+void setInnerAll(byte, byte, byte, byte);
+void setOuterAll(byte, byte, byte, byte);
+void setMidAll(byte, byte, byte, byte);
+void setAllColor(byte, byte, byte, byte, byte, byte);
+
 // AzzyRF globals
 
 #define RX_PIN_STATE (VPORTA.IN&2) //RX on pin A1 for input capture.  pin 8
@@ -117,31 +122,53 @@ tinyNeoPixel leds = tinyNeoPixel(NUMPIXELS, 0, NEO_GRB, pixels);
 
 void setup() {
   pinMode(0, OUTPUT);
+  setupTimer();
   selfTest();
+  setAllColor(0,0,0,255,255,255); //start up om white mode for installation purposes
+  leds.show();
   
 }
 
 void loop() {
   byte rlen = handleReceive();
   if (rlen) {
-    processRFPacket(rlen);
+    if (processRFPacket(rlen)) {
+      leds.show();
+    }
   }
 }
 
 
-void processRFPacket(byte rlen) {
+byte processRFPacket(byte rlen) { //returns 0 on fail 1 on success
 
   byte vers = (rlen & 196) >> 6;
   rlen &= 0x3F;
+  byte success=0;
   //if (vers==2) {
     switch (recvMessage[1]) {
       case 0x58: //set multicolor
-        if (rlen==8) {
-          setAllColor(recvMessage[1],recvMessage[2],recvMessage[3],recvMessage[1],recvMessage[1])
+        if (rlen==8) { //short multicolor set
+          setAllColor(recvMessage[2],recvMessage[3],recvMessage[4],recvMessage[5],recvMessage[6],recvMessage[6]);
+          success=1;
+        } else if (rlen==16) {
+          setOuterAll(recvMessage[2],recvMessage[3],recvMessage[4],recvMessage[5]);
+          setMidAll(recvMessage[6],recvMessage[7],recvMessage[8],recvMessage[9]);
+          setInnerAll(recvMessage[10],recvMessage[11],recvMessage[12],recvMessage[13]);
+          success=1;
+        } else {
+          Serial.print("invalid length for packet: ");
+          Serial.print("0x58");
+          Serial.print(" length: ");
+          Serial.println(rlen);
         }
+        break;
+      default:
+        Serial.print("unknwon packet addressed to me: ");
+        Serial.println(recvMessage[1]);
     }
-    
+    return success;
   //}
+  
 }
 
 
@@ -240,17 +267,17 @@ void setInnerAll(byte r, byte g, byte b, byte w = 0) {
 }
 
 void setAllColor(byte r, byte g, byte b, byte w, byte ww, byte a) {
-  #ifdef RGBWW_WWA_RGBW
+  #if defined(RGBWW_WWA_RGBW)
   setOuterAll(r,g,b,ww);
   setMidAll(a,w,ww);
   setInnerAll(r,g,b,w);
-  #elifdef RGBW_RGBW_RGBWW
+  #elif defined(RGBW_RGBW_RGBWW)
   setOuterAll(r,g,b,w);
   setMidAll(r,g,b,w);
   setInnerAll(r,g,b,ww);
   #else 
   #error "Color combination not defined"
-  #end
+  #endif
 }
 
 //##########
