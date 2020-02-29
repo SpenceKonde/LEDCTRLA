@@ -5,8 +5,17 @@
 
 #define NEOPIXELPIN            0
 
+
+#define DESK_LEFT
+
 // Color combinations
+#if (defined(DESK_LEFT)||defined(DESK_RIGHT)||defined(CORNER))
 #define RGBWW_WWA_RGBW
+#elif defined(PLANT)
+
+#else
+#error "unknown can light location"
+#endif
 
 // Number of LEDs in each ring
 #define OUTERLEDS 18
@@ -18,10 +27,22 @@
 #define OUTERCHAN 4
 #define MIDCHAN 3
 #define INNERCHAN 4
-#elif defined(RGBW_RGBW_RGBWW)
+#define REDCOUNT (OUTERLEDS+INNERLEDS)
+#define GREENCOUNT (OUTERLEDS+INNERLEDS)
+#define BLUECOUNT (OUTERLEDS+INNERLEDS)
+#define WARMCOUNT (OUTERLEDS+MIDLEDS)
+#define COOLCOUNT (MIDLEDS+INNERLEDS)
+#define AMBERCOUNT (MIDLEDS)
+#elif defined(RGBWW_RGBW_RGBW)
 #define OUTERCHAN 4
 #define MIDCHAN 4
 #define INNERCHAN 4
+#define REDCOUNT (OUTERLEDS+MIDLEDS+INNERLEDS)
+#define GREENCOUNT (OUTERLEDS+MIDLEDS+INNERLEDS)
+#define BLUECOUNT (OUTERLEDS+MIDLEDS+INNERLEDS)
+#define WARMCOUNT (OUTERLEDS)
+#define COOLCOUNT (MIDLEDS+INNERLEDS)
+#define AMBERCOUNT (0)
 #endif
 
 
@@ -57,7 +78,19 @@ void setAllColor(byte, byte, byte, byte, byte, byte);
 #define RX_PIN_STATE (VPORTA.IN&2) //RX on pin A1 for input capture.  pin 8
 #define RX_ASYNC0 0x0B
 
-const byte MyAddress = 0;
+#ifdef DESK_LEFT
+const byte MyAddress[] = {0x28, 0x29};
+#endif
+#ifdef DESK_RIGHT
+const byte MyAddress[] = {0x28, 0x2A};
+#endif
+#ifdef CORNER
+const byte MyAddress[] = {0x2B};
+#endif
+#ifdef PLANT
+const byte MyAddress[] = {0x2C};
+#endif
+
 volatile byte receiving = 0;
 volatile byte bitnum = 0; //current bit received
 
@@ -81,7 +114,7 @@ unsigned long lastPacketSig = 0;
 #define TIME_MULT * 8
 #elif(F_CPU==20000000)
 #define TIME_MULT * 10
-#else 
+#else
 #error "Unsupported clock speed"
 #endif
 #else
@@ -91,7 +124,7 @@ unsigned long lastPacketSig = 0;
 #define TIME_MULT * 2
 #elif(F_CPU==12000000)
 #define TIME_MULT * 3/2
-#else 
+#else
 #error "Unsupported clock speed"
 #endif
 #endif
@@ -124,51 +157,73 @@ void setup() {
   pinMode(0, OUTPUT);
   setupTimer();
   selfTest();
-  setAllColor(0,0,0,255,255,255); //start up om white mode for installation purposes
+  setAllColor(0, 0, 0, 255, 255, 255); //start up om white mode for installation purposes
   leds.show();
-  
+
 }
 
 void loop() {
   byte rlen = handleReceive();
   if (rlen) {
-    if (processRFPacket(rlen)) {
+    byte rxstatus = processRFPacket(rlen);
+    if (!rxstatus) {
       leds.show();
+    } else {
+      handleBadRX(rlen, rxstatus);
     }
   }
 }
 
+void handleBadRX(byte rlen, byte st) {
+  switch (st) {
+    case 255:
+      Serial.print("Unknown command: ");
+      Serial.println(recvMessage[1], HEX);
+      break;
+    case 1:
+      Serial.println("Invalid Length");
+      break;
+  }
+  Serial.print("Addressed to: ");
+  Serial.println(recvMessage[0] & 0x3F, HEX);
+  Serial.print("Length: ");
+  Serial.println(rlen&0x3F,HEX);
+  Serial.print("Version: ");
+  Serial.println(rlen>>6);
+}
 
 byte processRFPacket(byte rlen) { //returns 0 on fail 1 on success
 
   byte vers = (rlen & 196) >> 6;
   rlen &= 0x3F;
-  byte success=0;
+  byte rxstatus = 255;
   //if (vers==2) {
-    switch (recvMessage[1]) {
-      case 0x58: //set multicolor
-        if (rlen==8) { //short multicolor set
-          setAllColor(recvMessage[2],recvMessage[3],recvMessage[4],recvMessage[5],recvMessage[6],recvMessage[6]);
-          success=1;
-        } else if (rlen==16) {
-          setOuterAll(recvMessage[2],recvMessage[3],recvMessage[4],recvMessage[5]);
-          setMidAll(recvMessage[6],recvMessage[7],recvMessage[8],recvMessage[9]);
-          setInnerAll(recvMessage[10],recvMessage[11],recvMessage[12],recvMessage[13]);
-          success=1;
-        } else {
-          Serial.print("invalid length for packet: ");
-          Serial.print("0x58");
-          Serial.print(" length: ");
-          Serial.println(rlen);
-        }
-        break;
-      default:
-        Serial.print("unknwon packet addressed to me: ");
-        Serial.println(recvMessage[1]);
-    }
-    return success;
+  switch (recvMessage[1]) {
+    case 0x58: //set multicolor
+      if (rlen == 8) { //short multicolor set
+        setAllColor(recvMessage[2], recvMessage[3], recvMessage[4], recvMessage[5], recvMessage[6], recvMessage[6]);
+        rxstatus = 0;
+      } else if (rlen == 16) {
+        setAllColor(recvMessage[2], recvMessage[3], recvMessage[4], recvMessage[5], recvMessage[6], recvMessage[7]);
+        rxstatus = 0;
+      } else {
+        rxstatus = 1;
+      }
+      break;
+    case 0x59:
+      if (rlen == 16) {
+        setOuterAll(recvMessage[2], recvMessage[3], recvMessage[4], recvMessage[5]);
+        setMidAll(recvMessage[6], recvMessage[7], recvMessage[8], recvMessage[9]);
+        setInnerAll(recvMessage[10], recvMessage[11], recvMessage[12], recvMessage[13]);
+        rxstatus = 0;
+      } else {
+        rxstatus = 1;
+      }
+      break;
+  }
+  return rxstatus;
   //}
-  
+
 }
 
 
@@ -254,30 +309,30 @@ void setMidB(byte r, byte g, byte b, byte w = 0) {
 }
 
 void setOuterAll(byte r, byte g, byte b, byte w = 0) {
-  setOuterA(r,g,b,w);
-  setOuterB(r,g,b,w);
+  setOuterA(r, g, b, w);
+  setOuterB(r, g, b, w);
 }
 void setMidAll(byte r, byte g, byte b, byte w = 0) {
-  setMidA(r,g,b,w);
-  setMidB(r,g,b,w);
+  setMidA(r, g, b, w);
+  setMidB(r, g, b, w);
 }
 void setInnerAll(byte r, byte g, byte b, byte w = 0) {
-  setInnerA(r,g,b,w);
-  setInnerB(r,g,b,w);
+  setInnerA(r, g, b, w);
+  setInnerB(r, g, b, w);
 }
 
 void setAllColor(byte r, byte g, byte b, byte w, byte ww, byte a) {
-  #if defined(RGBWW_WWA_RGBW)
-  setOuterAll(r,g,b,ww);
-  setMidAll(a,w,ww);
-  setInnerAll(r,g,b,w);
-  #elif defined(RGBW_RGBW_RGBWW)
-  setOuterAll(r,g,b,w);
-  setMidAll(r,g,b,w);
-  setInnerAll(r,g,b,ww);
-  #else 
-  #error "Color combination not defined"
-  #endif
+#if defined(RGBWW_WWA_RGBW)
+  setOuterAll(r, g, b, ww);
+  setMidAll(a, w, ww);
+  setInnerAll(r, g, b, w);
+#elif defined(RGBWW_RGBW_RGBW)
+  setOuterAll(r, g, b, ww);
+  setMidAll(r, g, b, w);
+  setInnerAll(r, g, b, w);
+#else
+#error "Color combination not defined"
+#endif
 }
 
 //##########
@@ -285,210 +340,210 @@ void setAllColor(byte r, byte g, byte b, byte w, byte ww, byte a) {
 //##########
 
 void selfTest() { //long selftest showing all the max-brightness possibilities for color
-  
-  setOuterAll(255,0,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
+
+  setOuterAll(255, 0, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,255,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 255, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,255,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 0, 255, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,255);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 0, 0, 255);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,0);
-  setMidAll(255,0,0,0);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(255, 0, 0, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,0);
-  setMidAll(0,255,0,0);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(0, 255, 0, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,0);
-  setMidAll(0,0,255,0);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(0, 0, 255, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  #if defined(RGBW_RGBW_RGBWW)
-  setOuterAll(0,0,0,0);
-  setMidAll(0,0,0,255);
-  setInnerAll(0,0,0,0);
+#if defined(RGBW_RGBW_RGBWW)
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(0, 0, 0, 255);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  #endif
-  setOuterAll(0,0,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(255,0,0,0);
+#endif
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(255, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,255,0,0);
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 255, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,0,255,0);
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 0, 255, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,0,0,255);
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 0, 0, 255);
   leds.show();
   delay(1000);
-  #if defined(RGBW_RGBW_RGBWW)
-  setOuterAll(255,0,0,0);
-  setMidAll(255,0,0,0);
-  setInnerAll(255,0,0,0);
+#if defined(RGBW_RGBW_RGBWW)
+  setOuterAll(255, 0, 0, 0);
+  setMidAll(255, 0, 0, 0);
+  setInnerAll(255, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,255,0,0);
-  setMidAll(0,255,0,0);
-  setInnerAll(0,255,0,0);
+  setOuterAll(0, 255, 0, 0);
+  setMidAll(0, 255, 0, 0);
+  setInnerAll(0, 255, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,255,0);
-  setMidAll(0,0,255,0);
-  setInnerAll(0,0,255,0);
+  setOuterAll(0, 0, 255, 0);
+  setMidAll(0, 0, 255, 0);
+  setInnerAll(0, 0, 255, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,255);
-  setMidAll(0,0,0,255);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 0, 0, 255);
+  setMidAll(0, 0, 0, 255);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,255);
-  setMidAll(0,0,0,255);
-  setInnerAll(0,0,0,255);
+  setOuterAll(0, 0, 0, 255);
+  setMidAll(0, 0, 0, 255);
+  setInnerAll(0, 0, 0, 255);
   leds.show();
   delay(1000);
-  setOuterAll(255,255,0,0);
-  setMidAll(255,255,0,0);
-  setInnerAll(255,255,0,0);
+  setOuterAll(255, 255, 0, 0);
+  setMidAll(255, 255, 0, 0);
+  setInnerAll(255, 255, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,255,255,0);
-  setMidAll(0,255,255,0);
-  setInnerAll(0,255,255,0);
+  setOuterAll(0, 255, 255, 0);
+  setMidAll(0, 255, 255, 0);
+  setInnerAll(0, 255, 255, 0);
   leds.show();
   delay(1000);
-  setOuterAll(255,0,255,0);
-  setMidAll(255,0,255,0);
-  setInnerAll(255,0,255,0);
+  setOuterAll(255, 0, 255, 0);
+  setMidAll(255, 0, 255, 0);
+  setInnerAll(255, 0, 255, 0);
   leds.show();
   delay(1000);
-  setOuterAll(255,255,255,0);
-  setMidAll(255,255,255,0);
-  setInnerAll(255,255,255,0);
+  setOuterAll(255, 255, 255, 0);
+  setMidAll(255, 255, 255, 0);
+  setInnerAll(255, 255, 255, 0);
   leds.show();
   delay(1000);
-  setOuterAll(255,0,0,255);
-  setMidAll(255,0,0,255);
-  setInnerAll(255,0,0,255);
+  setOuterAll(255, 0, 0, 255);
+  setMidAll(255, 0, 0, 255);
+  setInnerAll(255, 0, 0, 255);
   leds.show();
   delay(1000);
-  setOuterAll(0,255,0,255);
-  setMidAll(0,255,0,255);
-  setInnerAll(0,255,0,255);
+  setOuterAll(0, 255, 0, 255);
+  setMidAll(0, 255, 0, 255);
+  setInnerAll(0, 255, 0, 255);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,255,255);
-  setMidAll(0,0,255,255);
-  setInnerAll(0,0,255,255);
+  setOuterAll(0, 0, 255, 255);
+  setMidAll(0, 0, 255, 255);
+  setInnerAll(0, 0, 255, 255);
   leds.show();
-  #elif defined(RGBWW_WWA_RGBW)
-  setOuterAll(255,0,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(255,0,0,0);
-  leds.show();
-  delay(1000);
-  setOuterAll(0,255,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,255,0,0);
+#elif defined(RGBWW_WWA_RGBW)
+  setOuterAll(255, 0, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(255, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,255,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,0,255,0);
+  setOuterAll(0, 255, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 255, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,255);
-  setMidAll(0,255,0,0);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 0, 255, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 0, 255, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,255);
-  setMidAll(255,255,0,0);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 0, 0, 255);
+  setMidAll(0, 255, 0, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,0);
-  setMidAll(0,0,255,0);
-  setInnerAll(0,0,0,255);
+  setOuterAll(0, 0, 0, 255);
+  setMidAll(255, 255, 0, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,0,255);
-  setMidAll(255,255,0,0);
-  setInnerAll(0,0,0,255);
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(0, 0, 255, 0);
+  setInnerAll(0, 0, 0, 255);
   leds.show();
   delay(1000);
-  setOuterAll(255,255,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(255,255,0,0);
+  setOuterAll(0, 0, 0, 255);
+  setMidAll(255, 255, 0, 0);
+  setInnerAll(0, 0, 0, 255);
   leds.show();
   delay(1000);
-  setOuterAll(0,255,255,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,255,255,0);
+  setOuterAll(255, 255, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(255, 255, 0, 0);
   leds.show();
   delay(1000);
-  setOuterAll(255,0,255,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(255,0,255,0);
+  setOuterAll(0, 255, 255, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 255, 255, 0);
   leds.show();
   delay(1000);
-  setOuterAll(255,255,255,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(255,255,255,0);
+  setOuterAll(255, 0, 255, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(255, 0, 255, 0);
   leds.show();
   delay(1000);
-  setOuterAll(255,0,0,255);
-  setMidAll(255,255,255,0);
-  setInnerAll(255,0,0,255);
+  setOuterAll(255, 255, 255, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(255, 255, 255, 0);
   leds.show();
   delay(1000);
-  setOuterAll(0,255,0,255);
-  setMidAll(255,255,255,0);
-  setInnerAll(0,255,0,255);
+  setOuterAll(255, 0, 0, 255);
+  setMidAll(255, 255, 255, 0);
+  setInnerAll(255, 0, 0, 255);
   leds.show();
   delay(1000);
-  setOuterAll(0,0,255,255);
-  setMidAll(255,255,255,0);
-  setInnerAll(0,0,255,255);
+  setOuterAll(0, 255, 0, 255);
+  setMidAll(255, 255, 255, 0);
+  setInnerAll(0, 255, 0, 255);
   leds.show();
-  #endif
   delay(1000);
-  setOuterAll(0,0,0,0);
-  setMidAll(0,0,0,0);
-  setInnerAll(0,0,0,0);
+  setOuterAll(0, 0, 255, 255);
+  setMidAll(255, 255, 255, 0);
+  setInnerAll(0, 0, 255, 255);
+  leds.show();
+#endif
+  delay(1000);
+  setOuterAll(0, 0, 0, 0);
+  setMidAll(0, 0, 0, 0);
+  setInnerAll(0, 0, 0, 0);
   leds.show();
   delay(1000);
 }
 
 //###########################
-//AzzyRF for remote control 
+//AzzyRF for remote control
 //###########################
 
 byte handleReceive() {
@@ -498,7 +553,7 @@ byte handleReceive() {
       resetReceive();
       return 0;
     }
-    if (rxBuffer[0]==0 &&  rxBuffer[1]==0 && rxBuffer[2]==0 && (rxBuffer[3]&0xF0)==0) {
+    if (rxBuffer[0] == 0 &&  rxBuffer[1] == 0 && rxBuffer[2] == 0 && (rxBuffer[3] & 0xF0) == 0) {
       resetReceive();
       return 0;
     }
@@ -507,8 +562,8 @@ byte handleReceive() {
       return 0;
     }
     if (lastPacketSig == getPacketSig() && lastPacketTime) {
-      
-    lastPacketTime = millis();
+
+      lastPacketTime = millis();
       resetReceive();
       return 0;
     }
@@ -516,15 +571,15 @@ byte handleReceive() {
     lastPacketTime = millis();
     byte rlen = ((pktLength >> 3) + 1) | ((vers - 1) << 6);
     memcpy(recvMessage, rxBuffer, 32);
-    if (rlen==4){
-      recvMessage[3]=recvMessage[3]&0xF0;
+    if (rlen == 4) {
+      recvMessage[3] = recvMessage[3] & 0xF0;
     } else {
-      recvMessage[rlen-1]=0;
+      recvMessage[rlen - 1] = 0;
     }
     resetReceive();
     return rlen;
   } else {
-    unsigned long t=(millis()-lastPacketTime);
+    unsigned long t = (millis() - lastPacketTime);
     if (lastPacketTime && (t > commandForgetTime)) {
       lastPacketTime = 0;
       lastPacketSig = 0;
@@ -540,13 +595,13 @@ void resetReceive() {
   bitnum = 0;
   memset(rxBuffer, 0, 32);
   gotMessage = 0;
-  #ifdef TCB1
-  TCB1.INTCTRL=0x01;
-  #elif defined(TCB0)
-  TCB0.INTCTRL=0x01;
-  #else
+#ifdef TCB1
+  TCB1.INTCTRL = 0x01;
+#elif defined(TCB0)
+  TCB0.INTCTRL = 0x01;
+#else
   TIMSK1 = 1 << ICIE1;
-  #endif
+#endif
   return;
 }
 
@@ -555,7 +610,7 @@ byte checkCSC() {
   byte rxchecksum2 = 0;
   for (byte i = 0; i < pktLength >> 3; i++) {
     rxchecksum = rxchecksum ^ rxBuffer[i];
-    rxchecksum2 = _crc8_ccitt_update(rxchecksum2,rxBuffer[i]);
+    rxchecksum2 = _crc8_ccitt_update(rxchecksum2, rxBuffer[i]);
   }
   if (pktLength >> 3 == 3) {
     rxchecksum = (rxchecksum & 0x0F) ^ (rxchecksum >> 4) ^ ((rxBuffer[3] & 0xF0) >> 4);
@@ -569,15 +624,18 @@ byte checkCSC() {
 }
 
 byte isForMe() {
-  if ((rxBuffer[0] & 0x3F) == MyAddress || MyAddress == 0 || (rxBuffer[0] & 0x3F) == 0) {
-    return 1;
+  for (byte i = 0; i < sizeof(MyAddress); i++) {
+    byte addr = MyAddress[i];
+    if ((rxBuffer[0] & 0x3F) == addr || !rxBuffer[0] || !addr) {
+      return 1;
+    }
   }
   return 0;
 }
 
 unsigned long getPacketSig() {
   byte len = pktLength >> 3;
-  unsigned long lastpacketsig=0;
+  unsigned long lastpacketsig = 0;
   for (byte i = (len == 3 ? 0 : 1); i < (len == 3 ? 3 : 4); i++) {
     lastpacketsig += rxBuffer[i];
     lastpacketsig = lastpacketsig << 8;
@@ -587,7 +645,7 @@ unsigned long getPacketSig() {
 }
 
 void setupTimer() {
-  #if defined(TCCR1A) && defined(TIMSK1) //In this case, it's a classic AVR with a normal timer1
+#if defined(TCCR1A) && defined(TIMSK1) //In this case, it's a classic AVR with a normal timer1
   TCCR1A = 0;
   TCCR1B = 0;
   TIFR1 = bit (ICF1) | bit (TOV1);  // clear flags so we don't get a bogus interrupt
@@ -596,29 +654,29 @@ void setupTimer() {
   // start Timer 1, prescalar of 8, edge select on falling edge
   TCCR1B =  ((F_CPU == 1000000L) ? (1 << CS10) : (1 << CS11)) | 1 << ICNC1; //prescalar 8 except at 1mhz, where we use prescalar of 1, noise cancler active
   //ready to rock and roll
-  #elif defined(TCB1) // it's a megaavr
-  TCB1.CTRLA=0x02; //disable, CKPER/2 clock source.
-  TCB1.CTRLB=0x03; //Input Capture Frequency Measurement mode
-  TCB1.INTFLAGS=1; //clear flag
-  TCB1.CNT=0; //count to 0
-  TCB1.INTCTRL=0x01;
-  EVSYS.ASYNCCH0=RX_ASYNC0; //PA1 Set event channel for PA1 pin
-  EVSYS.ASYNCUSER11=0x03;
-  TCB1.EVCTRL=0x51; //filter, falling edge, ICIE=1
-  TCB1.CTRLA=0x03; //enable
-  #elif defined(TCB0) // it's a megaavr
-  TCB0.CTRLA=0x02; //disable, CKPER/2 clock source.
-  TCB0.CTRLB=0x03; //Input Capture Frequency Measurement mode
-  TCB0.INTFLAGS=1; //clear flag
-  TCB0.CNT=0; //count to 0
-  TCB0.INTCTRL=0x01;
-  EVSYS.ASYNCCH0=RX_ASYNC0; //PA1 Set event channel for PA1 pin
-  EVSYS.ASYNCUSER0=0x03;
-  TCB0.EVCTRL=0x51; //filter, falling edge, ICIE=1
-  TCB0.CTRLA=0x03; //enable
-  #else
-  #error "architecture not supported"
-  #endif
+#elif defined(TCB1) // it's a megaavr
+  TCB1.CTRLA = 0x02; //disable, CKPER/2 clock source.
+  TCB1.CTRLB = 0x03; //Input Capture Frequency Measurement mode
+  TCB1.INTFLAGS = 1; //clear flag
+  TCB1.CNT = 0; //count to 0
+  TCB1.INTCTRL = 0x01;
+  EVSYS.ASYNCCH0 = RX_ASYNC0; //PA1 Set event channel for PA1 pin
+  EVSYS.ASYNCUSER11 = 0x03;
+  TCB1.EVCTRL = 0x51; //filter, falling edge, ICIE=1
+  TCB1.CTRLA = 0x03; //enable
+#elif defined(TCB0) // it's a megaavr
+  TCB0.CTRLA = 0x02; //disable, CKPER/2 clock source.
+  TCB0.CTRLB = 0x03; //Input Capture Frequency Measurement mode
+  TCB0.INTFLAGS = 1; //clear flag
+  TCB0.CNT = 0; //count to 0
+  TCB0.INTCTRL = 0x01;
+  EVSYS.ASYNCCH0 = RX_ASYNC0; //PA1 Set event channel for PA1 pin
+  EVSYS.ASYNCUSER0 = 0x03;
+  TCB0.EVCTRL = 0x51; //filter, falling edge, ICIE=1
+  TCB0.CTRLA = 0x03; //enable
+#else
+#error "architecture not supported"
+#endif
 }
 
 #ifdef TCB1
@@ -629,31 +687,31 @@ ISR(TCB0_INT_vect)
 ISR (TIMER1_CAPT_vect)
 #endif
 {
-  #if defined(TCB1)
+#if defined(TCB1)
   static unsigned long lasttime = 0;
   unsigned int newTime = TCB1.CCMP; //immediately get the ICR value
-  #elif defined(TCB0)
+#elif defined(TCB0)
   static unsigned long lasttime = 0;
   unsigned int newTime = TCB0.CCMP; //immediately get the ICR value
-  #else
+#else
   unsigned int newTime = ICR1; //immediately get the ICR value
-  #endif
+#endif
   byte state = (RX_PIN_STATE);
-  #ifdef TCB1
-  TCB1.EVCTRL=state?0x51:0x41; //trigger on falling edge if pin is high, otherwise rising edge
+#ifdef TCB1
+  TCB1.EVCTRL = state ? 0x51 : 0x41; //trigger on falling edge if pin is high, otherwise rising edge
   unsigned int duration = newTime;
-  #elif defined(TCB0)
-  TCB0.EVCTRL=state?0x51:0x41; //trigger on falling edge if pin is high, otherwise rising edge
+#elif defined(TCB0)
+  TCB0.EVCTRL = state ? 0x51 : 0x41; //trigger on falling edge if pin is high, otherwise rising edge
   unsigned int duration = newTime;
-  #else
+#else
   TCCR1B = state ? (1 << CS11 | 1 << ICNC1) : (1 << CS11 | 1 << ICNC1 | 1 << ICES1); //and set edge
   unsigned int duration = newTime - lasttime;
-  #endif
+#endif
   lasttime = newTime;
   if (state) {
     if (receiving) {
       if (duration > rxLowMax) {
-        
+
         receiving = 0;
         bitnum = 0; // reset to bit zero
         memset(rxBuffer, 0, 32); //clear buffer
@@ -687,13 +745,13 @@ ISR (TIMER1_CAPT_vect)
         bitnum = 0;
         receiving = 0;
         gotMessage = 1;
-        #ifdef TCB1
-        TCB1.INTCTRL=0x00;
-        #elif defined(TCB0)
-        TCB0.INTCTRL=0x00;
-        #else
+#ifdef TCB1
+        TCB1.INTCTRL = 0x00;
+#elif defined(TCB0)
+        TCB0.INTCTRL = 0x00;
+#else
         TIMSK1 = 0; //turn off input capture;
-        #endif
+#endif
       } else {
         bitnum++;
       }
