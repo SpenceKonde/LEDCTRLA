@@ -2,17 +2,34 @@
 #include <util/crc16.h>
 #include <tinyNeoPixel_Static.h>
 
+//Runs with ATtiny1614 or 1604; could also fit in 814 or 804.
 
-#define NEOPIXELPIN            0
 
-
+#define NEOPIXELPIN            0 //happens to make the wiring ot the LEDs easier, by keeping all the relevant pins close together, and is as good a pin as any, save for the fact 
+//AzzyRF receive pin is pin 8 (PA1)
 #define DESK_LEFT
+//#define DESK_RIGHT
+//#define CORNER
+//#define PLANT
 
-// Color combinations
+#define CANVERSION "v1.01"
+
+
+//####################################
+// Properties based on light location
+//####################################
+
+// Sanity Check - long line that just makes sure two locations were not both defined
+#if ((defined(DESK_LEFT)&&(defined(DESK_RIGHT)||defined(PLANT)||defined(CORNER))) ||(defined(DESK_RIGHT)&&(defined(DESK_LEFT)||defined(PLANT)||defined(CORNER))) ||(defined(PLANT)&&(defined( DESK_RIGHT)||defined(DESK_LEFT)||defined(CORNER))) ||(defined(CORNER)&&(defined(DESK_RIGHT)||defined(PLANT)||defined(DESK_LEFT))))
+#error "Mutltiple options for which set of can lights specified, specify only one"
+#endif
+
+
+
 #if (defined(DESK_LEFT)||defined(DESK_RIGHT)||defined(CORNER))
 #define RGBWW_WWA_RGBW
 #elif defined(PLANT)
-
+#define RGBWW_RGBW_RGBW
 #else
 #error "unknown can light location"
 #endif
@@ -68,28 +85,34 @@
 #define INNERSTARTB MIDENDB+1
 #define INNERENDB (2*BUFFUSED)-1
 
-void setInnerAll(byte, byte, byte, byte);
-void setOuterAll(byte, byte, byte, byte);
-void setMidAll(byte, byte, byte, byte);
-void setAllColor(byte, byte, byte, byte, byte, byte);
-
-// AzzyRF globals
-
-#define RX_PIN_STATE (VPORTA.IN&2) //RX on pin A1 for input capture.  pin 8
-#define RX_ASYNC0 0x0B
-
 #ifdef DESK_LEFT
-const byte MyAddress[] = {0x28, 0x29};
+const byte MyAddress[] = {0x28, 0x29, 0x2A};
+#define DEVICE_NAME "Desk Left"
 #endif
 #ifdef DESK_RIGHT
-const byte MyAddress[] = {0x28, 0x2A};
+const byte MyAddress[] = {0x28, 0x29, 0x2B};
+#define DEVICE_NAME "Desk Right"
 #endif
 #ifdef CORNER
-const byte MyAddress[] = {0x2B};
+const byte MyAddress[] = {0x28, 0x2C};
+#define DEVICE_NAME "Corner"
 #endif
 #ifdef PLANT
 const byte MyAddress[] = {0x2C};
+#define DEVICE_NAME "Plant"
 #endif
+
+
+
+
+//####################
+// AzzyRF globals
+//####################
+
+#define RX_PIN_STATE (VPORTA.IN&2) //RX on pin A1 for input capture.  pin 8 - Unfortunatley can't think of a good *compiletime* way to look this up, which we need in order to to bring in this special little snippet; This will, however, be possible when I finally librarify AzzyRF, by way of a set of #if...#elif statements for all the possible I/O pins for a mega-series tiny (and a bunch more if we want it to work on a 4809, which I might as well do. 
+#define RX_ASYNC0 0x0B //Similarly when librarified, this will be calculated at compiletime with a bunch of #defines!
+
+//MyAddress set above
 
 volatile byte receiving = 0;
 volatile byte bitnum = 0; //current bit received
@@ -138,7 +161,11 @@ const unsigned int rxOneMax  = 700 TIME_MULT;
 const unsigned int rxLowMax  = 600 TIME_MULT;
 const int commandForgetTime = 5000;
 
-//End AzzyRF globals
+
+//####################
+// tinyNeoPixel setup
+//####################
+
 
 
 // Since this is for the static version of the library, we need to supply the pixel array
@@ -153,8 +180,30 @@ tinyNeoPixel leds = tinyNeoPixel(NUMPIXELS, 0, NEO_GRB, pixels);
 
 //WWA leds have Amber in place of Red, Cool White in place of Green, Warm White in place of Blue
 
+//####################
+// Begin Can Lights
+//####################
+
+//Function prototypes for these appear to be needed because Arduino Builder wasn't correctly generating them
+void setInnerAll(byte, byte, byte, byte);
+void setOuterAll(byte, byte, byte, byte);
+void setMidAll(byte, byte, byte, byte);
+void setAllColor(byte, byte, byte, byte, byte, byte);
+
+
 void setup() {
   pinMode(0, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(115200);
+  Serial.print(DEVICE_NAME);
+  Serial.print(" Can Light ");
+  Serial.println(CANVERSION);
+  Serial.print("Listening on:");
+  for (byte i = 0; i < sizeof(MyAddress); i++) {
+    Serial.print(" 0x");
+    showHex(MyAddress[i]);
+  }
+  Serial.println();
   setupTimer();
   selfTest();
   setAllColor(0, 0, 0, 255, 255, 255); //start up om white mode for installation purposes
@@ -168,6 +217,15 @@ void loop() {
     byte rxstatus = processRFPacket(rlen);
     if (!rxstatus) {
       leds.show();
+      Serial.print("RX: ");
+      for(byte i=0;i<rlen;i++){
+        if(i==3&&rlen==4){
+          showHex(recvMessage[3] >>4);
+        } else {
+          showHex(recvMessage[i]);
+        }
+      }
+      Serial.println();
     } else {
       handleBadRX(rlen, rxstatus);
     }
@@ -180,6 +238,14 @@ void handleBadRX(byte rlen, byte st) {
       Serial.print("Unknown command: ");
       Serial.println(recvMessage[1], HEX);
       break;
+    case 254:
+      Serial.println("Not yet implemented");
+    case 3:
+      Serial.print("Unknown Target: ");
+      Serial.println(recvMessage[2]);
+    case 2:
+      Serial.print("Unknown Preset: ");
+      Serial.println(recvMessage[3] >> 4);
     case 1:
       Serial.println("Invalid Length");
       break;
@@ -187,20 +253,21 @@ void handleBadRX(byte rlen, byte st) {
   Serial.print("Addressed to: ");
   Serial.println(recvMessage[0] & 0x3F, HEX);
   Serial.print("Length: ");
-  Serial.println(rlen&0x3F,HEX);
+  Serial.println(rlen & 0x3F, HEX);
   Serial.print("Version: ");
-  Serial.println(rlen>>6);
+  Serial.println(rlen >> 6);
 }
 
-byte processRFPacket(byte rlen) { //returns 0 on fail 1 on success
+byte processRFPacket(byte rlen) { //returns 1 on fail 0 on success
 
   byte vers = (rlen & 196) >> 6;
   rlen &= 0x3F;
   byte rxstatus = 255;
-  //if (vers==2) {
   switch (recvMessage[1]) {
     case 0x58: //set multicolor
-      if (rlen == 8) { //short multicolor set
+      if (rlen == 4) {
+        rxstatus = setPreset(recvMessage[2], recvMessage[3] >> 4);
+      } else if (rlen == 8) { //short multicolor set - last channel used for both amber and warm white
         setAllColor(recvMessage[2], recvMessage[3], recvMessage[4], recvMessage[5], recvMessage[6], recvMessage[6]);
         rxstatus = 0;
       } else if (rlen == 16) {
@@ -231,7 +298,9 @@ byte processRFPacket(byte rlen) { //returns 0 on fail 1 on success
 // Pattern handling
 //##################
 
-
+byte setPreset(byte pattern, byte target) { //Not yet implemented - stub.
+  return 254; //NYI
+}
 
 //####################
 //LED control functions
@@ -757,4 +826,12 @@ ISR (TIMER1_CAPT_vect)
       }
     }
   }
+}
+
+void showHex (const byte b) {
+  // try to avoid using sprintf
+  char buf [3] = { ((b >> 4) & 0x0F) | '0', (b & 0x0F) | '0', 0};
+  if (buf [0] > '9') buf [0] += 7;
+  if (buf [1] > '9') buf [1] += 7;
+  Serial.print(buf);
 }
