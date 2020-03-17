@@ -5,11 +5,11 @@
 //Runs with ATtiny1614 or 1604; could also fit in 814 or 804.
 
 
-#define NEOPIXELPIN            0 //happens to make the wiring ot the LEDs easier, by keeping all the relevant pins close together, and is as good a pin as any, save for the fact 
+#define NEOPIXELPIN            0 //happens to make the wiring ot the LEDs easier, by keeping all the relevant pins close together, and is as good a pin as any.
 //AzzyRF receive pin is pin 8 (PA1)
-#define DESK_LEFT
+//#define DESK_LEFT
 //#define DESK_RIGHT
-//#define CORNER
+#define CORNER
 //#define PLANT
 
 #define CANVERSION "v1.01"
@@ -98,7 +98,7 @@ const byte MyAddress[] = {0x28, 0x2C};
 #define DEVICE_NAME "Corner"
 #endif
 #ifdef PLANT
-const byte MyAddress[] = {0x2C};
+const byte MyAddress[] = {0x2D};
 #define DEVICE_NAME "Plant"
 #endif
 
@@ -639,7 +639,7 @@ byte handleReceive() {
     lastPacketSig = getPacketSig();
     lastPacketTime = millis();
     byte rlen = ((pktLength >> 3) + 1) | ((vers - 1) << 6);
-    memcpy(recvMessage, rxBuffer, 32);
+    memcpy(recvMessage, (const void*)rxBuffer, 32);
     if (rlen == 4) {
       recvMessage[3] = recvMessage[3] & 0xF0;
     } else {
@@ -662,7 +662,7 @@ byte handleReceive() {
 void resetReceive() {
 
   bitnum = 0;
-  memset(rxBuffer, 0, 32);
+  memset((void*)rxBuffer, 0, 32);
   gotMessage = 0;
 #ifdef TCB1
   TCB1.INTCTRL = 0x01;
@@ -783,7 +783,7 @@ ISR (TIMER1_CAPT_vect)
 
         receiving = 0;
         bitnum = 0; // reset to bit zero
-        memset(rxBuffer, 0, 32); //clear buffer
+        memset((void*)rxBuffer, 0, 32); //clear buffer
       }
     } else {
       if (duration > rxSyncMin && duration < rxSyncMax) {
@@ -799,7 +799,7 @@ ISR (TIMER1_CAPT_vect)
       } else {
         receiving = 0;
         bitnum = 0; // reset to bit zero
-        memset(rxBuffer, 0, 32); //clear buffer
+        memset((void*)rxBuffer, 0, 32); //clear buffer
         return;
       }
       if ((bitnum & 7) == 7) {
