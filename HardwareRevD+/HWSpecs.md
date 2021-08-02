@@ -1,62 +1,63 @@
 # Hardware Revision D
-Rev. D is a MAJOR revision. It is expected to be incompatible with software for Rev. C hardware and earlier
+~Rev. D is a MAJOR revision. It is expected to be incompatible with software for Rev. C hardware and earlier~
+Rev. D suffered from a fatal design defect. Rev. E is the next generation, and have major improvements over the D as well. 
 
 ## Basic Specs
-* AVR128DA32
-* Internal Oscillator
-* 1602 LCD controlled in 4-bit mode
-* LCD/XOSC32K
-  * Option 1: 32K xtal for autotune, single-color LCD backlight
-  * (selected) Option 2: no autotune, RGB LCD backlight.
-
+* ~AVR128DA32~ AVR128DB48 E/PT
+* ~Internal Oscillator~ External crystal oscillator
+* will be installed., tentatively planned for 40 MHz, unless 48 is found to be reliable on the E-spec parts under typical codnitions; the more processing power we nave, the bettter eqiopped we will be to meet peak perfor,ance requiirements. When performance is less critical, or on chip temperature sensor reaches exceeds thresholds, speed could be backed off to 32 MHz internal or evem 24. 
+* 1602 LCD controlled in 4-bit mode with RGB backlight
+ * requiring all of port for the non-backlight functionality
+* RF remote control using either RXB12 or RXB14 with loosly coiled wire wnip (low cost solution) or a STXii7 with SMT ceramic antenna for more robust reception requirements. 
+ * All devices will have a unique ID stored in USERROW that allows it to reocognize RF packets forit. No mechanism of response is currentlty expected or felt to be needed. 
+* Contrast voltage will be controlled using the DAC, replacing phtysical pot
+* 
 * Single Channel Output
 * DAC used for contrast control
 
 ## Pin connections: 
 
 ### PORTA
-* PA0 - ???
-* PA1 - ???
-* PA2 - Button1
-* PA3 - ModeButton
+* PA0, PA1 - Crystal or osc. 
+* PA2 - Unused. SDA
+* PA3 - Unused, SCL
 * PA4 - TX
 * PA5 - RX
-* PA6 - Button2
-* PA7 - LED
+* PA6 - Unused (PWM)
+* PA7 - LED (PWM)
+
+### PORTB 
+* PB0, PB1, PB2 = PWM control for red, greemn and blue backlight leds. TCA1 will be used to provide 16-bit buffered PW<, as only three channels are needed. 
+* PB3, PB4, PB5 - sense for the three standard buttomns, Color, Parameter, and Mode.
+
 ### PORTC
-* PA0 - RotaryEnc1A
-* PA1 - RotaryEnc1A
-* PA2 - RotaryEnc2B
-* PA3 - RotaryEnc2B
+* PA0 - Color Emcoder A
+* PA1 - Color Emcoder B
+* PA2 - Param Emcoder A
+* PA3 - Param Emcoder B
+ * Placed in one group like this to make the encoder reading trick maximally efficient.
+* PA4-7 - to Extend header. Recall that this is a DB, so MVIO could be used here... 
 
 ### PORTD
-* PD0 - RS
-* PD1 - RW
-* PD2 - Data4
-* PD3 - Data5
-* PD4 - Data6
-* PD5 - Data7
+* PD0 - Data4
+* PD1 - Data5
+* PD2 - Data6
+* PD3 - Data7
+* PD4 - RS
+* PD5 - RW
 * PD6 - VEE/Contrast (DAC)
 * PD7 - Enable
 
+### PORTE
+PE0 - PR3 Extend header
+
 ### PORTF
-* PF0 - Backlight Blue FET
-* PF1 - Backlight Green FET
-* PF2 - Backlight Red FET
+* PF0 - optionally xtal or unused
+* PF1 - optionally xtal or unused
+* PF2 - LEDs
 * PF3 - RF Data
-* PF4 - LEDs
-* PF5 - Analog Input
+* PF4 - unused, has analog - TX2
+* PF5 - unused, has analog - RX2
+* PF6 - Reset
 
-
-# Rev. E plans
-* Switch to AVR128DB48 - this will give us an ample sufficiency pf pins and peripherals to use for even advanced techniques which are currently only theoretical, like the SPI + CCL concept to capture, play back and more, HF crystal, etc
-* multiple bits of digital sense input. 
-* Multiple analog in channels, on potential opmp input pins. which could be used to for amplification or other tasks. Worth considering at least...
-
-DA32 has 26 pins that we can use. 48 addds 16 raw pins, 2 of which are not I/O - while 64 does the same. Added pins in these cases are:
-
-32 adds: PF2-5
-
-48 adds: PB 0 - 5. PC 4,5,6,7, PE 0-3
-
-64 adds: PB 6, 7. PE 4,5,6,7, PG0-7 (all of them)
+Serial2 used to communicate with head end adapter, potentially.
