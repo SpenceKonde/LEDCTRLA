@@ -4,7 +4,7 @@
 * **3.5A** 1 pc.
 * **4.5A** 3 pcs - go Lenovo!
 * **6.3A** 1 pc. 
-* **dual 3.5A** 1 pc - a monster of a 7.x amp supply, but I don't want anyone putting more than 4.5A into a string. 
+* **dual 3.5A** 2 pc. 
 
 ### Markings and assembly
 All power supplies are laptop power supplies outputting approximately 19V. They are marked with the rated voltage and current on the brick in white paint in most but not all cases. The connectors are replasced with AMP TE SuperSeal two pin connectors.
@@ -27,13 +27,13 @@ To waterproof the joint, act as strain relief, and imoprove appearance and recog
 
 ## Light Strings
 * Classical 50-pixel chaainable WS2811 christmas light style
-  * Black Wire: 4 pcs. 8 incomplete strings, and at least 2 additional ones available for conversion from 1.0.
+  * Black Wire: 4 pcs. 8 incomplete strings, 1 recovered from 1.0, amd at least one more available. 
   * White wire: 0 pcs. 4 incomplete strings which require connectors. 
-  * Ugly wire: 0 pcs, at least 3 strigns available for conversion - or more likely, to be gifted to people with lower standards. 
+  * Ugly wire: 0 pcs, at least 4 strigns available for conversion - or more likely, to be gifted to people with lower standards. 
 * Fairy Light style
   * 100-pixel non-extendable: 3 fully converted, 2 pcs incomplete
   * 200-pixel non-estendable: 1, unconverted but decontrollered. 
-  * 50-pixel chainable, w/out power feeds: 4 pcs unconverted
+  * 50-pixel chainable, w/out power feeds unconverted but de-connectored, 8 pcs. 
   * 50 pixel chainable, w/power feeds 2 pcs
   * 100-pixel cobined strip with power converter in middle, 1 pc, requires further development. 
 * COB LED strip
@@ -52,7 +52,10 @@ To waterproof the joint, act as strain relief, and imoprove appearance and recog
 ## Necessary interconnects
  * Head End Adapter for v1.0 controller: 1 pc.
  * Head End Adapter for v2.1 controller: 0 pcs. 
- * Fairy Light Adapter
+   * Design not yet completed
+ * Fairy Light Adapter/splitter: 0 pcs. 
+
+
 
 
 
