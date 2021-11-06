@@ -1,0 +1,353 @@
+
+
+Symbols from C:\Users\Spence\AppData\Local\Temp\arduino_build_937005/DriftAnimate_V2.ino.elf:
+
+Name                                                        | Value | Class|        Type      | Size  |     | Line |file
+__heap_end                                                  |00 0000|   W  |            NOTYPE|       |*ABS*|      |
+__TEXT_REGION_ORIGIN__                                      |00 0000|   W  |            NOTYPE|       |*ABS*|      |
+__tmp_reg__                                                 |00 0000|   a  |            NOTYPE|       |*ABS*|      |
+__tmp_reg__                                                 |00 0000|   a  |            NOTYPE|       |*ABS*|      |
+__zero_reg__                                                |00 0001|   a  |            NOTYPE|       |*ABS*|      |
+__zero_reg__                                                |00 0001|   a  |            NOTYPE|       |*ABS*|      |
+__FUSE_REGION_LENGTH__                                      |00 0010|   A  |            NOTYPE|       |*ABS*|      |
+__CCP__                                                     |00 0034|   a  |            NOTYPE|       |*ABS*|      |
+__CCP__                                                     |00 0034|   a  |            NOTYPE|       |*ABS*|      |
+__RAMPZ__                                                   |00 003b|   a  |            NOTYPE|       |*ABS*|      |
+__RAMPZ__                                                   |00 003b|   a  |            NOTYPE|       |*ABS*|      |
+__SP_L__                                                    |00 003d|   a  |            NOTYPE|       |*ABS*|      |
+__SP_L__                                                    |00 003d|   a  |            NOTYPE|       |*ABS*|      |
+__SP_H__                                                    |00 003e|   a  |            NOTYPE|       |*ABS*|      |
+__SP_H__                                                    |00 003e|   a  |            NOTYPE|       |*ABS*|      |
+__SREG__                                                    |00 003f|   a  |            NOTYPE|       |*ABS*|      |
+__SREG__                                                    |00 003f|   a  |            NOTYPE|       |*ABS*|      |
+__EEPROM_REGION_LENGTH__                                    |00 0200|   A  |            NOTYPE|       |*ABS*|      |
+__vector_default                                            |00 0200|   W  |            NOTYPE|       |.text|   61 | gcrt1.S
+__vectors                                                   |00 0200|   T  |            NOTYPE|       |.text|   61 | gcrt1.S
+__trampolines_end                                           |00 02f4|   T  |            NOTYPE|       |.text|      |
+__trampolines_start                                         |00 02f4|   T  |            NOTYPE|       |.text|      |
+mode10Name                                                  |00 02f4|   t  |            OBJECT|00 0009|.text|      |
+mode9Name                                                   |00 02fd|   t  |            OBJECT|00 0009|.text|      |
+mode8Name                                                   |00 0306|   t  |            OBJECT|00 0009|.text|      |
+mode7Name                                                   |00 030f|   t  |            OBJECT|00 0009|.text|      |
+mode6Name                                                   |00 0318|   t  |            OBJECT|00 0009|.text|      |
+mode5Name                                                   |00 0321|   t  |            OBJECT|00 0009|.text|      |
+mode4Name                                                   |00 032a|   t  |            OBJECT|00 0009|.text|      |
+mode3Name                                                   |00 0333|   t  |            OBJECT|00 0009|.text|      |
+mode2Name                                                   |00 033c|   t  |            OBJECT|00 0009|.text|      |
+mode1Name                                                   |00 0345|   t  |            OBJECT|00 0009|.text|      |
+mode0Name                                                   |00 034e|   t  |            OBJECT|00 0009|.text|      |
+mode7R2                                                     |00 0357|   t  |            OBJECT|00 0008|.text|      |
+mode4R2                                                     |00 035f|   t  |            OBJECT|00 0008|.text|      |
+mode5R1                                                     |00 0367|   t  |            OBJECT|00 0008|.text|      |
+mode2R2                                                     |00 036f|   t  |            OBJECT|00 0008|.text|      |
+mode1R1                                                     |00 0377|   t  |            OBJECT|00 0008|.text|      |
+mode1R0                                                     |00 037f|   t  |            OBJECT|00 0008|.text|      |
+pallete10                                                   |00 0387|   t  |            OBJECT|00 0008|.text|      |
+pallete9                                                    |00 038f|   t  |            OBJECT|00 0008|.text|      |
+pallete8                                                    |00 0397|   t  |            OBJECT|00 0008|.text|      |
+pallete7                                                    |00 039f|   t  |            OBJECT|00 0008|.text|      |
+pallete6                                                    |00 03a7|   t  |            OBJECT|00 0008|.text|      |
+pallete5                                                    |00 03af|   t  |            OBJECT|00 0008|.text|      |
+pallete4                                                    |00 03b7|   t  |            OBJECT|00 0008|.text|      |
+pallete3                                                    |00 03bf|   t  |            OBJECT|00 0008|.text|      |
+pallete2                                                    |00 03c7|   t  |            OBJECT|00 0008|.text|      |
+pallete1                                                    |00 03cf|   t  |            OBJECT|00 0008|.text|      |
+pallete0                                                    |00 03d7|   t  |            OBJECT|00 0008|.text|      |
+mode0R0                                                     |00 03df|   t  |            OBJECT|00 0008|.text|      |
+mode1L5                                                     |00 03e7|   t  |            OBJECT|00 0008|.text|      |
+mode1L4                                                     |00 03ef|   t  |            OBJECT|00 0008|.text|      |
+mode1L3                                                     |00 03f7|   t  |            OBJECT|00 0008|.text|      |
+mode1L2                                                     |00 03ff|   t  |            OBJECT|00 0008|.text|      |
+__LOCK_REGION_LENGTH__                                      |00 0400|   A  |            NOTYPE|       |*ABS*|      |
+__SIGNATURE_REGION_LENGTH__                                 |00 0400|   A  |            NOTYPE|       |*ABS*|      |
+__USER_SIGNATURE_REGION_LENGTH__                            |00 0400|   A  |            NOTYPE|       |*ABS*|      |
+mode1L1                                                     |00 0407|   t  |            OBJECT|00 0008|.text|      |
+mode1L0                                                     |00 040f|   t  |            OBJECT|00 0008|.text|      |
+mode0L2                                                     |00 0417|   t  |            OBJECT|00 0008|.text|      |
+mode0L1                                                     |00 041f|   t  |            OBJECT|00 0008|.text|      |
+mode0L0                                                     |00 0427|   t  |            OBJECT|00 0008|.text|      |
+defaultValueRight                                           |00 042f|   t  |            OBJECT|00 0058|.text|      |
+defaultValueLeft                                            |00 0487|   t  |            OBJECT|00 0058|.text|      |
+getModeRatio(uint16_t)::__c                                 |00 04df|   t  |            OBJECT|00 001a|.text|      |
+leftValues                                                  |00 04f9|   t  |            OBJECT|00 0020|.text|      |
+getModeColors(uint8_t*, uint8_t*, uint8_t*, uint32_t)::__c  |00 0519|   t  |            OBJECT|00 001a|.text|      |
+colorPallete                                                |00 0533|   t  |            OBJECT|00 0108|.text|      |
+maxValueLeft                                                |00 063b|   t  |            OBJECT|00 0058|.text|      |
+__vector_30::enc_states                                     |00 0693|   t  |            OBJECT|00 0010|.text|      |
+setup::__c                                                  |00 06a3|   t  |            OBJECT|00 000f|.text|      |
+setup::__c                                                  |00 06b2|   t  |            OBJECT|00 0013|.text|      |
+processRFPacket(uint8_t)::__c                               |00 06c5|   t  |            OBJECT|00 0010|.text|      |
+handleUI()::__c                                             |00 06d5|   t  |            OBJECT|00 000b|.text|      |
+handleUI()::__c                                             |00 06e0|   t  |            OBJECT|00 0008|.text|      |
+handleUI()::__c                                             |00 06e8|   t  |            OBJECT|00 000b|.text|      |
+doAttractLCD()::__c                                         |00 06f3|   t  |            OBJECT|00 0010|.text|      |
+doAttractLCD()::__c                                         |00 0703|   t  |            OBJECT|00 0011|.text|      |
+doAttractLCD()::__c                                         |00 0714|   t  |            OBJECT|00 0011|.text|      |
+doAttractLCD()::__c                                         |00 0725|   t  |            OBJECT|00 000d|.text|      |
+doAttractLCD()::__c                                         |00 0732|   t  |            OBJECT|00 000f|.text|      |
+doAttractLCD()::__c                                         |00 0741|   t  |            OBJECT|00 0011|.text|      |
+doAttractLCD()::__c                                         |00 0752|   t  |            OBJECT|00 0011|.text|      |
+doAttractLCD()::__c                                         |00 0763|   t  |            OBJECT|00 0010|.text|      |
+handleLCD()::__c                                            |00 0773|   t  |            OBJECT|00 0004|.text|      |
+handleLCD()::__c                                            |00 0777|   t  |            OBJECT|00 0004|.text|      |
+modeNames                                                   |00 077b|   t  |            OBJECT|00 0016|.text|      |
+handleLCD()::__c                                            |00 0791|   t  |            OBJECT|00 0005|.text|      |
+maxSetting                                                  |00 0796|   t  |            OBJECT|00 0016|.text|      |
+handleLCD()::__c                                            |00 07ac|   t  |            OBJECT|00 0005|.text|      |
+modesR                                                      |00 07b1|   t  |            OBJECT|00 00b0|.text|      |
+palleteNames                                                |00 0861|   t  |            OBJECT|00 0016|.text|      |
+modesL                                                      |00 0877|   t  |            OBJECT|00 00b0|.text|      |
+maxValueRight                                               |00 0927|   t  |            OBJECT|00 0058|.text|      |
+pulseBrightnessTable                                        |00 097f|   t  |            OBJECT|00 0040|.text|      |
+colorCount                                                  |00 09bf|   t  |            OBJECT|00 000b|.text|      |
+__ctors_start                                               |00 09ca|   T  |            NOTYPE|       |.text|      |
+__ctors_end                                                 |00 09cc|   T  |            NOTYPE|       |.text|  230 | gcrt1.S
+__dtors_end                                                 |00 09cc|   T  |            NOTYPE|       |.text|  230 | gcrt1.S
+__dtors_start                                               |00 09cc|   T  |            NOTYPE|       |.text|  230 | gcrt1.S
+__init                                                      |00 09cc|   W  |            NOTYPE|       |.text|  230 | gcrt1.S
+__do_copy_data                                              |00 09d8|   T  |            NOTYPE|00 001a|.text|      |
+_initThreeStuff()                                           |00 09d8|   T  |              FUNC|       |.text|      |
+__do_clear_bss                                              |00 09f2|   T  |            NOTYPE|00 0010|.text|      |
+.do_clear_bss_loop                                          |00 09fa|   t  |            NOTYPE|       |.text|      |
+.do_clear_bss_start                                         |00 09fc|   t  |            NOTYPE|       |.text|      |
+__do_global_ctors                                           |00 0a02|   T  |            NOTYPE|00 0016|.text|      |
+__bad_interrupt                                             |00 0a20|   T  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_1                                                  |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_10                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_11                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_12                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_13                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_14                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_15                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_16                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_17                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_18                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_19                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_2                                                  |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_20                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_23                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_24                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_25                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_26                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_27                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_28                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_29                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_3                                                  |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_32                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_33                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_34                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_35                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_36                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_37                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_38                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_39                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_4                                                  |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_40                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_41                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_42                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_43                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_45                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_46                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_47                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_48                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_49                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_5                                                  |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_50                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_51                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_52                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_53                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_54                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_55                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_56                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_57                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_58                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_59                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_6                                                  |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_60                                                 |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_7                                                  |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_8                                                  |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+__vector_9                                                  |00 0a20|   W  |            NOTYPE|       |.text|  209 | gcrt1.S
+Print::print(char)                                          |00 0a22|   t  |              FUNC|00 000e|.text|  197 | dxcore/main.cpp
+Print::print(__FlashStringHelper const*)                    |00 0a30|   t  |              FUNC|00 0048|.text|  197 | dxcore/main.cpp
+Print::write(uint8_t const*, uint16_t)                      |00 0a78|   t  |              FUNC|00 005a|.text|  197 | dxcore/main.cpp
+UartClass::availableForWrite()                              |00 0ad2|   t  |              FUNC|00 001e|.text|  197 | dxcore/main.cpp
+UartClass::read()                                           |00 0af0|   t  |              FUNC|00 0028|.text|  197 | dxcore/main.cpp
+UartClass::peek()                                           |00 0b18|   t  |              FUNC|00 001c|.text|  197 | dxcore/main.cpp
+UartClass::available()                                      |00 0b34|   t  |              FUNC|00 0018|.text|  197 | dxcore/main.cpp
+UartClass::end()                                            |00 0b4c|   t  |              FUNC|00 0032|.text|  197 | dxcore/main.cpp
+UartClass::_tx_data_empty_irq()                             |00 0b7e|   t  |              FUNC|00 0056|.text|  197 | dxcore/main.cpp
+UartClass::_poll_tx_data_empty()                            |00 0bd4|   t  |              FUNC|00 001e|.text|  197 | dxcore/main.cpp
+UartClass::write(uint8_t)                                   |00 0bf2|   t  |              FUNC|00 0068|.text|  197 | dxcore/main.cpp
+UartClass::flush()                                          |00 0c5a|   t  |              FUNC|00 0028|.text|  197 | dxcore/main.cpp
+UartClass::operator bool()                                  |00 0c82|   t  |              FUNC|00 0004|.text|  197 | dxcore/main.cpp
+micros                                                      |00 0c86|   t  |              FUNC|00 007e|.text|  201 | dxcore/wiring.c
+delay                                                       |00 0d04|   t  |              FUNC|00 0060|.text|  598 | dxcore/wiring.c
+millis                                                      |00 0d64|   t  |              FUNC|00 0018|.text|  176 | dxcore/wiring.c
+hd44780::command(uint8_t)                                   |00 0d7c|   t  |              FUNC|00 006e|.text|  197 | dxcore/main.cpp
+hd44780::clear() [cstprop.25]                               |00 0dea|   t  |              FUNC|00 0008|.text|  197 | dxcore/main.cpp
+hd44780::setCursor(uint8_t, uint8_t)                        |00 0df2|   t  |              FUNC|00 004c|.text|  197 | dxcore/main.cpp
+hd44780::write(uint8_t)                                     |00 0e3e|   t  |              FUNC|00 0092|.text|  197 | dxcore/main.cpp
+hd44780::iosetContrast(uint8_t)                             |00 0ed0|   t  |              FUNC|00 0006|.text|  197 | dxcore/main.cpp
+hd44780::iosetBacklight(uint8_t)                            |00 0ed0|   t  |              FUNC|00 0006|.text|  197 | dxcore/main.cpp
+hd44780::ioread(hd44780::iotype)                            |00 0ed6|   t  |              FUNC|00 0006|.text|  197 | dxcore/main.cpp
+Print::availableForWrite()                                  |00 0edc|   t  |              FUNC|00 0006|.text|  197 | dxcore/main.cpp
+hd44780::ioinit()                                           |00 0edc|   t  |              FUNC|00 0006|.text|  197 | dxcore/main.cpp
+getPacketSig()                                              |00 0ee2|   t  |              FUNC|00 006c|.text|  197 | dxcore/main.cpp
+getPalleteNumber()                                          |00 0f4e|   t  |              FUNC|00 0012|.text|  197 | dxcore/main.cpp
+getTransitionFrames()                                       |00 0f60|   t  |              FUNC|00 0030|.text|  197 | dxcore/main.cpp
+getDwellFrames()                                            |00 0f90|   t  |              FUNC|00 0022|.text|  197 | dxcore/main.cpp
+getDrift2Colors(uint8_t*, uint8_t*, uint8_t*, uint32_t)     |00 0fb2|   t  |              FUNC|00 01be|.text|  197 | dxcore/main.cpp
+pushPixel(uint8_t, uint8_t, uint8_t, uint8_t                |00 1170|   t  |              FUNC|00 0042|.text|  197 | dxcore/main.cpp
+getLeftVal(uint8_t)                                         |00 11b2|   t  |              FUNC|00 0032|.text|  197 | dxcore/main.cpp
+EERef::operator=(uint8_t)                                   |00 11e4|   t  |              FUNC|00 002e|.text|  197 | dxcore/main.cpp
+UartClass::begin(uint32_t)                                  |00 1212|   t  |              FUNC|00 0012|.text|  197 | dxcore/main.cpp
+Print::flush()                                              |00 1224|   t  |              FUNC|00 0002|.text|  197 | dxcore/main.cpp
+digitalRead                                                 |00 1226|   t  |              FUNC|00 0036|.text|  365 | dxcore/wiring_diigtal.c
+digitalWrite                                                |00 125c|   t  |              FUNC|00 0198|.text|  265 | dxcore/wiring_digital.c
+hd44780_pinIO::write4bits(uint8_t)                          |00 13f4|   t  |              FUNC|00 0040|.text|  197 | dxcore/main.cpp
+hd44780_pinIO::iowrite(hd44780::iotype, uint8_t)            |00 1434|   t  |              FUNC|00 00be|.text|  197 | dxcore/main.cpp
+pinMode                                                     |00 14f2|   t  |              FUNC|00 0072|.text|  135 | dxcore/wiring_digital.c
+UartClass::begin(uint32_t, uint16_t)                        |00 1564|   t  |              FUNC|00 00de|.text|  197 | dxcore/main.cpp
+hd44780_pinIO::ioread(hd44780::iotype)                      |00 1642|   t  |              FUNC|00 013a|.text|  197 | dxcore/main.cpp
+hd44780_pinIO::ioinit()                                     |00 177c|   t  |              FUNC|00 009e|.text|  197 | dxcore/main.cpp
+analogWrite                                                 |00 181a|   t  |              FUNC|00 0224|.text|  400 | dxcore/wiring_analog.c
+hd44780_pinIO::iosetBacklight(uint8_t)                      |00 1a3e|   t  |              FUNC|00 0064|.text|  197 | dxcore/main.cpp
+random(long, long)                                          |00 1aa2|   t  |              FUNC|00 005a|.text|  197 | dxcore/main.cpp
+initColorsDrift2()                                          |00 1afc|   t  |              FUNC|00 00a6|.text|  197 | dxcore/main.cpp
+Print::write(char const*) [clone .part.2]                   |00 1ba2|   t  |              FUNC|00 001e|.text|   47 | api/Print.h
+Print::printNumber(uint32_t, uint8_t)                       |00 1bc0|   t  |              FUNC|00 008a|.text|  197 | dxcore/main.cpp
+Print::printFloat(double, uint8_t) [cstprop.11]             |00 1c4a|   t  |              FUNC|00 01be|.text|  197 | dxcore/main.cpp
+getModeColors(uint8_t*, uint8_t*, uint8_t*, uint32_t)       |00 1e08|   t  |              FUNC|00 02fc|.text|  197 | dxcore/main.cpp
+updatePatternWave()                                         |00 2104|   t  |              FUNC|00 0064|.text|  197 | dxcore/main.cpp
+initLookupDrift2()                                          |00 2168|   t  |              FUNC|00 00c8|.text|  197 | dxcore/main.cpp
+__cxa_pure_virtual                                          |00 2230|   t  |              FUNC|00 0004|.text|   24 | dxcore/abi.cpp
+resetReceive()                                              |00 2234|   t  |              FUNC|00 003a|.text|  197 | dxcore/main.cpp
+setMode(uint8_t)                                            |00 226e|   t  |              FUNC|00 014c|.text|  197 | dxcore/main.cpp
+__vector_22                                                 |00 23ba|   T  |              FUNC|00 0054|.text|   49 | dxcore/UART0.cpp
+__vector_21                                                 |00 240e|   T  |              FUNC|00 0064|.text|   40 | dxcore/UART0.cpp
+__vector_31                                                 |00 2472|   T  |              FUNC|00 0050|.text|  128 | dxcore/wiring.c
+__vector_44                                                 |00 24c2|   T  |              FUNC|00 017e|.text| 1169 | DriftAnimate_V2/DriftAnimate_V2.ino
+__vector_30                                                 |00 2640|   T  |              FUNC|00 021e|.text| 1019 | DriftAnimate_V2/DriftAnimate_V2.ino
+global constructors                                         |00 285e|   t  |              FUNC|00 0116|.text|  197 | dxcore/main.cpp
+main                                                        |00 2974|   T  |              FUNC|00 1542|.text|   49 | dxcore/main.cpp
+head20                                                      |00 3314|   t  |            NOTYPE|       |.text|  472 | tinyNeoPixel_Static/tinyNeoPixel_Static.cpp
+nextbyte20                                                  |00 3338|   t  |            NOTYPE|       |.text|  472 | tinyNeoPixel_Static/tinyNeoPixel_Static.cpp
+random_r                                                    |00 3eb6|   T  |              FUNC|00 0092|.text|      |
+random                                                      |00 3f48|   T  |              FUNC|00 0098|.text|      |
+srandom                                                     |00 3fe0|   T  |              FUNC|00 0012|.text|      |
+eeprom_read_byte                                            |00 3ff2|   T  |              FUNC|00 0010|.text|      |
+eeprom_mapen                                                |00 3ffa|   T  |            NOTYPE|       |.text|      |
+__DATA_REGION_LENGTH__                                      |00 4000|   A  |            NOTYPE|       |*ABS*|      |
+__divmodsi4                                                 |00 4002|   T  |            NOTYPE|00 0028|.text|      |
+__divmodsi4_neg2                                            |00 401a|   t  |            NOTYPE|       |.text|      |
+__divmodsi4_exit                                            |00 4028|   t  |            NOTYPE|       |.text|      |
+__negsi2                                                    |00 402a|   T  |            NOTYPE|00 0010|.text|      |
+__muluhisi3                                                 |00 403a|   T  |            NOTYPE|00 0014|.text|      |
+__mulshisi3                                                 |00 404e|   T  |            NOTYPE|00 0004|.text|      |
+__mulohisi3                                                 |00 4052|   T  |            NOTYPE|00 0008|.text|      |
+__udivmodsi4                                                |00 405a|   T  |            NOTYPE|00 0044|.text|      |
+__udivmodsi4_loop                                           |00 4066|   t  |            NOTYPE|       |.text|      |
+__udivmodsi4_ep                                             |00 4080|   t  |            NOTYPE|       |.text|      |
+__umulhisi3                                                 |00 409e|   T  |            NOTYPE|00 001e|.text|      |
+__subsf3                                                    |00 40bc|   T  |              FUNC|00 000a|.text|      |
+__addsf3                                                    |00 40be|   T  |            NOTYPE|       |.text|      |
+__addsf3x                                                   |00 40e0|   T  |              FUNC|00 00cc|.text|      |
+__cmpsf2                                                    |00 4186|   T  |              FUNC|00 0008|.text|      |
+__eqsf2                                                     |00 4186|   T  |            NOTYPE|       |.text|      |
+__lesf2                                                     |00 4186|   T  |            NOTYPE|       |.text|      |
+__ltsf2                                                     |00 4186|   T  |            NOTYPE|       |.text|      |
+__nesf2                                                     |00 4186|   T  |            NOTYPE|       |.text|      |
+__divsf3                                                    |00 418e|   T  |              FUNC|00 0004|.text|      |
+__divsf3x                                                   |00 41a8|   T  |              FUNC|00 00dc|.text|      |
+__divsf3_pse                                                |00 41ac|   T  |            NOTYPE|       |.text|      |
+__fixunssfsi                                                |00 425e|   T  |              FUNC|00 0058|.text|      |
+__floatunsisf                                               |00 42b6|   T  |              FUNC|00 007a|.text|      |
+__floatsisf                                                 |00 42ba|   T  |            NOTYPE|       |.text|      |
+__fp_cmp                                                    |00 4330|   T  |              FUNC|00 0048|.text|      |
+__fp_inf                                                    |00 4378|   T  |              FUNC|00 000c|.text|      |
+__fp_nan                                                    |00 4384|   T  |              FUNC|00 0006|.text|      |
+__fp_pscA                                                   |00 438a|   T  |              FUNC|00 000e|.text|      |
+__fp_pscB                                                   |00 4398|   T  |              FUNC|00 000e|.text|      |
+__fp_round                                                  |00 43a6|   T  |              FUNC|00 0022|.text|      |
+__fp_split3                                                 |00 43c8|   T  |              FUNC|00 0044|.text|      |
+__fp_splitA                                                 |00 43d8|   T  |            NOTYPE|       |.text|      |
+__fp_zero                                                   |00 440c|   T  |              FUNC|00 000e|.text|      |
+__fp_szero                                                  |00 440e|   T  |            NOTYPE|       |.text|      |
+__gesf2                                                     |00 441a|   T  |              FUNC|00 0008|.text|      |
+__gtsf2                                                     |00 441a|   T  |            NOTYPE|       |.text|      |
+__mulsf3                                                    |00 4422|   T  |              FUNC|00 0004|.text|      |
+__mulsf3x                                                   |00 443a|   T  |              FUNC|00 00d2|.text|      |
+__mulsf3_pse                                                |00 443e|   T  |            NOTYPE|       |.text|      |
+__unordsf2                                                  |00 44e8|   T  |              FUNC|00 0008|.text|      |
+__mulsi3                                                    |00 44f0|   T  |            NOTYPE|00 001e|.text|      |
+__udivmodhi4                                                |00 450e|   T  |            NOTYPE|00 0028|.text|      |
+__udivmodhi4_loop                                           |00 4516|   t  |            NOTYPE|       |.text|      |
+__udivmodhi4_ep                                             |00 4524|   t  |            NOTYPE|       |.text|      |
+__tablejump2__                                              |00 4536|   T  |            NOTYPE|00 0012|.text|      |
+abort                                                       |00 4548|   T  |              FUNC|00 0008|.text|      |
+_exit                                                       |00 4550|   T  |            NOTYPE|       |.text|      |
+exit                                                        |00 4550|   W  |            NOTYPE|       |.text|      |
+__stop_program                                              |00 4552|   t  |            NOTYPE|       |.text|      |
+__data_load_start                                           |00 4554|   A  |            NOTYPE|       |*ABS*|      |
+_etext                                                      |00 4554|   T  |            NOTYPE|       |.text|      |
+__data_load_end                                             |00 4690|   A  |            NOTYPE|       |*ABS*|      |
+__stack                                                     |00 7fff|   W  |            NOTYPE|       |*ABS*|      |
+__RODATA_PM_OFFSET__                                        |00 8000|   A  |            NOTYPE|       |*ABS*|      |
+__TEXT_REGION_LENGTH__                                      |02 0000|   A  |            NOTYPE|       |*ABS*|      |
+__DATA_REGION_ORIGIN__                                      |80 4000|   A  |            NOTYPE|       |*ABS*|      |
+__data_start                                                |80 4000|   D  |            NOTYPE|       |.data|      |
+__vector_30::EncR_Prev                                      |80 4000|   d  |            OBJECT|00 0001|.data|      |
+__vector_30::EncL_Prev                                      |80 4001|   d  |            OBJECT|00 0001|.data|      |
+pktLength                                                   |80 4002|   d  |            OBJECT|00 0001|.data|  222 | DriftAnimate_V2/DriftAnimate_V2.ino
+handleUI()::lastBtnState                                    |80 4003|   d  |            OBJECT|00 0001|.data|      |
+handleUI()::lastBtnBounceState                              |80 4004|   d  |            OBJECT|00 0001|.data|      |
+handleLCD()::drift2_colors                                  |80 4005|   d  |            OBJECT|00 0001|.data|      |
+UIChanged                                                   |80 4006|   d  |            OBJECT|00 0001|.data|  198 | DriftAnimate_V2/DriftAnimate_V2.ino
+next                                                        |80 4007|   d  |            OBJECT|00 0004|.data|      |
+digital_pin_to_timer                                        |80 400b|   d  |            OBJECT|00 0029|.data|  486 | 48pin-standard/pins_arduino.h
+digital_pin_to_bit_position                                 |80 4034|   d  |            OBJECT|00 0029|.data|  380 | 48pin-standard/pins_arduino.h
+vtable for UartClass                                        |80 405d|   d  |            OBJECT|00 001a|.data|      |
+digital_pin_to_bit_mask                                     |80 4077|   d  |            OBJECT|00 0029|.data|  433 | 48pin-standard/pins_arduino.h
+digital_pin_to_port                                         |80 40a0|   d  |            OBJECT|00 0029|.data|  336 | 48pin-standard/pins_arduino.h
+vtable for hd44780                                          |80 40c9|   d  |            OBJECT|00 0016|.data|      |
+vtable for hd44780_pinIO                                    |80 40df|   d  |            OBJECT|00 0016|.data|      |
+__bss_start                                                 |80 413c|   B  |            NOTYPE|       |.bss |      |
+__data_end                                                  |80 413c|   D  |            NOTYPE|       |.data|      |
+_edata                                                      |80 413c|   D  |            NOTYPE|       |.data|      |
+lastEncPins                                                 |80 413c|   b  |            OBJECT|00 0001|.bss |  193 | DriftAnimate_V2/DriftAnimate_V2.ino
+lastUserAction                                              |80 413d|   b  |            OBJECT|00 0004|.bss |  204 | DriftAnimate_V2/DriftAnimate_V2.ino
+__vector_30::EncR_Val                                       |80 4141|   b  |            OBJECT|00 0001|.bss |      |
+__vector_30::EncL_Val                                       |80 4142|   b  |            OBJECT|00 0001|.bss |      |
+dataIn                                                      |80 4143|   b  |            OBJECT|00 0001|.bss |  221 | DriftAnimate_V2/DriftAnimate_V2.ino
+bitnum                                                      |80 4144|   b  |            OBJECT|00 0001|.bss |  218 | DriftAnimate_V2/DriftAnimate_V2.ino
+__vector_44::lasttime                                       |80 4145|   b  |            OBJECT|00 0004|.bss |      |
+timer_millis                                                |80 4149|   b  |            OBJECT|00 0004|.bss |   58 | dxcore/wiring.c
+rxBuffer                                                    |80 414d|   b  |            OBJECT|00 0020|.bss |  224 | DriftAnimate_V2/DriftAnimate_V2.ino
+lastPacketSig                                               |80 416d|   b  |            OBJECT|00 0004|.bss |  228 | DriftAnimate_V2/DriftAnimate_V2.ino
+lastPacketTime                                              |80 4171|   b  |            OBJECT|00 0004|.bss |  227 | DriftAnimate_V2/DriftAnimate_V2.ino
+gotMessage                                                  |80 4175|   b  |            OBJECT|00 0001|.bss |  220 | DriftAnimate_V2/DriftAnimate_V2.ino
+recvMessage                                                 |80 4176|   b  |            OBJECT|00 0020|.bss |  225 | DriftAnimate_V2/DriftAnimate_V2.ino
+handleUI()::lastPressAt                                     |80 4196|   b  |            OBJECT|00 0004|.bss |      |
+handleUI()::lastBtnAt                                       |80 419a|   b  |            OBJECT|00 0004|.bss |      |
+currentSettingRight                                         |80 419e|   b  |            OBJECT|00 0001|.bss |  195 | DriftAnimate_V2/DriftAnimate_V2.ino
+currentSettingLeft                                          |80 419f|   b  |            OBJECT|00 0001|.bss |  194 | DriftAnimate_V2/DriftAnimate_V2.ino
+handleLCD()::attractmode                                    |80 41a0|   b  |            OBJECT|00 0001|.bss |      |
+handleLCD()::lastInputAt                                    |80 41a1|   b  |            OBJECT|00 0004|.bss |      |
+lastRFUpdateAt                                              |80 41a5|   b  |            OBJECT|00 0004|.bss |  199 | DriftAnimate_V2/DriftAnimate_V2.ino
+updatePatternFade()::bright                                 |80 41a9|   b  |            OBJECT|00 0001|.bss |      |
+updatePatternDots2()::b                                     |80 41aa|   b  |            OBJECT|00 0001|.bss |      |
+updatePatternDots2()::g                                     |80 41ab|   b  |            OBJECT|00 0001|.bss |      |
+updatePatternDots2()::r                                     |80 41ac|   b  |            OBJECT|00 0001|.bss |      |
+scratch                                                     |80 41ad|   b  |            OBJECT|00 0258|.bss |  211 | DriftAnimate_V2/DriftAnimate_V2.ino
+currentValueRight                                           |80 4405|   b  |            OBJECT|00 0008|.bss |  197 | DriftAnimate_V2/DriftAnimate_V2.ino
+frameNumber                                                 |80 440d|   b  |            OBJECT|00 0004|.bss |  212 | DriftAnimate_V2/DriftAnimate_V2.ino
+currentValueLeft                                            |80 4411|   b  |            OBJECT|00 0008|.bss |  196 | DriftAnimate_V2/DriftAnimate_V2.ino
+currentMode                                                 |80 4419|   b  |            OBJECT|00 0001|.bss |  201 | DriftAnimate_V2/DriftAnimate_V2.ino
+lastFrameAt                                                 |80 441a|   b  |            OBJECT|00 0004|.bss |  209 | DriftAnimate_V2/DriftAnimate_V2.ino
+lastRFMsgAt                                                 |80 441e|   b  |            OBJECT|00 0004|.bss |  223 | DriftAnimate_V2/DriftAnimate_V2.ino
+receiving                                                   |80 4422|   b  |            OBJECT|00 0001|.bss |  217 | DriftAnimate_V2/DriftAnimate_V2.ino
+Serial0                                                     |80 4423|   b  |            OBJECT|00 009b|.bss |   58 | dxcore/UART0.cpp
+pixels                                                      |80 44be|   b  |            OBJECT|00 0258|.bss |  210 | DriftAnimate_V2/DriftAnimate_V2.ino
+leds                                                        |80 4716|   b  |            OBJECT|00 0013|.bss |  213 | DriftAnimate_V2/DriftAnimate_V2.ino
+lcd                                                         |80 4729|   b  |            OBJECT|00 0029|.bss |   11 | DriftAnimate_V2/DriftAnimate_V2.ino
+__bss_end                                                   |80 4752|   B  |            NOTYPE|       |.bss |      |

@@ -1,24 +1,24 @@
 # Hardware Revision D
 ~Rev. D is a MAJOR revision. It is expected to be incompatible with software for Rev. C hardware and earlier~
-Rev. D suffered from a fatal design defect. Rev. E is the next generation, and have major improvements over the D as well. 
+Rev. D suffered from a fatal design defect. Rev. E is the next generation, and have major improvements over the D as well.
 
 ## Basic Specs
 * ~AVR128DA32~ AVR128DB48 E/PT
 * ~Internal Oscillator~ External crystal oscillator
-* will be installed., tentatively planned for 40 MHz, unless 48 is found to be reliable on the E-spec parts under typical codnitions; the more processing power we nave, the bettter eqiopped we will be to meet peak perfor,ance requiirements. When performance is less critical, or on chip temperature sensor reaches exceeds thresholds, speed could be backed off to 32 MHz internal or evem 24. 
+* will be installed., tentatively planned for 40 MHz, unless 48 is found to be reliable on the E-spec parts under typical codnitions; the more processing power we nave, the bettter eqiopped we will be to meet peak perfor,ance requiirements. When performance is less critical, or on chip temperature sensor reaches exceeds thresholds, speed could be backed off to 32 MHz internal or evem 24.
 * 1602 LCD controlled in 4-bit mode with RGB backlight
  * requiring all of port for the non-backlight functionality
-* RF remote control using either RXB12 or RXB14 with loosly coiled wire wnip (low cost solution) or a STXii7 with SMT ceramic antenna for more robust reception requirements. 
- * All devices will have a unique ID stored in USERROW that allows it to reocognize RF packets forit. No mechanism of response is currentlty expected or felt to be needed. 
+* RF remote control using either RXB12 or RXB14 with loosly coiled wire wnip (low cost solution) or a STXii7 with SMT ceramic antenna for more robust reception requirements.
+ * All devices will have a unique ID stored in USERROW that allows it to reocognize RF packets forit. No mechanism of response is currentlty expected or felt to be needed.
 * Contrast voltage will be controlled using the DAC, replacing phtysical pot
-* 
+*
 * Single Channel Output
 * DAC used for contrast control
 
-## Pin connections: 
+## Pin connections:
 
 ### PORTA
-* PA0, PA1 - Crystal or osc. 
+* PA0, PA1 - Crystal or osc.
 * PA2 - Unused. SDA
 * PA3 - Unused, SCL
 * PA4 - TX
@@ -26,17 +26,17 @@ Rev. D suffered from a fatal design defect. Rev. E is the next generation, and h
 * PA6 - Unused (PWM)
 * PA7 - LED (PWM)
 
-### PORTB 
-* PB0, PB1, PB2 = PWM control for red, greemn and blue backlight leds. TCA1 will be used to provide 16-bit buffered PW<, as only three channels are needed. 
+### PORTB
+* PB0, PB1, PB2 = PWM control for red, greemn and blue backlight leds. TCA1 will be used to provide 16-bit buffered PW<, as only three channels are needed.
 * PB3, PB4, PB5 - sense for the three standard buttomns, Color, Parameter, and Mode.
 
 ### PORTC
-* PA0 - Color Emcoder A
-* PA1 - Color Emcoder B
-* PA2 - Param Emcoder A
-* PA3 - Param Emcoder B
+* PC0 - Color Emcoder A
+* PC1 - Color Emcoder B
+* PC2 - Param Emcoder A
+* PC3 - Param Emcoder B
  * Placed in one group like this to make the encoder reading trick maximally efficient.
-* PA4-7 - to Extend header. Recall that this is a DB, so MVIO could be used here... 
+* PC4-7 - to Extend header. Recall that this is a DB, so MVIO could be used here...
 
 ### PORTD
 * PD0 - Data4

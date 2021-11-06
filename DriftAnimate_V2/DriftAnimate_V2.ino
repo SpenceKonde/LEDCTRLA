@@ -1,48 +1,14 @@
-#include <Adafruit_NeoPixel_Static.h>
+#include <tinyNeoPixel_Static.h>
+#include <hd44780.h>
+#include <hd44780ioClass/hd44780_pinIO.h>
 #include <avr/pgmspace.h>
 #include <util/crc16.h>
 #include <EEPROM.h>
+#include "LightCtrl_RevE.h"
 
-// UI + encoder involved globals
 
-#ifndef __AVR_ATmega1284P__
-#ifdef __AVR_ATmega328PB__
-#include <LiquidCrystal.h> 
-LiquidCrystal lcd(5, 6, 7, 23, 24, 25, 26);
-//LiquidCrystal lcd(5, 6, 7, 26, 25, 24, 23);
-#define LDR_PIN A5
-#define LEDPIN 9           
-#else //ATmega328p with I2C LCD
-#define LEDPIN 9
-#include <LiquidCrystal_I2C.h>
-#include <Wire.h>
-LiquidCrystal_I2C lcd(0x3F, 16, 2); //red dot
-//LiquidCrystal_I2C lcd(0x27, 16, 2); //green dot
-#define LDR_PIN A6
-#endif
-#define RX_PIN_STATE (PINB&1) //RX on pin 8 for input capture. 
-#define ENC1_PINA 14
-#define ENC1_PINB 15
-#define ENC2_PINA 16
-#define ENC2_PINB 17
-#define ENC1_BTN 3
-#define ENC2_BTN 4
-#define MODE_BTN 2
-#else
-#include <LiquidCrystal.h> //ATmega1284p with LCD connected in 4-bit mode
-LiquidCrystal lcd(2, 3, 4, 24, 25, 26, 27);
-#define RX_PIN_STATE (PIND&64) //RX on PD6 for input capture. 
-#define LEDPIN 21
-#define LDR_PIN A4
-#define ENC1_PINA 16
-#define ENC1_PINB 17
-#define ENC2_PINA 18
-#define ENC2_PINB 19
-#define ENC1_BTN 12
-#define ENC2_BTN 11
-#define MODE_BTN 10
-#endif
 
+hd44780_pinIO lcd(LCD_RS, LCD_RW, LCD_EN, LCD_DATA4, LCD_DATA5, LCD_DATA6, LCD_DATA7);
 
 #define MODE_DRIFT2 9
 
@@ -62,9 +28,9 @@ const byte colorPallete[][8][3] PROGMEM = {
   //{{255, 0, 0}, {0, 0, 0}, {0, 255, 0}, {0, 0, 0}, {255, 200, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //xmas
   {{255, 64, 0}, {196, 32, 0}, {220, 64, 0}, {32, 255, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Pumpkin
   {{192, 0, 96}, {196, 0, 64}, {255, 16, 100}, {255, 0, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Purples
-  {{160,160,140}, {228,228,200}, {128,128, 110}, {60, 60, 50}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //static
+  {{160, 160, 140}, {228, 228, 200}, {128, 128, 110}, {60, 60, 50}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //static
 };
-const byte colorCount[] PROGMEM = {3, 4, 4, 5, 4, 4, 4, 4, 4,4,4};
+const byte colorCount[] PROGMEM = {3, 4, 4, 5, 4, 4, 4, 4, 4, 4, 4};
 
 const char pallete0[] PROGMEM = "RAINBOW";
 const char pallete1[] PROGMEM = "  WARM ";
@@ -78,9 +44,9 @@ const char pallete7[] PROGMEM = "JUNGLE ";
 //const char pallete8[] PROGMEM = "  XMAS ";
 const char pallete8[] PROGMEM = "PUMPKIN";
 const char pallete9[] PROGMEM = "PURPLE ";
-const char pallete10[] PROGMEM ="STATIC ";
+const char pallete10[] PROGMEM = "STATIC ";
 
-const char * const palleteNames[] PROGMEM = {pallete0, pallete1, pallete2, pallete3, pallete4, pallete5, pallete6, pallete7,pallete8,pallete9,pallete10};
+const char * const palleteNames[] PROGMEM = {pallete0, pallete1, pallete2, pallete3, pallete4, pallete5, pallete6, pallete7, pallete8, pallete9, pallete10};
 #define PALLETEMAX 10
 
 // Names of mode settings - these get stuffed into modesL and modesR below.
@@ -238,101 +204,55 @@ byte currentMode = 0;
 volatile unsigned long lastUserAction = 0;
 
 //animation related globals
-#define LENGTH 200
+#define LENGTH 300
 unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
-byte pixels[LENGTH * 3];
+byte  pixels[LENGTH * 3];
 byte scratch[LENGTH * 3];
 unsigned long frameNumber = 0;
-Adafruit_NeoPixel leds = Adafruit_NeoPixel(LENGTH, LEDPIN, NEO_GRB + NEO_KHZ800, pixels);
+tinyNeoPixel leds = tinyNeoPixel(LENGTH, LEDPIN, NEO_GRB, pixels);
 
-//RF related globals
-const byte MyAddress = 0;
-volatile byte receiving = 0;
-volatile byte bitnum = 0; //current bit received
 
-volatile byte gotMessage = 0;
-volatile byte dataIn = 0;
-volatile byte pktLength = 31;
-volatile unsigned long lastRFMsgAt = 0;
-volatile byte rxBuffer[32];
-byte recvMessage[32];
-
-unsigned long lastPacketTime = 0;
-unsigned long lastPacketSig = 0;
-
-// Version 2.2/2.3
-#if(F_CPU==8000000)
-#define TIME_MULT * 1
-#elif(F_CPU==16000000)
-#define TIME_MULT * 2
-#endif
-
-const unsigned int rxSyncMin  = 1750 TIME_MULT;
-const unsigned int rxSyncMax  = 2250 TIME_MULT;
-const unsigned int rxZeroMin  = 100 TIME_MULT;
-const unsigned int rxZeroMax  = 390 TIME_MULT;
-const unsigned int rxOneMin  = 410 TIME_MULT;
-const unsigned int rxOneMax  = 700 TIME_MULT;
-const unsigned int rxLowMax  = 600 TIME_MULT;
-const int commandForgetTime = 5000;
 
 void setup() {
-  #ifdef __AVR_ATmega328P__
-  Wire.begin();
-  lcd.begin();
-  #else 
-  lcd.begin(16,2);
-  #endif
   setupPins();
   setupPCINT();
-  setupRF();
+  //setupRF();
+  Serial.swap(1);
   Serial.begin(115200);
-  #ifdef __AVR_ATmega328P__
-  lcd.backlight();
-  #else
-  #ifndef __AVR_ATmega1284P__
-  pinMode(18,OUTPUT);
-  digitalWrite(18,1);
-  #else
-  pinMode(20,OUTPUT);
-  digitalWrite(20,1);
-  #endif
-  #endif
-  lcd.print(F("Hello Cabin!!"));
+  Serial.println("Hi, I started!");
+  lcd.begin(16, 2);
+  lcd.print(F("Woah, I'm on a DB!"));
   lcd.setCursor(0, 1);
-  lcd.print(F("Lets party down!"));
+  lcd.print(F("Nothing works!"));
+  digitalWrite(LCD_BL_R, HIGH);
+  digitalWrite(LCD_BL_G, HIGH);
+  digitalWrite(LCD_BL_B, HIGH);
+  pinMode(PIN_PD6,OUTPUT);
+  digitalWrite(PIN_PD6,HIGH);
   delay(2000);
   lcd.clear();
   loadMode();
 }
 
 void loop() {
-  byte rlen = handleReceive();
+  byte rlen = 0; // handleReceive();
   if (rlen) {
     processRFPacket(rlen);
-  } else if ((!receiving)  && (millis() - lastRFMsgAt > 100)) { //will be if not receiving, but we don't know where we're saving the RXing status.
-    if (currentMode == 0) {
-      if (currentValueLeft[0] + currentValueLeft[1] + currentValueLeft[2] > 88) {
-        lcd.clear();
-        lcd.setCursor(2, 0);
-        lcd.print(F("Maximum power"));
-        lcd.setCursor(3, 1);
-        lcd.print(F("exceeded"));
-        currentValueLeft[0] -= 2;
-        currentValueLeft[1] -= 2;
-        currentValueLeft[2] -= 2;
-        delay(1000);
-        UIChanged = 7;
-      }
-    }
-    handleUI();
-    handleLCD();
-    if (millis() - lastFrameAt > getFrameDelay()) {
-      lastFrameAt = millis();
-      updatePattern();
-      leds.show();
-    }
+  } else if ((!RFRX_NOW)  && (millis() - lastRFMsgAt > 100)) {
+  
+  }
+  handleUI();
+  handleLCD();
+  if (millis() - lastFrameAt > getFrameDelay()) {
+    lastFrameAt = millis();
+    digitalWriteFast(INDICATE1,HIGH);
+    updatePattern();
+    digitalWriteFast(INDICATE1,LOW);
+    digitalWriteFast(INDICATE0,HIGH);
+    
+    leds.show();
+    digitalWriteFast(INDICATE0,LOW);
   }
 }
 
@@ -348,7 +268,7 @@ byte getFrameDelay() {
 
 void processRFPacket(byte rlen) {
 
-  byte vers = (rlen & 196) >> 6;
+  //+-byte vers = (rlen & 196) >> 6;
   rlen &= 0x3F;
   if (recvMessage[1] == 0x54) {
     if (recvMessage[2] > maxMode) {
@@ -387,8 +307,8 @@ void advanceMode() {
 
 void setMode(byte mode) {
   currentMode = mode;
-  memset(scratch, 0, 600);
-  memset(pixels, 0, 600);
+  memset(scratch, 0, 3*LENGTH);
+  memset(pixels, 0, 3*LENGTH);
   for (byte i = 0; i < 8; i++) { //set the current setting values to defaults
     if (pgm_read_byte_near(&defaultValueLeft[currentMode][i]) == 255) {
       currentValueLeft[i] = random(pgm_read_byte_near(&maxValueLeft[currentMode][i]));
@@ -469,7 +389,8 @@ void handleUI() {
   static byte lastBtnBounceState = 7;
   static unsigned long lastBtnAt = 0;
   static unsigned long lastPressAt = 0;
-  byte btnRead = (PIND & 0x1C) >> 2;
+  byte btnRead = BTN_PORT_READ();
+  Serial.print("btn check:");
   if (!(btnRead == lastBtnBounceState)) { //debounce all buttons at once.
     lastBtnBounceState = btnRead;
     lastBtnAt = millis();
@@ -481,7 +402,7 @@ void handleUI() {
         }
         //do nothing - was button being pressed
       } else {
-        if (((btnRead & 1)) && !(lastBtnState & 1)) {
+        if (((btnRead & MODE_BTN_bm)) && !(lastBtnState & MODE_BTN_bm)) {
           if (lastPressAt && millis() - lastPressAt > 10000) {
 
             lcd.clear();
@@ -505,11 +426,7 @@ void handleUI() {
           }
           lastPressAt = 0;
         }
-        #ifdef __AVR_ATmega328P__
-        if (((btnRead & 2)) && !(lastBtnState & 2)) { //Rev - boards based on pro minis
-        #else
-        if (((btnRead & 4)) && !(lastBtnState & 4)) { //Rev B 328pb/1284p based boards
-        #endif
+        if (((btnRead & ENC1_BTN_bm)) && !(lastBtnState & ENC1_BTN_bm)) {
           if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
             currentSettingLeft = 0;
           } else {
@@ -517,11 +434,7 @@ void handleUI() {
           }
           UIChanged |= 2;
         }
-        #ifdef __AVR_ATmega328P__
-        if (((btnRead & 4)) && !(lastBtnState & 4)) { //Rev - boards based on pro minis
-        #else
-        if (((btnRead & 2)) && !(lastBtnState & 2)) { //Rev B 328pb/1284p based boards
-        #endif
+        if (((btnRead & ENC2_BTN_bm)) && !(lastBtnState & ENC2_BTN_bm)) {
           if (currentSettingRight >= pgm_read_byte_near(&maxSetting[currentMode][1])) {
             currentSettingRight = 0;
           } else {
@@ -634,10 +547,10 @@ void doAttractLCD() {
   byte s = random(0, 3);
   if (!s) {
     lcd.setCursor(0, 0);
-    lcd.print(F("TRICK OR TREAT!"));
+    lcd.print(F("Light Test v2.1"));
     lcd.setCursor(0, 1);
-    lcd.print(F("Let's get weird!"));
-  } else if (s==1) {
+    lcd.print(F("AVR128DB48"));
+  } else if (s == 1) {
     lcd.setCursor(0, 0);
     lcd.print(F("Cabin Weekend VI"));
     lcd.setCursor(0, 1);
@@ -654,7 +567,7 @@ void doAttractLCD() {
       lcd.print(F("TURN MY KNOBS ;)"));
     } else {
       lcd.print(F("ADJUST LIGHTING"));
-    } 
+    }
   }
 }
 
@@ -711,6 +624,17 @@ void updatePatternDots2() {
   }
   pushPixel(r, g, b, currentValueRight[2]);
 }
+// Supposed to be mnuch faster. 
+// I am doubtful that this is correctly implementing the xorshift though.
+uint16_t rng(uint16_t seed) {
+    static uint16_t y = 0;
+    if (seed != 0) y += (seed && 0x1FFF); // seeded with a different number
+    y ^= y << 2;
+    y ^= y >> 7;
+    y ^= y << 7;
+    return (y);
+}
+
 
 void updatePatternFade() {
   static byte bright = 0;
@@ -817,11 +741,11 @@ void updatePatternDrift2() {
   byte driftchance = 16 + currentValueRight[0] * 10;
   byte randinc = 255 - driftchance;
   byte randdec = driftchance;
-  int len = (pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getDwellFrames() + getTransitionFrames()));
-  for (byte i = 0; i < LENGTH; i += 2) {
-    unsigned int rand = random(65535);
-    unsigned int f1 = scratch[(i * 3) >> 1] + ((scratch[(i >> 1) * 3 + 2] & 0x0F) << 8);
-    unsigned int f2 = scratch[1 + ((i * 3) >> 1)] + ((scratch[(i >> 1) * 3 + 2] & 0xF0) << 4);
+  uint16_t len = (pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getDwellFrames() + getTransitionFrames()));
+  for (uint16_t i = 0; i < LENGTH; i += 2) {
+    uint16_t rand = random(65535);
+    uint16_t f1 = scratch[(i * 3) >> 1] + ((scratch[(i >> 1) * 3 + 2] & 0x0F) << 8);
+    uint16_t f2 = scratch[1 + ((i * 3) >> 1)] + ((scratch[(i >> 1) * 3 + 2] & 0xF0) << 4);
     if ((byte)rand > randinc) {
       f1++;
       if (f1 > len) {
@@ -1032,6 +956,9 @@ void updatePatternChase() {
 
 void setupPins() {
   pinMode(LEDPIN, OUTPUT);
+  pinMode(INDICATE0, OUTPUT);
+  pinMode(INDICATE1, OUTPUT);
+  pinMode(INDICATE2, OUTPUT);
   pinMode(ENC1_PINA, INPUT_PULLUP);
   pinMode(ENC1_PINB, INPUT_PULLUP);
   pinMode(ENC1_BTN, INPUT_PULLUP);
@@ -1039,47 +966,47 @@ void setupPins() {
   pinMode(ENC2_PINB, INPUT_PULLUP);
   pinMode(ENC2_BTN, INPUT_PULLUP);
   pinMode(MODE_BTN, INPUT_PULLUP);
-  pinMode(A4, INPUT_PULLUP);
-  pinMode(A5, INPUT_PULLUP);
 }
+
+#define debugSerial Serial0
 
 void setupPCINT() {
-#ifndef __AVR_ATmega1284P__ //encoders are PCINT8~15 range on 328p
-  PCMSK1 = 0x0F;
-  PCICR = 2;
-#else //encoders are PCINT16~24 range on 1284p
-  PCMSK2 = 0x0F;
-  PCICR = 4;
-#endif
+  if (!MVIO.STATUS) {
+    uint32_t start = millis();
+    while ((!MVIO.STATUS) && millis() - start > 2000) {
+      if (millis() - start > 1000) {
+        Serial.println("MVIO failed to initialize? No VDDIO2?");
+        Serial.println(analogRead(ADC_VDDIO2DIV10));
+      }
+    }
+  }
+  VPORTC.INTFLAGS = VPORTC.INTFLAGS;
+  PORTC.PIN0CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
+  PORTC.PIN1CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
+  PORTC.PIN2CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
+  PORTC.PIN3CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
 }
 
-// ISR based on: https://www.circuitsathome.com/mcu/rotary-encoder-interrupt-service-routine-for-avr-micros/
-// by Oleg Mazurov
-#ifndef __AVR_ATmega1284P__
-ISR(PCINT1_vect)
-#else
-ISR(PCINT2_vect)
-#endif
-{
-  static uint8_t old_ABl = 3;  //lookup table index
-  static int8_t enclval = 0;   //encoder value
-  static uint8_t old_ABr = 3;  //lookup table index
-  static int8_t encrval = 0;   //encoder value
-  //static const int8_t enc_states [] PROGMEM = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};  //encoder lookup table
+ISR(PORTC_PORT_vect) {
+  static uint8_t EncL_Prev = 3;  //lookup table index
+  static int8_t EncL_Val = 0;   //encoder value
+  static uint8_t EncR_Prev = 3;  //lookup table index
+  static int8_t EncR_Val = 0;   //encoder value
   static const int8_t enc_states [] PROGMEM = {0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0}; // reversed encoder table
-  old_ABl <<= 2; //remember previous state
-  old_ABr <<= 2; //remember previous state
-  #ifdef __AVR_ATmega328P__
-  old_ABl |= ( PINC & 0x03 );
-  old_ABr |= (( PINC & 0x0C ) >> 2);
-  #else
-  old_ABr |= ( PINC & 0x03 );
-  old_ABl |= (( PINC & 0x0C ) >> 2);
-  #endif
-  enclval += pgm_read_byte(&(enc_states[( old_ABl & 0x0f )]));
-  encrval += pgm_read_byte(&(enc_states[( old_ABr & 0x0f )]));
+  uint8_t enc_pinstate = ENC_PORT_READ();
+  
+  VPORTC.INTFLAGS = VPORTC.INTFLAGS;
+  EncL_Prev <<= 2; //remember previous state
+  EncR_Prev <<= 2; //remember previous state
+
+  EncL_Prev |= (enc_pinstate & 0x0C) >> 2;
+  EncR_Prev |= (enc_pinstate & 0x03);
+
+  EncL_Val += pgm_read_byte(&(enc_states[(EncL_Prev & 0x0F)]));
+  EncR_Val += pgm_read_byte(&(enc_states[(EncR_Prev & 0x0F)]));
+
   /* post "Navigation forward/reverse" event */
-  if ( enclval > 3 ) { //four steps forward
+  if ( EncL_Val > 3 ) { //four steps forward
     if (currentValueLeft[currentSettingLeft] < pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]))currentValueLeft[currentSettingLeft]++;
     //hackjob to handle min exceeding max or vice versa.
     if ((currentMode == 1 || currentMode == 2 || currentMode == 3 || currentMode == 4 || currentMode == 5) && currentSettingLeft < 6) {
@@ -1090,9 +1017,9 @@ ISR(PCINT2_vect)
       }
     }
     UIChanged |= 1;
-    enclval = 0;
+    EncL_Val = 0;
   }
-  else if ( enclval < -3 ) { //four steps backwards
+  else if ( EncL_Val < -3 ) { //four steps backwards
     if (currentValueLeft[currentSettingLeft])currentValueLeft[currentSettingLeft]--;
     //hackjob to handle min exceeding max or vice versa.
     if ((currentMode == 1 || currentMode == 2) && currentSettingLeft < 6) {
@@ -1103,33 +1030,36 @@ ISR(PCINT2_vect)
       }
     }
     UIChanged |= 1;
-    enclval = 0;
+    EncL_Val = 0;
   }
-  if ( encrval > 3 ) { //four steps forward
+  if ( EncR_Val > 3 ) { //four steps forward
     if (currentValueRight[currentSettingRight] < pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]))currentValueRight[currentSettingRight]++;
     UIChanged |= 1;
-    encrval = 0;
+    EncR_Val = 0;
   }
-  else if ( encrval < -3 ) { //four steps backwards
-    if (currentValueRight[currentSettingRight])currentValueRight[currentSettingRight]--;
+  else if ( EncR_Val < -3 ) { //four steps backwards
+    if (currentValueRight[currentSettingRight]) currentValueRight[currentSettingRight]--;
     UIChanged |= 1;
-    encrval = 0;
+    EncR_Val = 0;
   }
 }
 
+#define RF_PIN PIN_PF3
+
 void setupRF() {
-  TCCR1A = 0;
-  TCCR1B = 0;
-  TIFR1 = (1<<ICF1) | (1<<TOV1);  // clear flags so we don't get a bogus interrupt
-  TCNT1 = 0;          // Counter to zero
-  TIMSK1 = 1 << ICIE1; // interrupt on Timer 1 input capture
-  // start Timer 1, prescalar of 8, edge select on falling edge
-  TCCR1B =  ((F_CPU == 1000000L) ? (1 << CS10) : (1 << CS11)) | 1 << ICNC1; //prescalar 8 except at 1mhz, where we use prescalar of 1, noise cancler active
-  //ready to rock and roll
+  TCB3.CTRLA = 0x02; //disable, CKPER/2 clock source.
+  TCB3.CTRLB = 0x03; //Input Capture Frequency Measurement mode
+  TCB3.INTFLAGS = 3; //clear flags
+  TCB3.CNT = 0; //reset count 0
+  TCB3.INTCTRL = 0x01;
+  EVSYS.CHANNEL4 = EVSYS_CHANNEL4_PORTF_PIN3_gc; //On PF3.
+  EVSYS_USERTCB3CAPT = 0x05;
+  TCB3.EVCTRL = 0x51; //filter, falling edge, ICIE=1
+  TCB3.CTRLA = 0x03; //enable
 }
 
 byte handleReceive() {
-  if (gotMessage) {
+  if (GOT_MESSAGE) {
     byte vers = checkCSC(); //checkCSC() gives 0 on failed CSC, 1 on v1 structure (ACD...), 2 on v2 structure (DSCD...)
     if (!vers) { //if vers=0, unknown format ot bad CSC
       resetReceive();
@@ -1149,7 +1079,7 @@ byte handleReceive() {
     lastPacketTime = millis();
     byte rlen = ((pktLength >> 3) + 1) | ((vers - 1) << 6);
 
-    memcpy((void*)recvMessage, (const void*)rxBuffer, 32); //copy received message - safe because we haven't called resetReceive, so IC int is off. 
+    memcpy((void*)recvMessage, (const void*)rxBuffer, 32); //copy received message - safe because we haven't called resetReceive, so IC int is off.
     resetReceive();
     return rlen;
   } else {
@@ -1167,9 +1097,9 @@ void resetReceive() {
     lastRFMsgAt = millis();
   }
   bitnum = 0;
-  memset((void*)rxBuffer, 0, 32); //clear buffer - safe because haven't reenabled IC interrupt yet. 
-  gotMessage = 0;
-  TIMSK1 = 1 << ICIE1;
+  memset((void*)rxBuffer, 0, 32); //clear buffer - safe because haven't reenabled IC interrupt yet.
+  CLR_MESSAGE;
+  TCB3.INTCTRL = 0x01;
   return;
 }
 
@@ -1209,34 +1139,33 @@ unsigned long getPacketSig() {
   return lastpacketsig;
 }
 
-ISR (TIMER1_CAPT_vect)
-{
+ISR (TCB3_INT_vect) {
   static unsigned long lasttime = 0;
-  unsigned int newTime = ICR1; //immediately get the ICR value
-  byte state = (RX_PIN_STATE);
-  TCCR1B = state ? (1 << CS11 | 1 << ICNC1) : (1 << CS11 | 1 << ICNC1 | 1 << ICES1); //and set edge
+  unsigned int newTime = TCB3.CCMP; //immediately get the ICR value
+  uint8_t state = digitalReadFast(RF_PIN);
+  TCB3.EVCTRL = state ? 0x51 : 0x41; //trigger on falling edge if pin is high, otherwise rising edge
   unsigned int duration = newTime - lasttime;
   lasttime = newTime;
   if (state) {
-    if (receiving) {
+    if (RFRX_NOW) {
       if (duration > rxLowMax) {
-        receiving = 0;
+        DONE_RX;
         bitnum = 0; // reset to bit zero
         memset((void*)rxBuffer, 0, 32); //clear buffer - memset on rxBuffer is safe because interrupts disabled in ISR
       }
     } else {
       if (duration > rxSyncMin && duration < rxSyncMax) {
-        receiving = 1;
+        START_RX;
       }
     }
   } else {
-    if (receiving) {
+    if (RFRX_NOW) {
       if (duration > rxZeroMin && duration < rxZeroMax) {
         dataIn = dataIn << 1;
       } else if (duration > rxOneMin && duration < rxOneMax) {
         dataIn = (dataIn << 1) + 1;
       } else {
-        receiving = 0;
+        DONE_RX;
         bitnum = 0; // reset to bit zero
         memset((void*)rxBuffer, 0, 32); //clear buffer - memset on rxBuffer is safe because interrupts disabled in ISR
         return;
@@ -1251,9 +1180,9 @@ ISR (TIMER1_CAPT_vect)
       }
       if (bitnum >= pktLength) {
         bitnum = 0;
-        receiving = 0;
-        gotMessage = 1;
-        TIMSK1 = 0; //turn off input capture;
+        DONE_RX;
+        SET_MESSAGE;
+        TCB3.INTCTRL = 0; //turn off input capture;
       } else {
         bitnum++;
       }
