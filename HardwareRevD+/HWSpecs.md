@@ -7,13 +7,13 @@ Rev. D suffered from a fatal design defect. Rev. E is the next generation, and h
 * ~Internal Oscillator~ External crystal oscillator
 * will be installed., tentatively planned for 40 MHz, unless 48 is found to be reliable on the E-spec parts under typical codnitions; the more processing power we nave, the bettter eqiopped we will be to meet peak perfor,ance requiirements. When performance is less critical, or on chip temperature sensor reaches exceeds thresholds, speed could be backed off to 32 MHz internal or evem 24.
 * 1602 LCD controlled in 4-bit mode with RGB backlight
- * requiring all of port for the non-backlight functionality
+  * requiring all of PORTD for the non-backlight functionality
 * RF remote control using either RXB12 or RXB14 with loosly coiled wire wnip (low cost solution) or a STXii7 with SMT ceramic antenna for more robust reception requirements.
- * All devices will have a unique ID stored in USERROW that allows it to reocognize RF packets forit. No mechanism of response is currentlty expected or felt to be needed.
+  * All devices will have a unique ID stored in USERROW that allows it to reocognize RF packets forit. No mechanism of response is planned.
 * Contrast voltage will be controlled using the DAC, replacing phtysical pot
+  * To our surprise, it has been found that the contrast seems to be correct out of the box, and that the voltage on this pin has no impact on the contrast, at least with the LCDs used so far. Okay, works for me. If I end up going back to the old style ones, I'll still need it.
 *
 * Single Channel Output
-* DAC used for contrast control
 
 ## Pin connections:
 
@@ -49,7 +49,7 @@ Rev. D suffered from a fatal design defect. Rev. E is the next generation, and h
 * PD7 - Enable
 
 ### PORTE
-PE0 - PR3 Extend header
+PE0 - PE3 Extend header
 
 ### PORTF
 * PF0 - optionally xtal or unused
