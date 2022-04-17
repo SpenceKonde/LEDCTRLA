@@ -1,5 +1,6 @@
 #ifndef __LightCtrl_h
 #define __LightCtrl_h
+#include "Arduino.h"
 #include "Modes.h"
 #include "Colors.h"
 #include "HWSpecs.h"
@@ -196,4 +197,5 @@ USART4 (Serial4 = Unused on EXT pins)
   PROGMEM_MAPPED unsigned int rxLowMax   = TIME_MULT(600);
   PROGMEM_MAPPED int commandForgetTime = 5000;
 
+#endif
 #endif

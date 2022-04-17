@@ -1,5 +1,5 @@
-#include "LightCtrlRevF.h"
-
+#include "LightCtrl_RevF.h"
+#include <stdint.h>
 PROGMEM_MAPPED char  basiccolor[9][8]      = {" RED 1 ", "GREEN 1", " BLUE 1"," RED 2 ", "GREEN 2", " BLUE 2", " RED 3 ", "GREEN 3", " BLUE 3"};
 PROGMEM_MAPPED char minmaxcolor[6][8]      = {"MIN RED", "MAX RED", "MIN GRN", "MAX GRN", "MIN BLU", "MAX BLU"};
 PROGMEM_MAPPED char    mincolor[6][8]      = {"MIN RED", "MAX RED", "MIN GRN"};

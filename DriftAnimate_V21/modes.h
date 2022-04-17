@@ -1,5 +1,6 @@
 #ifndef __Modes_h
 #define __Modes_h
+#include "LightCtrl_RevF.h"
 
 typedef struct modeset {          // Size //
   char    modename[9];            //    9 //  name of mode

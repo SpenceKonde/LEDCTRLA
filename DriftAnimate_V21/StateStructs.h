@@ -1,3 +1,5 @@
+
+#include <stdint.h>
 typedef hardwarespecs {
   uint8_t HW_Version;     //  starts at 0x1402 in the unified address space. PCB rev.
   uint8_t Seq_Number;     //  Running tally of Dx-based boards produced.

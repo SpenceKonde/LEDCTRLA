@@ -1,6 +1,7 @@
-#ifndef __HWSpecs_h
-#define __HWSpecs_h
+#include "LightCtrl_RevF.h"
+#ifndef SKETCH_MAIN_H
 
+#define SKETCH_MAIN_H
 typedef hardwarespecs {
   uint8_t HW_Version;     //  starts at 0x1402 in the unified address space. PCB rev.
   uint8_t Seq_Number;     //  Running tally of Dx-based boards produced.
@@ -15,7 +16,6 @@ typedef hardwarespecs {
 
 extern hardware_t Hardware;
 
-#ifdef SKETCH_MAIN
 
   /* Stored form is bitwise inverted: Empty cells contain 0xFF, and that is inverted to 0x00;
    * Must be preceeded by the CRC of the serial number, and followed by the CRC of the magic number + hw version + seq_number to proove that the data there was config data.

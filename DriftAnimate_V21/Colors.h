@@ -1,6 +1,7 @@
 #ifndef __Colors_h
 #define __Colors_h
-
+#include <stdint.h>
+#include <Arduino.h>
 typedef struct colorset {
   char colorname[8];    //8
   uint8_t colorcount;   //1
@@ -93,7 +94,7 @@ typedef struct colorset {
      63,   73,   84,   95,  106,  117,  128,  139,
     151,  163,  176,  189,  204,  220,  237,  255
   };
-
+#include "LightCtrl_RevF.h"
   PROGMEM_MAPPED uint8_t pulseBrightnessTable[64] = {
       0,    1,    2,    3,    4,    5,    6,    7,
       8,    9,   10,   12,   14,   16,   18,   20,
@@ -113,3 +114,4 @@ typedef struct colorset {
 uint8_t getColorSetCount() {
   return sizeof(ColorTable)/size_colorset;
 }
+#endif __Colors_h

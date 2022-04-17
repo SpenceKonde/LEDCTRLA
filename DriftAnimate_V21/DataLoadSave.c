@@ -1,28 +1,6 @@
 #include <USERSIG.h>
 
-void initializeSetttings() {
-  #if !defined PRODUCTION
-    void printChipInfo();
-  #endif
-  loadUSERROW();
-}
 
-void printChipInfo() {
-  Serial.println("Hi, I started! Serial Number: ");
-  Serial.printHex((uint8_t*)(uint16_t)(0x1110), 0x10; ':');
-  Serial.println();
-  Serial.print("Die Rev: ");
-  Serial.print(SYSCFG.REVID);
-  Serial.print("CLK_PER: ");
-  Serial.println("MHz");
-#if COLCK_SOURCE != 0
-  Serial.println("Uaing internal osc");
-#elif CLOCK_SOURCE = 1
-  Serial.println("Uaing external HF XTal");
-#else
-  Serial.println("Using external clock");
-#endif
-}
 void loadUSERROW() {
   uint16_t crc = *(uint16_t*)(uint16_t)0x1102;
   // Seed it with the device ID
@@ -67,4 +45,27 @@ void loadUSERROW() {
     Sigdata = (uint8_t*)(uint16_t)0x1402;;
 
   }
+}
+void initializeSetttings() {
+  #if !defined PRODUCTION
+    void printChipInfo();
+  #endif
+  loadUSERROW();
+}
+
+void printChipInfo() {
+  Serial.println("Hi, I started! Serial Number: ");
+  Serial.printHex((uint8_t*)(uint16_t)(0x1110), 0x10; ':');
+  Serial.println();
+  Serial.print("Die Rev: ");
+  Serial.print(SYSCFG.REVID);
+  Serial.print("CLK_PER: ");
+  Serial.println("MHz");
+#if COLCK_SOURCE != 0
+  Serial.println("Uaing internal osc");
+#elif CLOCK_SOURCE = 1
+  Serial.println("Uaing external HF XTal");
+#else
+  Serial.println("Using external clock");
+#endif
 }
