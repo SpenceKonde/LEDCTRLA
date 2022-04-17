@@ -1,0 +1,361 @@
+
+
+Symbols from C:\Users\Spence\AppData\Local\Temp\arduino_build_806259/DriftAnimate_V2.ino.elf:
+
+Name                  Value   Class        Type         Size     Line  Section
+
+__heap_end          |00000000|   W  |            NOTYPE|        |     |*ABS*
+__TEXT_REGION_ORIGIN__|00000000|   W  |            NOTYPE|        |     |*ABS*
+__tmp_reg__         |00000000|   a  |            NOTYPE|        |     |*ABS*
+__tmp_reg__         |00000000|   a  |            NOTYPE|        |     |*ABS*
+__zero_reg__        |00000001|   a  |            NOTYPE|        |     |*ABS*
+__zero_reg__        |00000001|   a  |            NOTYPE|        |     |*ABS*
+__FUSE_REGION_LENGTH__|00000010|   A  |            NOTYPE|        |     |*ABS*
+__CCP__             |00000034|   a  |            NOTYPE|        |     |*ABS*
+__CCP__             |00000034|   a  |            NOTYPE|        |     |*ABS*
+__RAMPZ__           |0000003b|   a  |            NOTYPE|        |     |*ABS*
+__RAMPZ__           |0000003b|   a  |            NOTYPE|        |     |*ABS*
+__SP_L__            |0000003d|   a  |            NOTYPE|        |     |*ABS*
+__SP_L__            |0000003d|   a  |            NOTYPE|        |     |*ABS*
+__SP_H__            |0000003e|   a  |            NOTYPE|        |     |*ABS*
+__SP_H__            |0000003e|   a  |            NOTYPE|        |     |*ABS*
+__SREG__            |0000003f|   a  |            NOTYPE|        |     |*ABS*
+__SREG__            |0000003f|   a  |            NOTYPE|        |     |*ABS*
+__EEPROM_REGION_LENGTH__|00000200|   A  |            NOTYPE|        |     |*ABS*
+__vector_default    |00000200|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:61
+__vectors           |00000200|   T  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:61
+__trampolines_end   |000002f4|   T  |            NOTYPE|        |     |.text
+__trampolines_start |000002f4|   T  |            NOTYPE|        |     |.text
+mode10Name          |000002f4|   t  |            OBJECT|00000009|     |.text
+mode9Name           |000002fd|   t  |            OBJECT|00000009|     |.text
+mode8Name           |00000306|   t  |            OBJECT|00000009|     |.text
+mode7Name           |0000030f|   t  |            OBJECT|00000009|     |.text
+mode6Name           |00000318|   t  |            OBJECT|00000009|     |.text
+mode5Name           |00000321|   t  |            OBJECT|00000009|     |.text
+mode4Name           |0000032a|   t  |            OBJECT|00000009|     |.text
+mode3Name           |00000333|   t  |            OBJECT|00000009|     |.text
+mode2Name           |0000033c|   t  |            OBJECT|00000009|     |.text
+mode1Name           |00000345|   t  |            OBJECT|00000009|     |.text
+mode0Name           |0000034e|   t  |            OBJECT|00000009|     |.text
+mode7R2             |00000357|   t  |            OBJECT|00000008|     |.text
+mode4R2             |0000035f|   t  |            OBJECT|00000008|     |.text
+mode5R1             |00000367|   t  |            OBJECT|00000008|     |.text
+mode2R2             |0000036f|   t  |            OBJECT|00000008|     |.text
+mode1R1             |00000377|   t  |            OBJECT|00000008|     |.text
+mode1R0             |0000037f|   t  |            OBJECT|00000008|     |.text
+pallete10           |00000387|   t  |            OBJECT|00000008|     |.text
+pallete9            |0000038f|   t  |            OBJECT|00000008|     |.text
+pallete8            |00000397|   t  |            OBJECT|00000008|     |.text
+pallete7            |0000039f|   t  |            OBJECT|00000008|     |.text
+pallete6            |000003a7|   t  |            OBJECT|00000008|     |.text
+pallete5            |000003af|   t  |            OBJECT|00000008|     |.text
+pallete4            |000003b7|   t  |            OBJECT|00000008|     |.text
+pallete3            |000003bf|   t  |            OBJECT|00000008|     |.text
+pallete2            |000003c7|   t  |            OBJECT|00000008|     |.text
+pallete1            |000003cf|   t  |            OBJECT|00000008|     |.text
+pallete0            |000003d7|   t  |            OBJECT|00000008|     |.text
+mode0R0             |000003df|   t  |            OBJECT|00000008|     |.text
+mode1L5             |000003e7|   t  |            OBJECT|00000008|     |.text
+mode1L4             |000003ef|   t  |            OBJECT|00000008|     |.text
+mode1L3             |000003f7|   t  |            OBJECT|00000008|     |.text
+mode1L2             |000003ff|   t  |            OBJECT|00000008|     |.text
+__LOCK_REGION_LENGTH__|00000400|   A  |            NOTYPE|        |     |*ABS*
+__SIGNATURE_REGION_LENGTH__|00000400|   A  |            NOTYPE|        |     |*ABS*
+__USER_SIGNATURE_REGION_LENGTH__|00000400|   A  |            NOTYPE|        |     |*ABS*
+mode1L1             |00000407|   t  |            OBJECT|00000008|     |.text
+mode1L0             |0000040f|   t  |            OBJECT|00000008|     |.text
+mode0L2             |00000417|   t  |            OBJECT|00000008|     |.text
+mode0L1             |0000041f|   t  |            OBJECT|00000008|     |.text
+mode0L0             |00000427|   t  |            OBJECT|00000008|     |.text
+defaultValueRight   |0000042f|   t  |            OBJECT|00000058|     |.text
+defaultValueLeft    |00000487|   t  |            OBJECT|00000058|     |.text
+getModeRatio(unsigned int)::__c|000004df|   t  |            OBJECT|0000001a|     |.text
+leftValues          |000004f9|   t  |            OBJECT|00000020|     |.text
+getModeColors(unsigned char*, unsigned char*, unsigned char*, unsigned long)::__c|00000519|   t  |            OBJECT|0000001a|     |.text
+colorPallete        |00000533|   t  |            OBJECT|00000108|     |.text
+maxValueLeft        |0000063b|   t  |            OBJECT|00000058|     |.text
+__vector_30::enc_states|00000693|   t  |            OBJECT|00000010|     |.text
+setup::__c          |000006a3|   t  |            OBJECT|0000000f|     |.text
+setup::__c          |000006b2|   t  |            OBJECT|00000012|     |.text
+handleUI()::__c     |000006c4|   t  |            OBJECT|0000000b|     |.text
+handleUI()::__c     |000006cf|   t  |            OBJECT|00000008|     |.text
+handleUI()::__c     |000006d7|   t  |            OBJECT|0000000b|     |.text
+doAttractLCD()::__c |000006e2|   t  |            OBJECT|00000010|     |.text
+doAttractLCD()::__c |000006f2|   t  |            OBJECT|00000011|     |.text
+doAttractLCD()::__c |00000703|   t  |            OBJECT|00000011|     |.text
+doAttractLCD()::__c |00000714|   t  |            OBJECT|0000000d|     |.text
+doAttractLCD()::__c |00000721|   t  |            OBJECT|0000000c|     |.text
+doAttractLCD()::__c |0000072d|   t  |            OBJECT|00000010|     |.text
+doAttractLCD()::__c |0000073d|   t  |            OBJECT|0000000f|     |.text
+doAttractLCD()::__c |0000074c|   t  |            OBJECT|00000010|     |.text
+handleLCD()::__c    |0000075c|   t  |            OBJECT|00000004|     |.text
+handleLCD()::__c    |00000760|   t  |            OBJECT|00000004|     |.text
+modeNames           |00000764|   t  |            OBJECT|00000016|     |.text
+handleLCD()::__c    |0000077a|   t  |            OBJECT|00000005|     |.text
+maxSetting          |0000077f|   t  |            OBJECT|00000016|     |.text
+handleLCD()::__c    |00000795|   t  |            OBJECT|00000005|     |.text
+modesR              |0000079a|   t  |            OBJECT|000000b0|     |.text
+palleteNames        |0000084a|   t  |            OBJECT|00000016|     |.text
+modesL              |00000860|   t  |            OBJECT|000000b0|     |.text
+pulseBrightnessTable|00000910|   t  |            OBJECT|00000040|     |.text
+colorCount          |00000950|   t  |            OBJECT|0000000b|     |.text
+maxValueRight       |0000095b|   t  |            OBJECT|00000058|     |.text
+_usart0_pins        |000009b3|   t  |            OBJECT|00000009|     |.text
+__ctors_start       |000009bc|   T  |            NOTYPE|        |     |.text
+__ctors_end         |000009be|   T  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:230
+__dtors_end         |000009be|   T  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:230
+__dtors_start       |000009be|   T  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:230
+__init              |000009be|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:230
+__do_copy_data      |000009ca|   T  |            NOTYPE|0000001a|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2373
+_initThreeStuff()   |000009ca|   T  |              FUNC|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2373
+__do_clear_bss      |000009e4|   T  |            NOTYPE|00000010|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2441
+.do_clear_bss_loop  |000009ec|   t  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2446
+.do_clear_bss_start |000009ee|   t  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2448
+__do_global_ctors   |000009f4|   T  |            NOTYPE|00000016|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2466
+__bad_interrupt     |00000a12|   T  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_1          |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_10         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_11         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_12         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_13         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_14         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_15         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_16         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_17         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_18         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_19         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_2          |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_20         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_24         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_25         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_26         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_27         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_28         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_29         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_3          |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_32         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_33         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_34         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_35         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_36         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_37         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_38         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_39         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_4          |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_40         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_41         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_42         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_43         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_45         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_46         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_47         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_48         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_49         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_5          |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_50         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_51         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_52         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_53         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_54         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_55         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_56         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_57         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_58         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_59         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_6          |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_60         |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_7          |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_8          |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+__vector_9          |00000a12|   W  |            NOTYPE|        |     |.text	../../../../crt1/gcrt1.S:209
+Print::print(char)  |00000a14|   t  |              FUNC|0000000e|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+Print::print(__FlashStringHelper const*)|00000a22|   t  |              FUNC|00000048|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+Print::write(unsigned char const*, unsigned int)|00000a6a|   t  |              FUNC|0000005a|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::availableForWrite()|00000ac4|   t  |              FUNC|0000001e|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::read()   |00000ae2|   t  |              FUNC|00000028|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::peek()   |00000b0a|   t  |              FUNC|0000001c|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::available()|00000b26|   t  |              FUNC|00000018|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::end()    |00000b3e|   t  |              FUNC|0000002e|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::begin(unsigned long, unsigned int)|00000b6c|   t  |              FUNC|00000226|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::_poll_tx_data_empty()|00000d92|   t  |              FUNC|0000003c|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+_poll_dre_done      |00000dcc|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::write(unsigned char)|00000dce|   t  |              FUNC|00000098|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::flush()  |00000e66|   t  |              FUNC|00000028|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::operator bool()|00000e8e|   t  |              FUNC|00000004|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+micros              |00000e92|   t  |              FUNC|0000008a|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/wiring.c:201
+delay               |00000f1c|   t  |              FUNC|00000060|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/wiring.c:648
+millis              |00000f7c|   t  |              FUNC|00000018|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/wiring.c:176
+hd44780::command(unsigned char)|00000f94|   t  |              FUNC|0000006e|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780::clear() [clone .constprop.25]|00001002|   t  |              FUNC|00000008|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780::setCursor(unsigned char, unsigned char)|0000100a|   t  |              FUNC|0000004c|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780::write(unsigned char)|00001056|   t  |              FUNC|00000092|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780::iosetContrast(unsigned char)|000010e8|   t  |              FUNC|00000006|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780::iosetBacklight(unsigned char)|000010e8|   t  |              FUNC|00000006|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780::ioread(hd44780::iotype)|000010ee|   t  |              FUNC|00000006|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+Print::availableForWrite()|000010f4|   t  |              FUNC|00000006|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780::ioinit()   |000010f4|   t  |              FUNC|00000006|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+getPalleteNumber()  |000010fa|   t  |              FUNC|00000012|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+getTransitionFrames()|0000110c|   t  |              FUNC|00000030|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+getDwellFrames()    |0000113c|   t  |              FUNC|00000022|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+getDrift2Colors(unsigned char*, unsigned char*, unsigned char*, unsigned long)|0000115e|   t  |              FUNC|0000019a|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+pushPixel(unsigned char, unsigned char, unsigned char, unsigned char)|000012f8|   t  |              FUNC|00000042|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+getLeftVal(unsigned char)|0000133a|   t  |              FUNC|00000032|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+EERef::operator=(unsigned char)|0000136c|   t  |              FUNC|00000030|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+UartClass::begin(unsigned long)|0000139c|   t  |              FUNC|00000012|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+Print::flush()      |000013ae|   t  |              FUNC|00000002|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+digitalRead         |000013b0|   t  |              FUNC|00000036|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/wiring_digital.c:452
+digitalWrite        |000013e6|   t  |              FUNC|00000198|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/wiring_digital.c:352
+hd44780_pinIO::write4bits(unsigned char)|0000157e|   t  |              FUNC|00000040|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780_pinIO::iowrite(hd44780::iotype, unsigned char)|000015be|   t  |              FUNC|000000ba|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780::command4bit(unsigned char) [clone .constprop.8]|00001678|   t  |              FUNC|00000050|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780_pinIO::ioread(hd44780::iotype)|000016c8|   t  |              FUNC|000002e6|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+hd44780_pinIO::ioinit()|000019ae|   t  |              FUNC|000002a4|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+analogWrite         |00001c52|   t  |              FUNC|00000208|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/wiring_analog.c:400
+hd44780_pinIO::iosetBacklight(unsigned char)|00001e5a|   t  |              FUNC|000000e2|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+random(long, long)  |00001f3c|   t  |              FUNC|0000005a|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+initColorsDrift2()  |00001f96|   t  |              FUNC|000000a8|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+Print::write(char const*) [clone .part.2]|0000203e|   t  |              FUNC|0000001e|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore\api/Print.h:47
+Print::printNumber(unsigned long, unsigned char)|0000205c|   t  |              FUNC|0000008a|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+Print::printFloat(double, unsigned char) [clone .constprop.12]|000020e6|   t  |              FUNC|000001be|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+getModeColors(unsigned char*, unsigned char*, unsigned char*, unsigned long)|000022a4|   t  |              FUNC|00000302|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+updatePatternWave() |000025a6|   t  |              FUNC|00000066|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+initLookupDrift2()  |0000260c|   t  |              FUNC|000000c8|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+__cxa_pure_virtual  |000026d4|   t  |              FUNC|00000004|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/abi.cpp:24
+setMode(unsigned char)|000026d8|   t  |              FUNC|0000014c|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+__vector_22         |00002824|   T  |              FUNC|0000000a|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/UART0.cpp:88
+__vector_21         |0000282e|   T  |              FUNC|0000000a|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/UART0.cpp:67
+__vector_23         |00002838|   T  |              FUNC|00000006|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/UART0.cpp:36
+_do_dre             |0000283e|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+_do_dre()           |0000283e|   T  |              FUNC|0000005e|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/UART.cpp:160
+_poll_dre           |0000284e|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+_done_dre_irq       |0000287c|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+_do_rxc             |0000289c|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+_do_rxc()           |0000289c|   T  |              FUNC|00000048|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/UART.cpp:76
+_end_rxc            |000028d0|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+_do_txc             |000028e4|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+_do_txc()           |000028e4|   T  |              FUNC|00000026|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/UART.cpp:45
+_txc_flush_rx       |000028ee|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+__vector_31         |0000290a|   T  |              FUNC|00000050|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/wiring.c:127
+__vector_44         |0000295a|   T  |              FUNC|0000016a|     |.text	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:1155
+__vector_30         |00002ac4|   T  |              FUNC|00000220|     |.text	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:1002
+global constructors keyed to 65535_0_DriftAnimate_V2.ino.cpp.o.3568|00002ce4|   t  |              FUNC|00000102|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:198
+main                |00002de6|   T  |              FUNC|00001404|     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/main.cpp:49
+__DATA_REGION_LENGTH__|00004000|   A  |            NOTYPE|        |     |*ABS*
+head24              |000040f6|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\libraries\tinyNeoPixel_Static/tinyNeoPixel_Static.cpp:525
+seconddelay24       |00004114|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\libraries\tinyNeoPixel_Static/tinyNeoPixel_Static.cpp:525
+smallerdelay24      |00004116|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\libraries\tinyNeoPixel_Static/tinyNeoPixel_Static.cpp:525
+nextbyte24          |00004118|   t  |            NOTYPE|        |     |.text	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\libraries\tinyNeoPixel_Static/tinyNeoPixel_Static.cpp:525
+random_r            |000041ea|   T  |              FUNC|00000092|     |.text	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:435
+random              |0000427c|   T  |              FUNC|00000098|     |.text
+srandom             |00004314|   T  |              FUNC|00000012|     |.text
+__divmodsi4         |00004326|   T  |            NOTYPE|00000028|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:1686
+__divmodsi4_neg2    |0000433e|   t  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:1701
+__divmodsi4_exit    |0000434c|   t  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:1709
+__negsi2            |0000434e|   T  |            NOTYPE|00000010|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:1718
+__muluhisi3         |0000435e|   T  |            NOTYPE|00000014|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:626
+__mulshisi3         |00004372|   T  |            NOTYPE|00000004|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:603
+__mulohisi3         |00004376|   T  |            NOTYPE|00000008|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:613
+__udivmodsi4        |0000437e|   T  |            NOTYPE|00000044|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:617
+__udivmodsi4_loop   |0000438a|   t  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:1646
+__udivmodsi4_ep     |000043a4|   t  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:1660
+__umulhisi3         |000043c2|   T  |            NOTYPE|0000001e|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:564
+__subsf3            |000043e0|   T  |              FUNC|0000000a|     |.text
+__addsf3            |000043e2|   T  |            NOTYPE|        |     |.text
+__addsf3x           |00004404|   T  |              FUNC|000000cc|     |.text
+__cmpsf2            |000044aa|   T  |              FUNC|00000008|     |.text
+__eqsf2             |000044aa|   T  |            NOTYPE|        |     |.text
+__lesf2             |000044aa|   T  |            NOTYPE|        |     |.text
+__ltsf2             |000044aa|   T  |            NOTYPE|        |     |.text
+__nesf2             |000044aa|   T  |            NOTYPE|        |     |.text
+__divsf3            |000044b2|   T  |              FUNC|00000004|     |.text
+__divsf3x           |000044cc|   T  |              FUNC|000000dc|     |.text
+__divsf3_pse        |000044d0|   T  |            NOTYPE|        |     |.text
+__fixunssfsi        |00004582|   T  |              FUNC|00000058|     |.text
+__floatunsisf       |000045da|   T  |              FUNC|0000007a|     |.text
+__floatsisf         |000045de|   T  |            NOTYPE|        |     |.text
+__fp_cmp            |00004654|   T  |              FUNC|00000048|     |.text
+__fp_inf            |0000469c|   T  |              FUNC|0000000c|     |.text
+__fp_nan            |000046a8|   T  |              FUNC|00000006|     |.text
+__fp_pscA           |000046ae|   T  |              FUNC|0000000e|     |.text
+__fp_pscB           |000046bc|   T  |              FUNC|0000000e|     |.text
+__fp_round          |000046ca|   T  |              FUNC|00000022|     |.text
+__fp_split3         |000046ec|   T  |              FUNC|00000044|     |.text
+__fp_splitA         |000046fc|   T  |            NOTYPE|        |     |.text
+__fp_zero           |00004730|   T  |              FUNC|0000000e|     |.text
+__fp_szero          |00004732|   T  |            NOTYPE|        |     |.text
+__gesf2             |0000473e|   T  |              FUNC|00000008|     |.text
+__gtsf2             |0000473e|   T  |            NOTYPE|        |     |.text
+__mulsf3            |00004746|   T  |              FUNC|00000004|     |.text
+__mulsf3x           |0000475e|   T  |              FUNC|000000d2|     |.text
+__mulsf3_pse        |00004762|   T  |            NOTYPE|        |     |.text
+__unordsf2          |0000480c|   T  |              FUNC|00000008|     |.text
+__mulsi3            |00004814|   T  |            NOTYPE|0000001e|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:648
+__udivmodhi4        |00004832|   T  |            NOTYPE|00000028|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:1408
+__udivmodhi4_loop   |0000483a|   t  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:1413
+__udivmodhi4_ep     |00004848|   t  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:1421
+__tablejump2__      |0000485a|   T  |            NOTYPE|00000012|     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2296
+abort               |0000486c|   T  |              FUNC|00000008|     |.text
+_exit               |00004874|   T  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2278
+exit                |00004874|   W  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2278
+__stop_program      |00004876|   t  |            NOTYPE|        |     |.text	/home/admin/build/toolchain-avr-special/gcc-build/avr/avrxmega4/libgcc/../../../../gcc/libgcc/config/avr/lib1funcs.S:2280
+__data_load_start   |00004878|   A  |            NOTYPE|        |     |*ABS*
+_etext              |00004878|   T  |            NOTYPE|        |     |.text
+__data_load_end     |000049ae|   A  |            NOTYPE|        |     |*ABS*
+__stack             |00007fff|   W  |            NOTYPE|        |     |*ABS*
+__RODATA_PM_OFFSET__|00008000|   A  |            NOTYPE|        |     |*ABS*
+__TEXT_REGION_LENGTH__|00020000|   A  |            NOTYPE|        |     |*ABS*
+__DATA_REGION_ORIGIN__|00804000|   A  |            NOTYPE|        |     |*ABS*
+__data_start        |00804000|   D  |            NOTYPE|        |     |.data
+__vector_30::EncR_Prev|00804000|   d  |            OBJECT|00000001|     |.data
+__vector_30::EncL_Prev|00804001|   d  |            OBJECT|00000001|     |.data
+pktLength           |00804002|   d  |            OBJECT|00000001|     |.data	C:\Users\Spence\AppData\Local\Temp\arduino_build_806259\sketch/LightCtrl_RevE.h:78
+handleUI()::lastBtnState|00804003|   d  |            OBJECT|00000001|     |.data
+handleUI()::lastBtnBounceState|00804004|   d  |            OBJECT|00000001|     |.data
+handleLCD()::drift2_colors|00804005|   d  |            OBJECT|00000001|     |.data
+UIChanged           |00804006|   d  |            OBJECT|00000001|     |.data	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:201
+currentMode         |00804007|   d  |            OBJECT|00000001|     |.data	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:204
+next                |00804008|   d  |            OBJECT|00000004|     |.data
+digital_pin_to_timer|0080400c|   d  |            OBJECT|00000029|     |.data	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\variants\48pin-standard/pins_arduino.h:481
+digital_pin_to_bit_position|00804035|   d  |            OBJECT|00000029|     |.data	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\variants\48pin-standard/pins_arduino.h:376
+vtable for UartClass|0080405e|   d  |            OBJECT|0000001a|     |.data
+digital_pin_to_bit_mask|00804078|   d  |            OBJECT|00000029|     |.data	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\variants\48pin-standard/pins_arduino.h:429
+digital_pin_to_port |008040a1|   d  |            OBJECT|00000029|     |.data	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\variants\48pin-standard/pins_arduino.h:330
+vtable for hd44780  |008040ca|   d  |            OBJECT|00000016|     |.data
+vtable for hd44780_pinIO|008040e0|   d  |            OBJECT|00000016|     |.data
+__bss_start         |00804136|   B  |            NOTYPE|        |     |.bss
+__data_end          |00804136|   D  |            NOTYPE|        |     |.data
+_edata              |00804136|   D  |            NOTYPE|        |     |.data
+gotMessage          |00804136|   b  |            OBJECT|00000001|     |.bss	C:\Users\Spence\AppData\Local\Temp\arduino_build_806259\sketch/LightCtrl_RevE.h:75
+lastRFMsgAt         |00804137|   b  |            OBJECT|00000004|     |.bss	C:\Users\Spence\AppData\Local\Temp\arduino_build_806259\sketch/LightCtrl_RevE.h:79
+lastEncPins         |0080413b|   b  |            OBJECT|00000001|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:196
+lastUserAction      |0080413c|   b  |            OBJECT|00000004|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:207
+__vector_30::EncR_Val|00804140|   b  |            OBJECT|00000001|     |.bss
+__vector_30::EncL_Val|00804141|   b  |            OBJECT|00000001|     |.bss
+dataIn              |00804142|   b  |            OBJECT|00000001|     |.bss	C:\Users\Spence\AppData\Local\Temp\arduino_build_806259\sketch/LightCtrl_RevE.h:77
+rxBuffer            |00804143|   b  |            OBJECT|00000020|     |.bss	C:\Users\Spence\AppData\Local\Temp\arduino_build_806259\sketch/LightCtrl_RevE.h:80
+bitnum              |00804163|   b  |            OBJECT|00000001|     |.bss	C:\Users\Spence\AppData\Local\Temp\arduino_build_806259\sketch/LightCtrl_RevE.h:73
+__vector_44::lasttime|00804164|   b  |            OBJECT|00000004|     |.bss
+timer_millis        |00804168|   b  |            OBJECT|00000004|     |.bss	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/wiring.c:57
+handleUI()::lastPressAt|0080416c|   b  |            OBJECT|00000004|     |.bss
+handleUI()::lastBtnAt|00804170|   b  |            OBJECT|00000004|     |.bss
+currentSettingRight |00804174|   b  |            OBJECT|00000001|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:198
+currentSettingLeft  |00804175|   b  |            OBJECT|00000001|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:197
+handleLCD()::attractmode|00804176|   b  |            OBJECT|00000001|     |.bss
+handleLCD()::lastInputAt|00804177|   b  |            OBJECT|00000004|     |.bss
+lastRFUpdateAt      |0080417b|   b  |            OBJECT|00000004|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:202
+updatePatternFade()::bright|0080417f|   b  |            OBJECT|00000001|     |.bss
+updatePatternDots2()::b|00804180|   b  |            OBJECT|00000001|     |.bss
+updatePatternDots2()::g|00804181|   b  |            OBJECT|00000001|     |.bss
+updatePatternDots2()::r|00804182|   b  |            OBJECT|00000001|     |.bss
+scratch             |00804183|   b  |            OBJECT|00000e10|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:214
+frameNumber         |00804f93|   b  |            OBJECT|00000004|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:215
+currentValueLeft    |00804f97|   b  |            OBJECT|00000008|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:199
+currentValueRight   |00804f9f|   b  |            OBJECT|00000008|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:200
+lastFrameAt         |00804fa7|   b  |            OBJECT|00000004|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:212
+loop::updated       |00804fab|   b  |            OBJECT|00000001|     |.bss
+Serial0             |00804fac|   b  |            OBJECT|00000097|     |.bss	C:\Users\Spence\Documents\Arduino\hardware\DxCore\megaavr\cores\dxcore/UART0.cpp:103
+pixels              |00805043|   b  |            OBJECT|00000e10|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:213
+leds                |00805e53|   b  |            OBJECT|00000013|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:216
+lcd                 |00805e66|   b  |            OBJECT|00000029|     |.bss	C:\Users\Spence\Documents\Electronics\DriftAnimate\DriftAnimate_V2/DriftAnimate_V2.ino:12
+__bss_end           |00805e8f|   B  |            NOTYPE|        |     |.bss
+_end                |00805e8f|   N  |            NOTYPE|        |     |.comment
+__eeprom_end        |00810000|   N  |            NOTYPE|        |     |.comment

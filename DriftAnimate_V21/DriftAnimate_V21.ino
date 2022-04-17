@@ -4,10 +4,12 @@
 #include <avr/pgmspace.h>
 #include <util/crc16.h>
 #include <EEPROM.h>
-#include <USERSIG.h>
-#include "LightCtrl_RevE.h"
+#include "LightCtrl_RevF.h"
 #include "Colors.h"
-//#include "DataLoadSave.h"
+#include "Modes.h"
+#include "HWSpecs.h"
+
+
 
 hd44780_pinIO lcd(LCD_RS, LCD_RW, LCD_EN, LCD_DATA4, LCD_DATA5, LCD_DATA6, LCD_DATA7);
 
@@ -18,197 +20,22 @@ hd44780_pinIO lcd(LCD_RS, LCD_RW, LCD_EN, LCD_DATA4, LCD_DATA5, LCD_DATA6, LCD_D
 
 
 
-const byte colorPallete[][8][3] PROGMEM = {
-  {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Rainbow
-  {{255, 96, 32}, {255, 100, 0}, {240, 128, 40}, {255, 32, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Warm
-  {{255, 0, 64}, {0, 64, 255}, {0, 210, 160}, {160, 0, 160}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Cool
-  {{255, 80, 20}, {255, 100, 0}, {196, 16, 64}, {160, 0, 64}, {255, 32, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //sunset
-  {{0, 255, 0}, {0, 128, 16}, {0, 32, 0}, {64, 160, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},  //Lizard
-  {{255, 0, 16}, {196, 0, 64}, {255, 16, 100}, {255, 0, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //sextime
-  {{255, 64, 0}, {196, 32, 0}, {220, 64, 0}, {255, 16, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //fire
-  //{{255, 0, 0}, {128, 128, 128}, {0, 0, 255}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //USA
-  {{0, 255, 0}, {32, 255, 0}, {0, 255, 32}, {32, 255, 32}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Jungle
-  //{{255, 0, 0}, {0, 0, 0}, {0, 255, 0}, {0, 0, 0}, {255, 200, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //xmas
-  {{255, 64, 0}, {196, 32, 0}, {220, 64, 0}, {32, 255, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Pumpkin
-  {{192, 0, 96}, {196, 0, 64}, {255, 16, 100}, {255, 0, 64}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, //Purples
-  {{160, 160, 140}, {228, 228, 200}, {128, 128, 110}, {60, 60, 50}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}} //static
-};
-const byte colorCount[] PROGMEM = {3, 4, 4, 5, 4, 4, 4, 4, 4, 4, 4};
-
-const char pallete0[] PROGMEM = "RAINBOW";
-const char pallete1[] PROGMEM = "  WARM ";
-const char pallete2[] PROGMEM = "  COOL ";
-const char pallete3[] PROGMEM = "SUNSET ";
-const char pallete4[] PROGMEM = "LIZARD ";
-const char pallete5[] PROGMEM = "SEXTIME";
-const char pallete6[] PROGMEM = "  FIRE ";
-//const char pallete7[] PROGMEM = "  USA  ";
-const char pallete7[] PROGMEM = "JUNGLE ";
-//const char pallete8[] PROGMEM = "  XMAS ";
-const char pallete8[] PROGMEM = "PUMPKIN";
-const char pallete9[] PROGMEM = "PURPLE ";
-const char pallete10[] PROGMEM = "STATIC ";
-
-const char * const palleteNames[] PROGMEM = {pallete0, pallete1, pallete2, pallete3, pallete4, pallete5, pallete6, pallete7, pallete8, pallete9, pallete10};
-#define PALLETEMAX 10
-
-// Names of mode settings - these get stuffed into modesL and modesR below.
-const char mode0L0[] PROGMEM = "  RED  ";
-const char mode0L1[] PROGMEM = " GREEN ";
-const char mode0L2[] PROGMEM = "  BLUE ";
-const char mode1L0[] PROGMEM = "MIN RED";
-const char mode1L1[] PROGMEM = "MAX RED";
-const char mode1L2[] PROGMEM = "MIN GRN";
-const char mode1L3[] PROGMEM = "MAX GRN";
-const char mode1L4[] PROGMEM = "MIN BLU";
-const char mode1L5[] PROGMEM = "MAX BLU";
-const char mode0R0[] PROGMEM = "       ";
-const char mode1R0[] PROGMEM = " SPEED ";
-const char mode1R1[] PROGMEM = " NUMBER";
-const char mode2R2[] PROGMEM = " LENGTH";
-const char mode4R2[] PROGMEM = " DIRECT";
-const char mode5R1[] PROGMEM = "DENSITY";
-const char mode7R2[] PROGMEM = " DWELL ";
-const char mode0Name[] PROGMEM = " SOLID  ";
-const char mode1Name[] PROGMEM = "DRIFTING";
-const char mode2Name[] PROGMEM = " COMETS ";
-const char mode3Name[] PROGMEM = " PULSE  ";
-const char mode4Name[] PROGMEM = " RAINBOW";
-const char mode5Name[] PROGMEM = "  DOTS  ";
-const char mode6Name[] PROGMEM = "  FADE  ";
-const char mode7Name[] PROGMEM = "  WAVE  ";
-const char mode8Name[] PROGMEM = " DOTS2  ";
-const char mode9Name[] PROGMEM = " FADE2  ";
-const char mode10Name[] PROGMEM = " DRIFT2 ";
-
-
-//Names of settings by mode
-const char * const modesL[][8] PROGMEM = {
-  {mode0L0, mode0L1, mode0L2},
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode0R0}, //rainbow
-  {mode1L0, mode1L1, mode1L2, mode1L3, mode1L4, mode1L5},
-  {mode1L0, mode1L2, mode1L4, mode1L1, mode1L3, mode1L5}, //different order!
-  {mode0R0}, //wave
-  {mode0R0}, //dots with pallete
-  {mode0R0}, //fade with pallete
-  {mode0R0} //drift with pallete
-
-};
-
-const char * const modesR[][8] PROGMEM = {
-  {mode0R0}, //solid
-  {mode1R0, mode1R1}, //drift
-  {mode1R0, mode1R1, mode2R2}, //comet
-  {mode1R0, mode5R1}, //pulse
-  {mode1R0, mode2R2, mode4R2}, //rainbow
-  {mode1R0, mode5R1, mode4R2}, //dots
-  {mode1R0}, //fade
-  {mode1R0, mode2R2, mode7R2, mode4R2}, //wave
-  {mode1R0, mode5R1, mode4R2}, //dots with pallete
-  {mode1R0, mode2R2, mode7R2, mode4R2}, //fade with pallete
-  {mode1R0, mode2R2, mode7R2} //drift with pallete
-
-};
-
-// names of modes
-const char * const modeNames[] PROGMEM = {mode0Name, mode1Name, mode2Name, mode3Name, mode4Name, mode5Name, mode6Name, mode7Name, mode8Name, mode9Name, mode10Name};
-
-#define COLORTABLEMAX 31
-
-//max and default settings controlled by left knob. 26 is special, it indicates to use the leftValues array
-const byte maxValueLeft[][8] PROGMEM = {
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {0},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX, COLORTABLEMAX},
-  {PALLETEMAX},
-  {PALLETEMAX},
-  {PALLETEMAX},
-  {PALLETEMAX}
-};
-const byte defaultValueLeft[][8] PROGMEM = { //255 is special - indicates to pick random value.
-  {255, 255, 255},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {0},
-  {0, COLORTABLEMAX, 0, COLORTABLEMAX, 0, COLORTABLEMAX},
-  {255, 255, 255, 255, 255, 255},
-  {0},
-  {0},
-  {0},
-  {0}
-};
-
-//if above max is COLORTABLEMAX, use this value - otherwise use raw value.
-const byte leftValues[COLORTABLEMAX + 1] PROGMEM = {0, 1, 2, 3, 4, 6, 8, 11, 14, 18, 22, 27, 33, 39, 46, 54, 63, 73, 84, 95, 106, 117, 128, 139, 151, 163, 176, 189, 204, 220, 237, 255};
-
-const byte maxValueRight[][8] PROGMEM = {
-  {0},
-  {10},
-  {10, 10, 10},
-  {10, 20},
-  {10, 10, 1},
-  {10, 12, 1},
-  {10},
-  {10, 40, 20, 1},
-  {10, 12, 1},
-  {10, 20, 20, 1},
-  {10, 20, 20}
-};
-const byte defaultValueRight[][8] PROGMEM = {
-  {0},
-  {5},
-  {10, 10, 5},
-  {5, 5},
-  {5, 10, 0},
-  {5, 10, 0},
-  {5},
-  {5, 20, 2, 0},
-  {5, 10, 0},
-  {5, 10, 2, 0},
-  {5, 10, 2}
-};
-const byte maxSetting[][2] PROGMEM = {
-  {2, 0}, //solid
-  {5, 0}, //drift
-  {5, 2}, //comets
-  {5, 1}, //pulse
-  {255, 2}, //rainbow
-  {5, 2}, //dots
-  {5, 0}, //fade
-  {0, 3}, //wave
-  {0, 2}, //dots2
-  {0, 3}, //fade2
-  {0, 2} //drift2
-};
-
-const byte maxMode = 10;
-
-const byte pulseBrightnessTable[] PROGMEM = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 31, 34, 37, 40, 43, 46, 49, 52, 55, 59, 63, 67, 71, 75, 79, 83, 87, 92, 97, 102, 107, 112, 117, 122, 127, 133, 139, 145, 151, 157, 163, 169, 175, 182, 189, 196, 203, 210, 217, 224, 231, 239, 247, 255};
-
 volatile byte lastEncPins = 0;
 volatile byte currentSettingLeft = 0;
 volatile byte currentSettingRight = 0;
-volatile byte currentValueLeft[] = {0, 0, 0, 0, 0, 0, 0, 0};
-volatile byte currentValueRight[] = {0, 0, 0, 0, 0, 0, 0, 0};
+volatile byte currentValueLeft[10] = {0, 0, 0, 0, 0, 0, 0, 0};
+volatile byte currentValueRight[10] = {0, 0, 0, 0, 0, 0, 0, 0};
 volatile byte UIChanged = 7;
 volatile unsigned long lastRFUpdateAt = 0;
 
-byte currentMode = 4;
-
+mode_t * CurrentMode=&modes[0];
+colorset_t * CurrentColors = getColorSetPtr();
 
 volatile unsigned long lastUserAction = 0;
 
 //animation related globals
-#define LENGTH 1200
-//unsigned int frameDelay = 30;
+#define LENGTH 500
+unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
 byte  pixels[LENGTH * 3];
 byte scratch[LENGTH * 3];
@@ -224,21 +51,19 @@ void setup() {
   //setupRF();
   Serial.swap(1);
   Serial.begin(115200);
-  
+  Serial.println("Hi, I started!");
   lcd.begin(16, 2);
   lcd.print(F("Woah I'm on a DB!"));
   lcd.setCursor(0, 1);
   lcd.print(F("Nothing works!"));
-  Serial.println("LCD_INIT");
-  analogWrite(LCD_BL_R, 32);
-  analogWrite(LCD_BL_G, 32);
-  analogWrite(LCD_BL_B, 32);
-  //analogWrite(PIN_PD6,128);
- 
+  digitalWrite(LCD_BL_R, HIGH);
+  digitalWrite(LCD_BL_G, HIGH);
+  digitalWrite(LCD_BL_B, HIGH);
+  pinMode(PIN_PD6, OUTPUT);
+  digitalWrite(PIN_PD6, HIGH);
   delay(2000);
   lcd.clear();
-  //loadMode();
-  setMode(4);
+  loadMode();
 }
 
 void loop() {
@@ -273,9 +98,9 @@ byte getFrameDelay() {
   if (currentMode == 1 || currentMode == 0) {
     return 80;
   } else if (currentMode == 3) {
-    return 30 + 10 * (pgm_read_byte_near(&maxValueRight[currentMode][0]) - currentValueRight[0]);
+    return 30 + 10 * currentMode->Adjust_ - currentValueRight[0];
   }
-  return 30 + 20 * (pgm_read_byte_near(&maxValueRight[currentMode][0]) - currentValueRight[0]);
+  return 30 + 20 * (&maxValueRight[currentMode][0]) - currentValueRight[0];
 
 }
 
@@ -332,7 +157,7 @@ void setMode(byte mode) {
     if (pgm_read_byte_near(&defaultValueLeft[currentMode][i]) == 255) {
       currentValueRight[i] = random(pgm_read_byte_near(&maxValueRight[currentMode][i]));
     } else {
-      currentValueRight[i] = pgm_read_byte_near(&defaultValueRight[currentMode][i]);
+      currentValueRight[i] = currentMode][i]);
     }
   }
   if (currentMode == 10) {
@@ -346,7 +171,7 @@ void setMode(byte mode) {
 }
 
 void initColorsDrift2() {
-  int len = (pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getDwellFrames() + getTransitionFrames()));
+  int len = (CurrentColors->colorcount * (getDwellFrames() + getTransitionFrames()));
   for (int j = 0; j < LENGTH; j++) {
     unsigned int r = random(0, len);
     scratch[((j * 3) / 2)] = r & 0xFF;
@@ -513,7 +338,7 @@ void handleLCD() {
     if (currentMode < 7 ) {
       lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
     } else {
-      lcd.print(FLASH(palleteNames[currentValueLeft[0]]));
+      lcd.print(CurrentColors->colorname);
     }
     lcd.print(' ');
     lcd.print(FLASH(modesR[currentMode][currentSettingRight]));
@@ -522,7 +347,7 @@ void handleLCD() {
     byte tval;
     if (currentMode > 6) {
       lcd.setCursor(0, 0);
-      lcd.print(FLASH(palleteNames[currentValueLeft[0]]));
+      lcd.print(CurrentColors->colorname);
       lcd.setCursor(0, 1);
       lcd.print(F("    "));
     } else if (pgm_read_byte_near(&maxSetting[currentMode][0]) != 255) {
@@ -562,14 +387,14 @@ void doAttractLCD() {
   byte s = random(0, 3);
   if (!s) {
     lcd.setCursor(0, 0);
-    lcd.print(F("LEDCTRLA - V2.1"));
+    lcd.print(F("Light Test v2.1"));
     lcd.setCursor(0, 1);
-    lcd.print(F("12/19/21 vers."));
+    lcd.print(F("AVR128DB48"));
   } else if (s == 1) {
     lcd.setCursor(0, 0);
-    lcd.print(F("Zuzu and I miss"));
+    lcd.print(F("This is not a"));
     lcd.setCursor(0, 1);
-    lcd.print(F("you Alice! "));
+    lcd.print(F("real party"));
     lcd.write(0x7F);
   } else {
     lcd.setCursor(2, 0);
@@ -633,12 +458,15 @@ void updatePatternDots() {
 void updatePatternDots2() {
   static byte r, g, b;
   if (!(frameNumber % (13 - currentValueRight[1]))) {
-    getModeColors(&r, &g, &b, random(0, pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getTransitionFrames() + getDwellFrames())));
+    getModeColors(&r, &g, &b, random(0, CurrentColors->colorcount * (getTransitionFrames() + getDwellFrames())));
   } else {
     r = 0; g = 0; b = 0;
   }
   pushPixel(r, g, b, currentValueRight[2]);
 }
+// Supposed to be mnuch faster.
+// I am doubtful that this is correctly implementing the xorshift though.
+
 uint16_t rng(uint16_t seed) {
   static uint16_t y = 0;
   if (seed != 0) y += (seed && 0x1FFF); // seeded with a different number
@@ -735,6 +563,12 @@ byte getPalleteNumber() {
     return currentValueLeft[0];
   }
 }
+colorset_t * getColorSetPtr() {
+  if (CurrentMode == 4) {
+  return &ColorTable[0];
+  }
+  return &ColorTable[currentValueLeft[0]];
+}
 /*
    void initColorsDrift2() {
   int len = (pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getDwellFrames() + getTransitionFrames()));
@@ -754,7 +588,7 @@ void updatePatternDrift2() {
   byte driftchance = 16 + currentValueRight[0] * 10;
   byte randinc = 255 - driftchance;
   byte randdec = driftchance;
-  uint16_t len = (pgm_read_byte_near(&colorCount[getPalleteNumber()]) * (getDwellFrames() + getTransitionFrames()));
+  uint16_t len = (CurrentColors->colorcount) * (getDwellFrames() + getTransitionFrames());
   for (uint16_t i = 0; i < LENGTH; i += 2) {
     uint16_t rand = random(65535);
     uint16_t f1 = scratch[(i * 3) >> 1] + ((scratch[(i >> 1) * 3 + 2] & 0x0F) << 8);
@@ -793,27 +627,26 @@ void updatePatternDrift2() {
 void getModeColors(byte * r, byte * g, byte * b, unsigned long fnumber) {
   unsigned int dwellFrames = getDwellFrames();
   unsigned int transitionFrames = getTransitionFrames();
-  byte colors = getPalleteNumber();
-  unsigned long tem = ((currentValueRight[currentMode == 4 ? 2 : 3] ? 0 : LENGTH) + fnumber) % (pgm_read_byte_near(&colorCount[colors]) * (dwellFrames + transitionFrames));
+  unsigned long tem = ((currentValueRight[currentMode == 4 ? 2 : 3] ? 0 : LENGTH) + fnumber) % (CurrentColors->colorcount * (dwellFrames + transitionFrames));
   unsigned int cyclepos = tem % (dwellFrames + transitionFrames);
   byte cyclenum = tem / (dwellFrames + transitionFrames);
   if (cyclepos < dwellFrames) {
-    *r = pgm_read_byte_near(&colorPallete[colors][cyclenum][0]);
-    *g = pgm_read_byte_near(&colorPallete[colors][cyclenum][1]);
-    *b = pgm_read_byte_near(&colorPallete[colors][cyclenum][2]);
+    *r = CurrentColors->colors[cyclenum][0];
+    *g = CurrentColors->colors[cyclenum][1];
+    *b = CurrentColors->colors[cyclenum][2];
     return;
   } else {
     cyclepos -= dwellFrames;
-    byte m = ((cyclenum + 1) >= pgm_read_byte_near(&colorCount[colors])) ? 0 : cyclenum + 1;
+    byte m = ((cyclenum + 1) >= CurrentColors->colorcount) ? 0 : cyclenum + 1;
     float ratio = ((float)cyclepos) / transitionFrames;
     if (ratio > 1.001 || ratio < 0.0) {
       Serial.print(F("ERROR: ratio out of range"));
       Serial.println(ratio);
       Serial.flush();
     }
-    *r = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][0]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][0]) * (1 - ratio));
-    *g = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][1]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][1]) * (1 - ratio));
-    *b = 0.5 + (pgm_read_byte_near(&colorPallete[colors][m][2]) * ratio) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][2]) * (1 - ratio));
+    *r = 0.5 + (CurrentColors->colors[m][0] * ratio) + (CurrentColors->colors[cyclenum][0] * (1 - ratio));
+    *g = 0.5 + (CurrentColors->colors[m][1] * ratio) + (CurrentColors->colors[cyclenum][1] * (1 - ratio));
+    *b = 0.5 + (CurrentColors->colors[m][2] * ratio) + (CurrentColors->colors[cyclenum][2] * (1 - ratio));
   }
 }
 
@@ -833,22 +666,21 @@ byte getModeRatio(unsigned int fnumber) {
 void getDrift2Colors(byte * r, byte * g, byte * b, unsigned long fnumber) {
   unsigned int dwellFrames = getDwellFrames();
   unsigned int transitionFrames = getTransitionFrames();
-  byte colors = getPalleteNumber();
-  unsigned long tem = ((currentValueRight[currentMode == 4 ? 2 : 3] ? 0 : LENGTH) + fnumber) % (pgm_read_byte_near(&colorCount[colors]) * (dwellFrames + transitionFrames));
+  unsigned long tem = ((currentValueRight[currentMode == 4 ? 2 : 3] ? 0 : LENGTH) + fnumber) % (CurrentColors->colorcount * (dwellFrames + transitionFrames));
   unsigned int cyclepos = tem % (dwellFrames + transitionFrames);
   byte cyclenum = tem / (dwellFrames + transitionFrames);
   if (cyclepos < dwellFrames) {
-    *r = pgm_read_byte_near(&colorPallete[colors][cyclenum][0]);
-    *g = pgm_read_byte_near(&colorPallete[colors][cyclenum][1]);
-    *b = pgm_read_byte_near(&colorPallete[colors][cyclenum][2]);
+    *r = CurrentColors->colors[cyclenum][0];
+    *g = CurrentColors->colors[cyclenum][1];
+    *b = CurrentColors->colors[cyclenum][2];
     return;
   } else {
     cyclepos -= dwellFrames;
-    byte m = ((cyclenum + 1) >= pgm_read_byte_near(&colorCount[colors])) ? 0 : cyclenum + 1;
+    byte m = ((cyclenum + 1) >= CurrentColors->colorcount) ? 0 : cyclenum + 1;
     unsigned int start = (LENGTH * 3 + 1) >> 1 ;
     byte ratio = scratch[start + cyclepos];
-    *g = (((unsigned int)(pgm_read_byte_near(&colorPallete[colors][m][1]) * ratio)) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][1]) * (255 - ratio))) >> 8;
-    *b = (((unsigned int)(pgm_read_byte_near(&colorPallete[colors][m][2]) * ratio)) + (pgm_read_byte_near(&colorPallete[colors][cyclenum][2]) * (255 - ratio))) >> 8;
+    *g = (((unsigned int)(CurrentColors->colors[m][1] * ratio)) + (CurrentColors->colors[cyclenum][1] * (255 - ratio))) >> 8;
+    *b = (((unsigned int)(CurrentColors->colors[m][2] * ratio)) + (CurrentColors->colors[cyclenum][2] * (255 - ratio))) >> 8;
   }
 }
 
@@ -1020,7 +852,7 @@ ISR(PORTC_PORT_vect) {
 
   /* post "Navigation forward/reverse" event */
   if ( EncL_Val > 3 ) { //four steps forward
-    if (currentValueLeft[currentSettingLeft] < pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]))currentValueLeft[currentSettingLeft]++;
+    if (currentValueLeft[currentSettingLeft] < maxValueLeft[currentMode][currentSettingLeft])) currentValueLeft[currentSettingLeft]++;
     //hackjob to handle min exceeding max or vice versa.
     if ((currentMode == 1 || currentMode == 2 || currentMode == 3 || currentMode == 4 || currentMode == 5) && currentSettingLeft < 6) {
       if (!(currentSettingLeft & 1)) {

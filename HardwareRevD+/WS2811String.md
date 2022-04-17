@@ -57,11 +57,14 @@ Crimp connectors on and install in the head end connector housing.
 
 ## Type 2:
 
-1. You *must* have a way to roll up the fairly lights when handling them! Their tangles cannot be undone by mere mortals, and you must rotate reel along it's axis wheb rolling them up. Wrapping around a stationary reel or object wwill introduce a twist for each revolution, eventually tangling itself up and  it will almost exoplosively uncoil itseklf, Rolling up correctlky prevents this.
+1. You *must* have a way to roll up the fairly lights when handling them! Their tangles cannot be undone by mere mortals, and you must rotate reel along it's axis wheb rolling them up. Wrapping around a stationary reel or object wwill introduce a twist for each revolution, eventually tangling itself up and  it will almost exoplosively uncoil itself, Rolling up correctly prevents this.
 
-Unit of importance is 200- strings made from fairy lights. ToDo: - how sloppy can we be about getting power into these? If they do 100-strings, can we power the middle of a 200 string? we can right? head end might need it's own power, but it will be a ways away... plus we can deliver data to the middle using pixelrouter. Could we power and data into middle of 2x200? Pinout:
-+19v, empty or +5, data, ground,
+Unit of importance is 50, 100 LED stringsts.
+The strings with the opaque blobs are brighter and draw >2x the current. even with 5.5v input, whites brighter than 144/channel will show discoloration at the end. Powered from one end strings of 100 of these will reach apx. 1.7A/string at full brightness, but with it limited such that no discoloration is seen, current tops out at around 1.5A. The 200 LED strings are made from a pair of 100-led strings; these can be desoldered from eachother in the middle, and this is required for a decent brightness
 
+The strings with the clearer plastic draw about half the current/LED, though you can't quite get 100 at full brightness.
+
+They will be driven by splitter boxes, which will have an XH header for the string (4 pins, Gnd, Data, +5v, typesense.)
 
 
 COTS 100-string fairly lights, standard 3p in WITH THE WRONG FUCKING gender - side that supplies power must always be female, never male! will make adapters to reverse it, and heat-shrink them on or swap connectors.
