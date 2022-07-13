@@ -3,7 +3,7 @@ Rev. E was found to have crititcal flaws that made it entirely unusablke without
 
 Rev. E issues:
 * AVR128DB48 is used for the controller. The 32 did not have sufficient pins. 
-* There was no circuit protection. Unfortunatel, while FAR more efficient, when using the Mini560 converters and some +19v power bricks, there wwas an unacceptabl high rate if faiures, particularly in combination with unreliable connections 
+* There was no circuit protection. Unfortunately, while FAR more efficient, when using the Mini560 converters and some +19v power bricks, there wwas an unacceptabl y high rate if faiures, particularly in combination with unreliable connections 
   * They were made usable for testing with a protection board consisting od a 5.1V zener across the power rails, a PTC fuse, and a pair of protection diodes (schottky) on each data line. These were bulky and considered too fragile for largescale deployment. 
 * Additionally, the possibility of background LED output via slave SPI and nearly every peripheral had not been consdered; It requires several jumpers between pins to implement, and specific pins must be used. 
 * 
@@ -68,7 +68,7 @@ Rev. F simply added a robust protection circuit.
 * 250mA PTC fuse that would trip if the zener kicked in or some other fault was occurring.
 * NCP349 OVP and UVLO IC - other parts were considered, but only these were available with a reasonable lead time. The package is challenging to work with, but cest la vie. 
 * A 5.6V 3W zener diode was added between power and ground. 
-* There are potentially 4 data lines connected to the LED strings. The pairs of protection diodes in SOT-23 were replaced with a single NUP3402 clamp array. The 68 ohm resistor rmaines, 2 of which are currently integral to operation; notice that the pins have CHANGED to ensure that it is possible to use them with a 
+* There are potentially 4 data lines connected to the LED strings. The pairs of protection diodes in SOT-23 were replaced with a single NUP3402 clamp array. The 68 ohm resistor rmaines, 2 of which are currently integral to operation; notice that the pins have CHANGED to ensure that it is possible to send LEDs in the background. 
   * Vcc
   * PA6(LEDs)
   * Gnd
