@@ -19,19 +19,19 @@ Higher current supported with power injected in multiple places.
 
 ## FB protocol
 
-LEDCTRLA enables pullup on FB. 
-Measure with ADC repeatedly. Analog values indicate dumb fairy light string, 50, 100 or 200 leds in length, or 332 LED COB string. 
-If it is grounded, there are no splitters. Splitters, if any, must preceed all other modules for detection.
-Otherwise, splitter shall allow pin to go high for 1 second, and then drive it low for 100ms, release, and pull up.
-LECTRLA, as soon as the line is brought high, will then drive it low for 100ms, release, and pull up, enabling USART in single wire mode
-Splitter will then indicate busy state by driving line low, and pull up it's downstream FB line, repeating the above protocol. 
-If it sees another splitter, it shall wait for the line to be released, and then enable USART in two wire mode. 
-Splitter which sees nothing connected, or a dumb downstream string shall measure all outputs with ADC to deduce their length. 
-It will then turn on the pullup and USART in single-wire mode, and transmit it's detected configuration. 
-Next spliter will receive that, switch USART to two wire mode, and transmit it's detected configuration followed by the received one. 
-End state is with all USARTs in single-wire mode, and LEDCTRLA receiving configurations of all strings. 
-The RX lines of splitters, connected to the bidirectional hardware serial of downstream splitters, would use a custom software serial implementation to allow RX and TX of short messages to occur. 
-
+1. LEDCTRLA enables pullup on FB. 
+2. Measure with ADC repeatedly. Analog values indicate dumb fairy light string, 50, 100 or 200 leds in length, or 332 LED COB string. 
+  a. If it is grounded, there are no splitters. Splitters, if any, must preceed all other modules for detection.
+  b. Otherwise, splitter shall allow pin to go high for 1 second, and then drive it low for 100ms, release, and pull up.
+  c. If intermediate analog value seen, and hence it is a dumb-string, determine length from the resistance
+3. LECTRLA, as soon as the line is brought high, will then drive it low for 100ms, release, and pull up, enabling USART in single wire mode
+4. Splitter will then indicate busy state by driving line low, and pull up it's downstream FB line, repeating the above protocol. 
+  a. If it sees another splitter, it shall wait for the line to be released. During this time it may measure the resistances on strings to find length
+  b. In either event the splitter will measure the connected pins of outputs and deduce string lengths.   
+5. Splitter which does see another splitter downstream will instead hold hold it's upstream line low and enable pullup on downstream fbline.
+6. A splitter with the length of it's string and all downstream ones known shall release the upstream feedback line.
+  a. Downstream device has 100ms to enable it's USART to 2-wire mode to receive the data. At that point, it will know the length of it's strings and all downstream ones. Repeat step 6 until the first splitter has informd controller of the strings connected. 
+7. Normal operation commences. All splitters will have USART in one-wire mode, 
 
 Adapters:
 ### Basic
