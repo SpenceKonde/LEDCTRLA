@@ -1,6 +1,4 @@
-include <stdint.h>
 
-/*
 # Hardware Revision D
 ~Rev. D is a MAJOR revision. It is expected to be incompatible with software for Rev. C hardware and earlier~
 Rev. D suffered from a fatal design defect. ~Rev. E is the next generation, and have major improvements over the D as well.~ 
