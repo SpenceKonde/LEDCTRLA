@@ -11,11 +11,15 @@
                   1A  1B   1C       2A  2B  2C        nA   nB  nC
 ```
 
-1A is 50, 100, or 322 LED long string. 
+A/B/C are 50, 100, 200, or 322 LED long strings. 
 
 As current is limited to 3.42A @ 19v plus conversion loss and wire loss, max of 4 strings in sequence supported, or 8 with center-powered configuration.
 
 Higher current supported with power injected in multiple places. 
+
+
+
+
 
 ## FB protocol
 
