@@ -150,8 +150,26 @@ Splitter will then indicate busy state by driving line low, and pull up it's dow
 
 The RX lines of splitters, connected to the bidirectional hardware serial of downstream splitters, would use a custom software serial implementation to allow RX and TX of short messages to occur. 
 
+  Single wire protocol is used for communication between light controller and downstream splitters. 
+  
+ ``` text
+ LEDCTRLA ---------[SPLIT 1]---------[SPLIT 1]---------[SPLIT n]
+                   |   |   |         |   |   |         |   |   |  
+                  1A  1B   1C       2A  2B  2C        nA   nB  nC
+                  
 
-## Adapters:
+ LEDCTRLA ---------[SPLIT 1]---------[SPLIT 1]---------[SPLIT n]---------[50xWS2811 1]---------[50xWS2811 N]
+                   |   |   |         |   |   |         |   |   |  
+                  1A  1B   1C       2A  2B  2C        nA   nB  nC
+```
+
+A/B/C are 50, 100, 200, or 322 LED long strings. 
+
+As current is limited to 3.42A @ 19v plus conversion loss and wire loss, max of 4 strings in sequence supported, or 8 with center-powered configuration.
+
+Higher current supported with power injected in multiple places. 
+
+:
 ### Basic
 +19v and Gnd lines to superseal connector should be the heaviest gauge wire that the connectors will fit, and may be either Orange and Black, Orange and Grey, or Unmarked and Marked black, white, or transparent zipcord. 
 
@@ -166,7 +184,7 @@ Lines to PH4 F to controller should be the listed colors, or this should be a 4 
 |____|--Y-----FB---------``--t----.-Gnd----|_______|___]
                              |    |
  _______________             /    |
-| Male          |-O---+19B--`     |
+| Male          |-O---+19V--`     |
 | SuperSeal 2p  |                 /
 |_______________|-B---Gnd--------`        
 ```
@@ -186,3 +204,36 @@ Lines to PH4 F to controller should be the listed colors, or this should be a 4 
                                  |1__|   Aux
 ```
 
+### Power injection 
+
+```text                    
+___________                                       ___________
+:-- MX 3.0 |                       /--+19V-------| MX 3.0|___]
+:-- 5 pin  |                       |             | 5 pin |___]
+:-- female |--U-----Data-----------t-------------| Male  |   ]
+:--        |--Y-----Gnd------------t-------------| (male)|___]
+:--________|--B-----FB-------------t----.-Gnd----|_______|___]
+                                   |    |
+       _______________             /    |
+      | Male          |-O---+19V--`     |
+      | SuperSeal 2p  |                 /
+      |_______________|-B---Gnd--------`
+```
+
+Allows power to be injected in the middle of a string to supply up to 4 more downstream sections of 50 LEDs. Note that +19 and +5v from other string are not connected!
+
+### Double Power injection 
+
+```text                    
+___________                                       ___________
+:-- MX 3.0 |----------------\           /--+19V--| MX 3.0|___]
+:-- 5 pin  |                |           |        | 5 pin |___]
+:-- female |--U-----Data----t-----------t--------| Male  |   ]
+:--        |--Y-----Gnd-----t-----------t--------| (male)|___]
+:--________|--B-----FB------T----,--,---t-Gnd----|_______|___]
+                            |    |  |   |
+ _______________            /    |  |   |       _______________
+| Male          |-O--+19V--`     |  |    +19-O-| Male          |
+| SuperSeal 2p  |                /  \          | SuperSeal 2p  |
+|_______________|-B---Gnd-------`    `---Gnd-B-|_______________|
+```
