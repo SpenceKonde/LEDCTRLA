@@ -1,9 +1,13 @@
+#include <Arduino.h>
+
 #define SYS_STATUS GPR.GPR3 
 /* used for system status flags
  *  bit 0 = receiving
  *  bit 1 = new message
  *  
  */
+
+
 
 // UI + encoder involved globals
 #define RX_PIN_STATE (PINB&1) //RX on pin 8 for input capture. 
@@ -60,7 +64,7 @@
  *  Macros, buffers, etc     *
  *                           * 
  ****************************/
-const byte MyAddress = 0;
+extern byte MyAddress;
 #define RX_BITPOS 0
 #define NEW_MSG_BITPOS 1
 #define RFRX_NOW      (SYS_STATUS &    (1 << RX_BITPOS))
@@ -70,18 +74,23 @@ const byte MyAddress = 0;
 #define GOT_MESSAGE   (SYS_STATUS &    (1 << NEW_MSG_BITPOS))
 #define CLR_MESSAGE    SYS_STATUS &= (~(1 << NEW_MSG_BITPOS))
 
-volatile byte bitnum = 0; //current bit received
+extern volatile byte bitnum;
 
-volatile byte gotMessage = 0;
+extern volatile byte gotMessage;
 
-volatile byte dataIn = 0;
-volatile byte pktLength = 31;
-volatile unsigned long lastRFMsgAt = 0;
-volatile byte rxBuffer[32];
-byte recvMessage[32];
+extern volatile byte dataIn;
+extern volatile byte pktLength;
+extern volatile unsigned long lastRFMsgAt;
+extern volatile byte rxBuffer[32];
+extern byte recvMessage[32];
 
-unsigned long lastPacketTime = 0;
-unsigned long lastPacketSig = 0;
+extern unsigned long lastPacketTime;
+extern unsigned long lastPacketSig;
+
+void printSpecs();
+void printSpecs(UartClass t);
+
+
 
 // Version 2.2/2.3
 #if(F_CPU==8000000)

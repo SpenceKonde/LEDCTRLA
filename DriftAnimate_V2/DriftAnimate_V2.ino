@@ -5,8 +5,8 @@
 #include <util/crc16.h>
 #include <EEPROM.h>
 #include <USERSIG.h>
-#include "LightCtrl_RevE.h"
 #include "Colors.h"
+#include "LightCtrl_RevE.h"
 //#include "DataLoadSave.h"
 
 hd44780_pinIO lcd(LCD_RS, LCD_RW, LCD_EN, LCD_DATA4, LCD_DATA5, LCD_DATA6, LCD_DATA7);
@@ -207,7 +207,7 @@ byte currentMode = 4;
 volatile unsigned long lastUserAction = 0;
 
 //animation related globals
-#define LENGTH 1200
+#define LENGTH 108
 //unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
 byte  pixels[LENGTH * 3];
@@ -234,9 +234,13 @@ void setup() {
   analogWrite(LCD_BL_G, 32);
   analogWrite(LCD_BL_B, 32);
   //analogWrite(PIN_PD6,128);
- 
   delay(2000);
   lcd.clear();
+  lcd.print(F("Starting up"));
+  lcd.setCursor(0, 1);
+  lcd.print(F("Version E"));
+  printSpecs(); 
+  delay(2000);
   //loadMode();
   setMode(4);
 }

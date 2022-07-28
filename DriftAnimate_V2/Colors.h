@@ -1,9 +1,5 @@
+#include <stdint.h>
 
-typedef struct colorset_t {
-  char colorname[8];    //8
-  uint8_t colorcount;   //1
-  uint8_t colors[8][3]; //24
-} colorset_t;
 
 #define size_colorset (33)
 
@@ -20,22 +16,5 @@ typedef struct colorset_t {
 #define colors_PUMPKIN  "PUMPKIN", 4, {{255,  64,   0},   {196,  32,   0},   {220,  64,   0},   { 32, 255,   0},   {  0,   0,   0},   {  0,   0,   0},   {  0,   0,   0},   {  0,   0,   0}}
 #define colors_PURPLE   "PURPLE ", 4, {{192,   0,  96},   {196,   0,  64},   {255,  16, 100},   {255,   0,  64},   {  0,   0,   0},   {  0,   0,   0},   {  0,   0,   0},   {  0,   0,   0}}
 #define colors_STATIC   "STATIC ", 4, {{160, 160, 140},   {228, 228, 200},   {128, 128, 110},   { 60,  60,  50},   {  0,   0,   0},   {  0,   0,   0},   {  0,   0,   0},   {  0,   0,   0}}
-PROGMEM_MAPPED colorset_t ColorTable[] = {
-  {colors_RAINBOW},
-  {colors_WARM},
-  {colors_COOL},
-  {colors_SUNSET},
-  {colors_LIZARD},
-  {colors_SEXTIME},
-  {colors_FIRE},
-  {colors_USA},
-  {colors_JUNGLE},
-  {colors_XMAS},
-  {colors_PUMPKIN},
-  {colors_PURPLE},
-  {colors_STATIC}
-};
 
-uint8_t getColorSetCount() {
-  return sizeof(ColorTable)/size_colorset;
-}
+uint8_t getColorSetCount();
