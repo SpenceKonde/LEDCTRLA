@@ -34,7 +34,6 @@ colorset_t * CurrentColors = getColorSetPtr();
 volatile unsigned long lastUserAction = 0;
 
 //animation related globals
-#define LENGTH 500
 unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
 byte  pixels[LENGTH * 3];
@@ -387,26 +386,26 @@ void doAttractLCD() {
   byte s = random(0, 3);
   if (!s) {
     lcd.setCursor(0, 0);
-    lcd.print(F("Light Test v2.1"));
+    lcd.print(F("Light Test v2.1.1"));
     lcd.setCursor(0, 1);
     lcd.print(F("AVR128DB48"));
   } else if (s == 1) {
     lcd.setCursor(0, 0);
-    lcd.print(F("This is not a"));
-    lcd.setCursor(0, 1);
-    lcd.print(F("real party"));
-    lcd.write(0x7F);
+    lcd.print(F("For test only"));
+    //lcd.setCursor(0, 1);
+    //lcd.print(F("test party"));
+    //lcd.write(0x7F);
   } else {
     lcd.setCursor(2, 0);
-    lcd.print(F("PLAY WITH ME"));
+    lcd.print(F("Test party only"));
     lcd.setCursor(0, 1);
     byte r = random(0, 2);
     if (r == 0) {
-      lcd.print(F("USE KNOBS&BUTTON"));
+      lcd.print(F("don't have fun"));
     } else if (r == 1) {
-      lcd.print(F("TURN MY KNOBS ;)"));
+      lcd.print(F("use knobs/button"));
     } else {
-      lcd.print(F("ADJUST LIGHTING"));
+      lcd.print(F("adjust lighting"));
     }
   }
 }
@@ -428,7 +427,6 @@ void updatePattern() {
     updatePatternDots();
   } else if (currentMode == 6) {
     updatePatternFade();
-
   } else if (currentMode == 7) {
     updatePatternWave();
   } else if (currentMode == 8) {
@@ -463,17 +461,6 @@ void updatePatternDots2() {
     r = 0; g = 0; b = 0;
   }
   pushPixel(r, g, b, currentValueRight[2]);
-}
-// Supposed to be mnuch faster.
-// I am doubtful that this is correctly implementing the xorshift though.
-
-uint16_t rng(uint16_t seed) {
-  static uint16_t y = 0;
-  if (seed != 0) y += (seed && 0x1FFF); // seeded with a different number
-  y ^= y << 2;
-  y ^= y >> 7;
-  y ^= y << 7;
-  return (y);
 }
 
 

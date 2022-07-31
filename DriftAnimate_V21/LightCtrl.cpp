@@ -1,4 +1,7 @@
 #include <LightCtrl_RevF.h>
+#define Ser CONSOLE
+void init_TCA1() { // override with empty.
+}
 
 void init_BL_PWM() {
   takeOverTCA1();
@@ -22,6 +25,7 @@ void set_BL_PWM(uint16_t red, uint16_t green, uint16_t blue) {
   (*ptr++) = blue;
 }
 bool init_UI_Inputs() {
+  Ser.println(F("Making sure PORTC has power"));
   uint8_t PortC_OK = 0;
   if (!MVIO.STATUS) {
     uint32_t start = millis();
@@ -35,32 +39,47 @@ bool init_UI_Inputs() {
     PortC_OK = 1; // MVIO was already up and running
   }
   if (!PortC_OK) {
-    Serial.println("FATAL ERROR - No power to VDDIO2?");
+    Ser.println(F("FATAL ERROR - No power to VDDIO2?"));
     ErrorSet(NO_ENCODERS);
   }
   // Check VDDIO2 voltage
   int16_t voltage = read_int_voltage(ADC_VDDIO2DIV10);
   if (voltage < 0) {
-    Serial.print("Cannot measure VDDIO2 - error code: ");
+    Ser.print(F("Cannot measure VDDIO2 - error code: "));
+    Ser.println(voltage_adc + (int32_t)2100000000);
   } else {
-    Serial.print("VDDIO2 = ");
+    int16_t voltage = voltage_adc;
+    uint8_t lsbs = voltage & 3;
+    voltage >> 2; // divide by 4. We took a 12 bit reading with a 1.024 V reference. VDDIO2 is expected to be either 3.3V or 5V. Divided by 10 gives 330mv or 500mv.
+    // With that reference, we should thus expect 1320 or 2000 to be read. We would like millivolts, so divide by 4 after recording the two low bits.
+    // We would like to see 330 or 500 at that point.
+    voltage *= 10; // multiply by 10 to undo the internal division by 10 yielding actual mV.
+    if (lsbs & 1)
+      voltage += 3;
+    if (lsbs & 2)
+      voltage += 5;
+    // So now we have the voltage on vddio2 in millivolts.
+    Ser.print(F("VDDIO2 = "))
+    Ser.print(voltage);
   }
-    Serial.println(voltage);
   if (PortC_OK) {
-    // Setup encoders
     VPORTC.INTFLAGS = VPORTC.INTFLAGS;
     PORTC.PIN0CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
     PORTC.PIN1CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
     PORTC.PIN2CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
     PORTC.PIN3CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
-    // Setup encoders
     pinModeFast(ENC1_BTN, INPUT_PULLUP);
     pinModeFast(ENC2_BTN, INPUT_PULLUP);
     pinModeFast(MODE_BTN, INPUT_PULLUP);
-
+    Ser.println(F(" Inputs ready"))
   }
 
 
+}
+void init_indicators() {
+  pinModeFast(IND0,OUTPUT);
+  pinModeFast(IND1,OUTPUT);
+  pinModeFast(IND2,OUTPUT);
 }
 
 int16_t read_int_voltage(uint8_t chan) {
@@ -91,32 +110,29 @@ int16_t read_int_voltage(uint8_t chan) {
     return (voltage);
   }
 }
+bool init_lcd() {
+  lcd.begin(16, 2);
+  lcd.print(F("Woah I'm V2.1.1"));
+  lcd.setCursor(0, 1);
+  lcd.print(F("Nothing works!"));
+}
+void init_FB_SER() {
+  FB_SER.SWAP(FB_SER_SWAP);
 
+}
 bool init_POST() {
-  int16_t voltage read_int_voltage(ADC_VDDDIV10);
-  if (voltage < 0) {
-    Serial.print("Cannot measure VDD - error code: ");
-  } else {
-    Serial.print("VDD = ");
-  }
-  Serial.println(voltage);
-  if (voltage < 3700) {
-    Serial.println("Warning, low voltage")
-  }
-}
-bool init_LCD() {
+  Ser.swap(CONSOLE_SWAP);
+  Ser.begin(115200);
+  Ser.println(F("LEDCTRLA Power on selftest"));
+  Ser.println(F("Initializing input pins..."));
+  init_UI_Inputs();
+  init_BL_PWM();
+  set_BL_PWM(0xFFFF, 0, 0);
+  delay(100);
+  set_BL_PWM(0, 0xFFFF, 0);
+  delay(100);
+  set_BL_PWM(0, 0, 0xFFFF);
+  delay(100);
+  initLCD();
 
-}
-void init_Console() {
-  pinModeFast(CONSOLE_RX,INPUT_PULLUP);
-  CONSOLE.swap(CONSOLE_SWAP);
-  CONSOLE.begin(CONSOLE_BAUD);
-}
-void init_FB() {
-  FB_SER.swap(FB_SER_SWAP);
-  FB_SER.begin(FB_SER_BAUD, FB_SER_MODE);
-}
-int16_t enumerate_leds() {
-
-  return 200;
 }
