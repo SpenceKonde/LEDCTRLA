@@ -1,59 +1,12 @@
 #ifndef __LightCtrl_h
 #define __LightCtrl_h
 #include "Arduino.h"
+#define FLASH(flashptr) (reinterpret_cast<const __FlashStringHelper *>(pgm_read_word_near(&flashptr)))
 #include "Modes.h"
 #include "Colors.h"
 #include "HWSpecs.h"
 
-/*************************
- * Function Declarations *
- * (boring ones)         *
- ************************/
-void init_BL_PWM(); // Initialize PWM for the backlight
-void set_BL_PWM(uint16_t red, uint16_t green, uint16_t blue); // Set the backlight to a color.
-bool init_UI_Pins(); // Initialize all the UI pins, assuming that the encoder pins have power. If they don't, returns 0 and sets fatal error flag.
-bool init_LCD();     // Initialize the LCD - 1 = successful, 0 = fatal error, LCD not working.
-bool init_POST();    // Perform Power On Self Test, 1 = success, 0 = something went wrong
-void init_Console(); // Initialize console serial
-void init_FB();   // Do not call directly. Initializes the feedback channel during the enumeration process.
-int16_t enumerate_leds(); // Enumerate connected LEDs. Will call init_FB() if anything that can talk is on the other side.
-// Returns the numberof LEDs connected, in addition to populating the global.
 
-int16_t read_int_voltage(uint8_t chan); // Read Vdd or VDDIO2.
-// -32768 = invalid channel specified.
-// Any other negative number indicates a failure to read the ADC.
-// Positive number is the voltage in millivolts.
-
-
-
-/* These are functionlike macros for extremely simple tests. Likely compiles to sbis/sbic *
- * They should be called with constant arguments with one (and only one) bit set          *
-bool StatusGet(uint8_t bitmask)  //True if that status bit is set.
-bool ErrorGet(uint8_t bitmask)   //True if that error bit is set.
-bool Fatal_Error_Check() //True if there are any fatal errors.
- * End of functionlike macros
- */
-
-// These are always inlined, but are not macros.
-// They should be called with constant arguments with not-more-than-one bit set
-// but with the exception of LAC it is legal
-// to call them with
-// Status set bit using one of the constants below.
-void StatusSet(bitmask);
-// Status clear bit
-void StatusClr(bitmask);
-// Status load and clear bit.
-bool StatusLAC(bitmask);
-// Set an error status
-void ErrorSet(bitmask);
-// Clear a non-fatal error status.
-void ErrorClr(bitmask);
-
-
-/*************************
- * Status and error code *
- * stored in the GPIORs  *
- ************************/
 
 #define SYS_STATUS                    (GPR.GPR3)
 #define STATUS_RX_bp                  (0)
@@ -66,8 +19,6 @@ void ErrorClr(bitmask);
 #define STATUS_UI_CHANGE_bp           (7)
 #define RX_ONGOING                    (1 << STATUS_RX_bp)
 #define NEW_MSG                       (1 << STATUS_NEW_MSG_bp)
-// TBD                                (1 << TBD)
-// TBD                                (1 << TBD)
 #define COLOR_CHANGE                  (1 << STATUS_COLOR_CHANGE_bp)
 #define ADJUST_CHANGE                 (1 << STATUS_ADJUST_CHANGE_bp)
 #define MODE_CHANGE                   (1 << STATUS_MODE_CHANGE_bp)
@@ -95,9 +46,6 @@ void ErrorClr(bitmask);
 #define ERROR_FATAL_CLR_bp            (7)
 #define NO_CFG                        (1 << ERROR_NO_CFG_bp)
 #define BAD_CFG                       (1 << ERROR_BAD_CFG_bp)
-// TBD                                (1 << TBD)
-// TBD                                (1 << TBD)
-// TBD                                (1 << TBD)
 #define NO_LCD                        (1 << ERROR_NO_LCD_bp)
 #define NO_ENCODERS                   (1 << ERROR_NO_ENC_bp)
 #define FATAL_CLR                     (1 << ERROR_FATAL_CLR_bp)
@@ -217,6 +165,7 @@ USART4 (Serial4 = Unused on EXT pins)
 #define ENC1_PINB   PIN_PC1
 #define ENC2_PINA   PIN_PC2
 #define ENC2_PINB   PIN_PC3
+
 #define ENC2_BTN    PIN_PB3
 #define ENC1_BTN    PIN_PB4
 #define MODE_BTN    PIN_PB5
@@ -238,12 +187,14 @@ USART4 (Serial4 = Unused on EXT pins)
 //       ^-------- Encoder 2
 
 
-//Pins to talk to outside world
-#define LEDPIN        PIN_PA6 // LED output pin.
-#define RF_PIN        PIN_PF3 // RF input pin.
-#define IND0          PIN_PF1 // Non-red led next to power.
-#define IND1          PIN_PF2 // Red led that isn't next to power.
-#define IND2          PIN_PA7 // Non-red LED that isn't next to power.
+//Pins to talk to outside wor
+ld
+#define RF_PIN        PIN_PF3
+#define LEDPIN        PIN_PA6
+// Indicator LEDs
+#define IND2          PIN_PA7 // Non-red LED that isn't power.
+#define IND1          PIN_PF2 // Red led that isn't power
+#define IND0          PIN_PF1 // Green led next to power
 
 
 //LCD Pins
@@ -255,21 +206,20 @@ USART4 (Serial4 = Unused on EXT pins)
 #define LCD_RW        PIN_PD5
 #define LCD_Contrast  PIN_PD6
 #define LCD_EN        PIN_PD7
-#define LCD_BL_TCA    TCA1
-#define LCD_BL_MUX_gc (0x00)
-#define LCD_BL_MUX_gm (0x38) // 0b00111000
-#define LCD_BL_R      PIN_PB0 // CMP0
-#define LCD_BL_G      PIN_PB1 // CMP1
-#define LCD_BL_B      PIN_PB2 // CMP2
+#define LCD_BL_R      PIN_PB0
+#define LCD_BL_G      PIN_PB1
+#define LCD_BL_B      PIN_PB2
 
 /*****************************
 * Debug LED macros           *
 *                            *
 *****************************/
-#define LED0_ON()     digitalWriteFast(INDICATE0, HIGH)
-#define LED0_OFF()    digitalWriteFast(INDICATE0,  LOW)
+#define LED0_ON()     digitalWriteFast(IND0, HIGH)
+#define LED0_OFF()    digitalWriteFast(IND0,  LOW)
+#define LED0(a)       digitalWriteFast(IND0, a)
 #define LED1_ON()     digitalWriteFast(INDICATE1, HIGH)
 #define LED1_OFF()    digitalWriteFast(INDICATE1,  LOW)
+
 #define LED2_ON()     digitalWriteFast(INDICATE2, HIGH)
 #define LED2_OFF()    digitalWriteFast(INDICATE2,  LOW)
 
@@ -293,17 +243,6 @@ USART4 (Serial4 = Unused on EXT pins)
 //#define EXTEND_SER_MODE
 //#define EXTEND_SER_BAUD
 //#define EXTEND_SER_SWAP  (1) // If Serial1 is used, this MUST be 1. If Serial4 is used, this MUST be 0.
-
-
-
-
-/* LED control parameters */
-
-#define MAX_LENGTH    (1350) // The longest
-#define LED_PIN       (PIN_PA6
-#define MIN_LENGTH    (200)
-
-
 
 
 /*****************************
@@ -375,5 +314,17 @@ USART4 (Serial4 = Unused on EXT pins)
   PROGMEM_MAPPED int commandForgetTime = 5000;
 
 #endif
+  void init_Console();
+  void init_BL_PWM();
+  void set_BL_PWM(uint16_t red, uint16_t green, uint16_t blue);
+  bool init_UI_Pins();
+  bool init_LCD();
+  bool init_POST();
+  int16_t enumerate_leds();
+  void init_FB();
+
+
+
+
 
 #endif

@@ -1,18 +1,18 @@
-# Hardware in planned final versions of the DriftAnimate LED controller, now being called LEDCTRLA. 
+# Hardware in planned final versions of the DriftAnimate LED controller, now being called LEDCTRLA.
 Rev. E was found to have crititcal flaws that made it entirely unusablke without bulky external components - namely, the damned things burned out f
 
 ## Rev. E issues:
-* AVR128DB48 is used for the controller. The 32 did not have sufficient pins. 
-* There was no circuit protection. Unfortunately, while FAR more efficient, when using the Mini560 converters and some +19v power bricks, there wwas an unacceptabl y high rate if faiures, particularly in combination with unreliable connections 
-  * They were made usable for testing with a protection board consisting od a 5.1V zener across the power rails, a PTC fuse, and a pair of protection diodes (schottky) on each data line. These were bulky and considered too fragile for largescale deployment. 
-* Additionally, the possibility of background LED output via slave SPI and nearly every peripheral had not been consdered; It requires several jumpers between pins to implement, and specific pins must be used. 
-* 
+* AVR128DB48 is used for the controller. The 32 did not have sufficient pins.
+* There was no circuit protection. Unfortunately, while FAR more efficient, when using the Mini560 converters and some +19v power bricks, there wwas an unacceptabl y high rate if faiures, particularly in combination with unreliable connections
+  * They were made usable for testing with a protection board consisting od a 5.1V zener across the power rails, a PTC fuse, and a pair of protection diodes (schottky) on each data line. These were bulky and considered too fragile for largescale deployment.
+* Additionally, the possibility of background LED output via slave SPI and nearly every peripheral had not been consdered; It requires several jumpers between pins to implement, and specific pins must be used.
+*
 
 ## Rev. E & F Pin connections:
-Rev. F simply added a robust protection circuit. 
+Rev. F simply added a robust protection circuit.
 * 250mA PTC fuse that would trip if the zener kicked in or some other fault was occurring.
-* NCP349 OVP and UVLO IC - other parts were considered, but only these were available with a reasonable lead time. The package is challenging to work with, but cest la vie. 
-* A 5.6V 3W zener diode was added between power and ground. 
+* NCP349 OVP and UVLO IC - other parts were considered, but only these were available with a reasonable lead time. The package is challenging to work with, but cest la vie.
+* A 5.6V 3W zener diode was added between power and ground.
 * There are potentially 4 data lines connected to the LED strings, 2 of which are currently integral to operation:
   * PF2 (LEDs)
   * PF5 (unused currently)
@@ -21,12 +21,12 @@ Rev. F simply added a robust protection circuit.
 
 # Hardware Revision D
 ~Rev. D is a MAJOR revision. It is expected to be incompatible with software for Rev. C hardware and earlier~
-Rev. D suffered from a fatal design defect. ~Rev. E is the next generation, and have major improvements over the D as well.~ 
-Rev. E had the improved processor, but it was found to be unsuitable because it lacked protection against spikes on the power supply and data lines causing them to rapidly fail when deployed without a bulky external protection circuit. When one unit was burned out due to an intermittant connection, it was determined that a revised design with on-board protection was required. For Rev. F, which is belived to be usable, we addressed 
+Rev. D suffered from a fatal design defect. ~Rev. E is the next generation, and have major improvements over the D as well.~
+Rev. E had the improved processor, but it was found to be unsuitable because it lacked protection against spikes on the power supply and data lines causing them to rapidly fail when deployed without a bulky external protection circuit. When one unit was burned out due to an intermittant connection, it was determined that a revised design with on-board protection was required. For Rev. F, which is belived to be usable, we addressed
 
 ## Basic Specs
 * ~AVR128DA32~ AVR128DB48 E/PT
-* ~Internal Oscillator~ External 40 MHz crystal will be installed, and software is designed to function at 16, 20, 24, 32, or 40 MHz. It is expected that most operation will occur at 40 MHz to give adequate processing budget. 
+* ~Internal Oscillator~ External 40 MHz crystal will be installed, and software is designed to function at 16, 20, 24, 32, or 40 MHz. It is expected that most operation will occur at 40 MHz to give adequate processing budget.
 * 1602 LCD controlled in 4-bit mode with RGB backlight
   * requiring all of PORTD for the non-backlight functionality
 * RF remote control using either RXB12 or RXB14 with loosly coiled wire wnip (low cost solution) or a STXii7 with SMT ceramic antenna for more robust reception requirements.
@@ -64,8 +64,8 @@ Rev. E had the improved processor, but it was found to be unsuitable because it 
 * PB3, PB4, PB5 - sense for the three standard buttomns, Color, Parameter, and Mode.
 
 ### PORTC
-First half is used for the encoders. 
-Second half is either for extensions, or on Rev. G, for the self-connections required for the CCL/EVSYS driven SPI ByteOut functionality, which will increase the cycle budget per frame for generation of pixel data by more than a factor of 3. 
+First half is used for the encoders.
+Second half is either for extensions, or on Rev. G, for the self-connections required for the CCL/EVSYS driven SPI ByteOut functionality, which will increase the cycle budget per frame for generation of pixel data by more than a factor of 3.
 
 | Pin | Function Rev F | Function Rev G |
 |-----|----------------|----------------|
@@ -81,7 +81,7 @@ Second half is either for extensions, or on Rev. G, for the self-connections req
 
 
 ### PORTD
-PORTD is dedicated to interfacing with the LCD. We will likely adapt the library to improve the currently dismal performance 
+PORTD is dedicated to interfacing with the LCD. We will likely adapt the library to improve the currently dismal performance
 | Pin | Function Rev F | Function Rev G |
 |-----|----------------|----------------|
 | PD0 | Data4          | Data4          |
@@ -93,7 +93,7 @@ PORTD is dedicated to interfacing with the LCD. We will likely adapt the library
 | PD6 | Contrast (DAC) | Contrast (DAC) |
 | PD7 | EN             | EN             |
 
-The contrast pin appears to have no effect on the screens we are currently using. 
+The contrast pin appears to have no effect on the screens we are currently using.
 
 ### PORTE
 
@@ -117,60 +117,60 @@ The contrast pin appears to have no effect on the screens we are currently using
 
 
 ## Splitters
-  Single wire protocol is used for communication between light controller and downstream splitters on a separate line from the pixel data. The splitters themselves will, for example, take 500 pixels of data in, forward the first 100 to one string, the next 100 to another string, the next 100 to a third string, and then forward whatever's left to the downstream splitter or dumb 2811 string. 
-  
+  Single wire protocol is used for communication between light controller and downstream splitters on a separate line from the pixel data. The splitters themselves will, for example, take 500 pixels of data in, forward the first 100 to one string, the next 100 to another string, the next 100 to a third string, and then forward whatever's left to the downstream splitter or dumb 2811 string.
+
  ``` text
  LEDCTRLA ---------[SPLIT 1]---------[SPLIT 1]---------[SPLIT n]
-                   |   |   |         |   |   |         |   |   |  
+                   |   |   |         |   |   |         |   |   |
                   1A  1B   1C       2A  2B  2C        nA   nB  nC
-                  
+
 
  LEDCTRLA ---------[SPLIT 1]---------[SPLIT 1]---------[SPLIT n]---------[50xWS2811 1]---------[50xWS2811 N]
-                   |   |   |         |   |   |         |   |   |  
+                   |   |   |         |   |   |         |   |   |
                   1A  1B   1C       2A  2B  2C        nA   nB  nC
 ```
 
-1A is 50, 100, or 322 LED long string. 
+1A is 50, 100, or 322 LED long string.
 
 As current is limited to 3.42A @ 19v plus conversion loss and wire loss, max of 4 strings in sequence supported, or 8 with center-powered configuration.
 
-Higher current supported with power injected in multiple places. 
+Higher current supported with power injected in multiple places.
 
-### FB protocol to request and receive specs on all connected strings. 
+### FB protocol to request and receive specs on all connected strings.
 
-LEDCTRLA enables pullup on FB. 
-Measure with ADC repeatedly. Analog values indicate dumb fairy light string, 50, 100 or 200 leds in length, or 332 LED COB string. 
+LEDCTRLA enables pullup on FB.
+Measure with ADC repeatedly. Analog values indicate dumb fairy light string, 50, 100 or 200 leds in length, or 332 LED COB string.
 If it is grounded, there are no splitters. Splitters, if any, must preceed all other modules for detection.
 Otherwise, splitter shall allow pin to go high for 1 second, and then drive it low for 100ms, release, and pull up.
 LECTRLA, as soon as the line is brought high, will then drive it low for 100ms, during which time the splitter, if it hasn't already finished it's interrogation of downstream units must drive the pin low. The controller will then release the pin and pull it up, and when the line goes high, enable USART in single wire mode
-Splitter will then indicate busy state by driving line low, and pull up it's downstream FB line, repeating the above protocol. 
+Splitter will then indicate busy state by driving line low, and pull up it's downstream FB line, repeating the above protocol.
 
-The RX lines of splitters, connected to the bidirectional hardware serial of downstream splitters, would use a custom software serial implementation to allow RX and TX of short messages to occur. 
+The RX lines of splitters, connected to the bidirectional hardware serial of downstream splitters, would use a custom software serial implementation to allow RX and TX of short messages to occur.
 
-  Single wire protocol is used for communication between light controller and downstream splitters. 
-  
+  Single wire protocol is used for communication between light controller and downstream splitters.
+
  ``` text
  LEDCTRLA ---------[SPLIT 1]---------[SPLIT 1]---------[SPLIT n]
-                   |   |   |         |   |   |         |   |   |  
+                   |   |   |         |   |   |         |   |   |
                   1A  1B   1C       2A  2B  2C        nA   nB  nC
-                  
+
 
  LEDCTRLA ---------[SPLIT 1]---------[SPLIT 1]---------[SPLIT n]---------[50xWS2811 1]---------[50xWS2811 N]
-                   |   |   |         |   |   |         |   |   |  
+                   |   |   |         |   |   |         |   |   |
                   1A  1B   1C       2A  2B  2C        nA   nB  nC
 ```
 
-A/B/C are 50, 100, 200, or 322 LED long strings. 
+A/B/C are 50, 100, 200, or 322 LED long strings.
 
 As current is limited to 3.42A @ 19v plus conversion loss and wire loss, max of 4 strings in sequence supported, or 8 with center-powered configuration.
 
-Higher current supported with power injected in multiple places. 
+Higher current supported with power injected in multiple places.
 
 :
 ### Basic
-+19v and Gnd lines to superseal connector should be the heaviest gauge wire that the connectors will fit, and may be either Orange and Black, Orange and Grey, or Unmarked and Marked black, white, or transparent zipcord. 
++19v and Gnd lines to superseal connector should be the heaviest gauge wire that the connectors will fit, and may be either Orange and Black, Orange and Grey, or Unmarked and Marked black, white, or transparent zipcord.
 
-Lines to PH4 F to controller should be the listed colors, or this should be a 4 conductor cable chosen for appropriate aesthetics. 
+Lines to PH4 F to controller should be the listed colors, or this should be a 4 conductor cable chosen for appropriate aesthetics.
 
 ```
  PH4 F                                      ___________
@@ -183,7 +183,7 @@ Lines to PH4 F to controller should be the listed colors, or this should be a 4 
  _______________             /    |
 | Male          |-O---+19V--`     |
 | SuperSeal 2p  |                 /
-|_______________|-B---Gnd--------`        
+|_______________|-B---Gnd--------`
 ```
 
 ### LEDCTRLA to String
@@ -191,7 +191,7 @@ Lines to PH4 F to controller should be the listed colors, or this should be a 4 
 Lines to PH4 F to controller should be the listed colors, or this should be a 4 conductor cable chosen for appropriate aesthetics.
 
 ``` text
- PH4 Male                         ZH6 
+ PH4 Male                         ZH6
  ________                         ___
 |      1 |--R-----+5V------------|6  |   +5V
 |      2 |--U-----Data-----------|5  |   Data
@@ -201,9 +201,9 @@ Lines to PH4 F to controller should be the listed colors, or this should be a 4 
                                  |1__|   Aux
 ```
 
-### Power injection 
+### Power injection
 
-```text                    
+```text
 ___________                                       ___________
 :-- MX 3.0 |                       /--+19V-------| MX 3.0|___]
 :-- 5 pin  |                       |             | 5 pin |___]
@@ -219,9 +219,9 @@ ___________                                       ___________
 
 Allows power to be injected in the middle of a string to supply up to 4 more downstream sections of 50 LEDs. Note that +19 and +5v from other string are not connected!
 
-### Double Power injection 
+### Double Power injection
 
-```text                    
+```text
 ___________                                       ___________
 :-- MX 3.0 |----------------\           /--+19V--| MX 3.0|___]
 :-- 5 pin  |                |           |        | 5 pin |___]
@@ -234,3 +234,29 @@ ___________                                       ___________
 | SuperSeal 2p  |                /  \          | SuperSeal 2p  |
 |_______________|-B---Gnd-------`    `---Gnd-B-|_______________|
 ```
+
+
+
+The value of the resistor betweeen the FB pin and Gnd is one of these. They are measured against Vdd, with 12 bit resolution
+
+
+| Value | String length | Order | ADC min | ADC Max | Notes               |
+|-------|---------------|-------|---------|---------|---------------------|
+|     0 |        N * 50 |       |       0 |     344 | WS2811 strings      |
+|  6800 |            50 |       |     344 |     981 |                     |
+| 12000 |           100 |       |     982 |    1471 |                     |
+|   20k |           200 |       |    1478 |    1877 |                     |
+|   33k |            50 |       |         |    2172 |                     |
+|   39k |           ??? |       |         |    2348 |                     |
+|   47k |           ??? |       |         |    2502 |                     |
+|   56k |           332 |       |         |    2674 |                     |
+|   68k |           664 |       |         |    2878 |                     |
+|   75k |            60 |       |         |    2987 |                     |
+|  100k |           144 |       |         |         |                     |
+|  150k |            60 |       |         |         |                     |
+|  220k |           144 |       |         |         |                     |
+|  470k |               |       |         |         |                     |
+| >470k |             0 |       |         |    4095 | Nothing atttached   |
+
+
+344.7565368 982.6256713 1471  1877  2172.5  2328.408117 2502.627593 2674.704777 2807.599928 2987.921134 3272  3494.5  3716  3971

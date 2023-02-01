@@ -3,6 +3,11 @@
 #include <hd44780ioClass/hd44780_pinIO.h>
 #include <avr/pgmspace.h>
 #include <util/crc16.h>
+
+hd44780_pinIO lcd(LCD_RS, LCD_RW, LCD_EN, LCD_DATA4, LCD_DATA5, LCD_DATA6, LCD_DATA7);
+
+
+
 #include <EEPROM.h>
 #include "LightCtrl_RevF.h"
 #include "Colors.h"
@@ -10,12 +15,9 @@
 #include "HWSpecs.h"
 
 
-
-hd44780_pinIO lcd(LCD_RS, LCD_RW, LCD_EN, LCD_DATA4, LCD_DATA5, LCD_DATA6, LCD_DATA7);
-
 #define MODE_DRIFT2 9
 
-#define FLASH(flashptr) (reinterpret_cast<const __FlashStringHelper *>(pgm_read_word_near(&flashptr)))
+
 
 
 
@@ -34,6 +36,7 @@ colorset_t * CurrentColors = getColorSetPtr();
 volatile unsigned long lastUserAction = 0;
 
 //animation related globals
+#define LENGTH 500
 unsigned int frameDelay = 30;
 unsigned long lastFrameAt;
 byte  pixels[LENGTH * 3];
@@ -51,10 +54,6 @@ void setup() {
   Serial.swap(1);
   Serial.begin(115200);
   Serial.println("Hi, I started!");
-  lcd.begin(16, 2);
-  lcd.print(F("Woah I'm on a DB!"));
-  lcd.setCursor(0, 1);
-  lcd.print(F("Nothing works!"));
   digitalWrite(LCD_BL_R, HIGH);
   digitalWrite(LCD_BL_G, HIGH);
   digitalWrite(LCD_BL_B, HIGH);
@@ -156,7 +155,7 @@ void setMode(byte mode) {
     if (pgm_read_byte_near(&defaultValueLeft[currentMode][i]) == 255) {
       currentValueRight[i] = random(pgm_read_byte_near(&maxValueRight[currentMode][i]));
     } else {
-      currentValueRight[i] = currentMode][i]);
+      currentValueRight[i] = currentMode][i];
     }
   }
   if (currentMode == 10) {
@@ -224,191 +223,6 @@ void loadMode() {
   }
 }
 
-void handleUI() {
-  static byte lastBtnState = 7;
-  static byte lastBtnBounceState = 7;
-  static unsigned long lastBtnAt = 0;
-  static unsigned long lastPressAt = 0;
-  byte btnRead = BTN_PORT_READ();
-  if (!(btnRead == lastBtnBounceState)) { //debounce all buttons at once.
-    lastBtnBounceState = btnRead;
-    lastBtnAt = millis();
-  } else {
-    if (millis() - lastBtnAt > 50) { //has been stable for 50ms
-      if (btnRead < lastBtnState ) {
-        if (!lastPressAt && !(btnRead & 1)) {
-          lastPressAt = millis();
-        }
-        //do nothing - was button being pressed
-      } else {
-        if (((btnRead & MODE_BTN_bm)) && !(lastBtnState & MODE_BTN_bm)) {
-          if (lastPressAt && millis() - lastPressAt > 10000) {
-
-            lcd.clear();
-            clearMode();
-            lcd.setCursor(3, 0);
-            lcd.print(F("Saved mode"));
-            lcd.setCursor(5, 1);
-            lcd.print(F("cleared"));
-            delay(1000);
-            UIChanged = 7;
-          } else if (lastPressAt && millis() - lastPressAt > 3000) {
-            saveMode();
-            lcd.clear();
-            lcd.setCursor(3, 0);
-            lcd.print(F("Mode Saved"));
-            delay(1000);
-            UIChanged = 7;
-          } else {
-            advanceMode();
-            UIChanged |= 4;
-          }
-          lastPressAt = 0;
-        }
-        if (((btnRead & ENC1_BTN_bm)) && !(lastBtnState & ENC1_BTN_bm)) {
-          if (currentSettingLeft >= pgm_read_byte_near(&maxSetting[currentMode][0])) {
-            currentSettingLeft = 0;
-          } else {
-            currentSettingLeft++;
-          }
-          UIChanged |= 2;
-        }
-        if (((btnRead & ENC2_BTN_bm)) && !(lastBtnState & ENC2_BTN_bm)) {
-          if (currentSettingRight >= pgm_read_byte_near(&maxSetting[currentMode][1])) {
-            currentSettingRight = 0;
-          } else {
-            currentSettingRight++;
-          }
-          UIChanged |= 2;
-        }
-      }
-      lastBtnState = btnRead;
-    }
-  }
-}
-
-byte getLeftVal(byte t) {
-  if (pgm_read_byte_near(&maxValueLeft[currentMode][currentSettingLeft]) == COLORTABLEMAX) {
-    if (t > COLORTABLEMAX) t = COLORTABLEMAX;
-    return pgm_read_byte_near(&leftValues[t]);
-  }
-  return t;
-}
-
-void handleLCD() {
-  static byte drift2_colors = 255;
-  static unsigned long lastInputAt;
-  static byte attractmode = 0;
-  byte uichg = 0;
-  if (millis() - lastRFUpdateAt < 5000 && lastRFUpdateAt) {
-    return;
-  }
-  cli();
-  uichg = UIChanged;
-  UIChanged = 0;
-  sei();
-  if (uichg == 0) {
-    if (millis() - lastInputAt > 60000) {
-      if (!attractmode || (millis() - lastInputAt > 120000)) {
-        attractmode = 1;
-        lastInputAt = millis() - 60000;
-        doAttractLCD();
-      }
-    }
-    return;
-  }
-  if (attractmode) {
-    lcd.clear();
-  }
-  if (uichg & 1 && currentMode == 10) {
-    if (getPalleteNumber() != drift2_colors) {
-      initColorsDrift2();
-    }
-    initLookupDrift2();
-  }
-  if (currentMode == 10) {
-    if (getPalleteNumber() != drift2_colors) {
-      drift2_colors = getPalleteNumber();
-    }
-  }
-  lastInputAt = millis();
-  if ((uichg & 6) || attractmode ) { //if setting or mode has changed, redraw settings
-    lcd.setCursor(0, 0);
-    if (currentMode < 7 ) {
-      lcd.print(FLASH(modesL[currentMode][currentSettingLeft]));
-    } else {
-      lcd.print(CurrentColors->colorname);
-    }
-    lcd.print(' ');
-    lcd.print(FLASH(modesR[currentMode][currentSettingRight]));
-  }
-  if ((uichg & 7) || attractmode) { //if mode, setting, or value has changed, redraw second line
-    byte tval;
-    if (currentMode > 6) {
-      lcd.setCursor(0, 0);
-      lcd.print(CurrentColors->colorname);
-      lcd.setCursor(0, 1);
-      lcd.print(F("    "));
-    } else if (pgm_read_byte_near(&maxSetting[currentMode][0]) != 255) {
-      lcd.setCursor(0, 1);
-      tval = getLeftVal(currentValueLeft[currentSettingLeft]);
-      lcd.print(tval);
-      lcd.print(' ');
-      if (tval < 10) lcd.print(' ');
-    } else {
-      lcd.setCursor(0, 1);
-      lcd.print(F("    "));
-    }
-    lcd.setCursor(4, 1);
-    lcd.print(FLASH(modeNames[currentMode]));
-    lcd.setCursor(13, 1);
-    if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]) == 1) { //if max is 1, that means it's forward/reverse
-      if (currentValueRight[currentSettingRight]) {
-        lcd.print(F("REV"));
-      } else {
-        lcd.print(F("FWD"));
-      }
-    } else {
-      tval = currentValueRight[currentSettingRight];
-      if (tval < 100) lcd.print(' ');
-      if (tval < 10) lcd.print(' ');
-      if (pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight])) { //if max is 0, then this is blank
-        lcd.print(tval);
-      } else {
-        lcd.print(' ');
-      }
-    }
-  }
-  attractmode = 0;
-}
-void doAttractLCD() {
-  lcd.clear();
-  byte s = random(0, 3);
-  if (!s) {
-    lcd.setCursor(0, 0);
-    lcd.print(F("Light Test v2.1.1"));
-    lcd.setCursor(0, 1);
-    lcd.print(F("AVR128DB48"));
-  } else if (s == 1) {
-    lcd.setCursor(0, 0);
-    lcd.print(F("For test only"));
-    //lcd.setCursor(0, 1);
-    //lcd.print(F("test party"));
-    //lcd.write(0x7F);
-  } else {
-    lcd.setCursor(2, 0);
-    lcd.print(F("Test party only"));
-    lcd.setCursor(0, 1);
-    byte r = random(0, 2);
-    if (r == 0) {
-      lcd.print(F("don't have fun"));
-    } else if (r == 1) {
-      lcd.print(F("use knobs/button"));
-    } else {
-      lcd.print(F("adjust lighting"));
-    }
-  }
-}
 
 void updatePattern() {
   if (currentMode == 0) {
@@ -427,6 +241,7 @@ void updatePattern() {
     updatePatternDots();
   } else if (currentMode == 6) {
     updatePatternFade();
+
   } else if (currentMode == 7) {
     updatePatternWave();
   } else if (currentMode == 8) {
@@ -461,6 +276,17 @@ void updatePatternDots2() {
     r = 0; g = 0; b = 0;
   }
   pushPixel(r, g, b, currentValueRight[2]);
+}
+// Supposed to be mnuch faster.
+// I am doubtful that this is correctly implementing the xorshift though.
+
+uint16_t rng(uint16_t seed) {
+  static uint16_t y = 0;
+  if (seed != 0) y += (seed && 0x1FFF); // seeded with a different number
+  y ^= y << 2;
+  y ^= y >> 7;
+  y ^= y << 7;
+  return (y);
 }
 
 
@@ -781,97 +607,5 @@ void updatePatternChase() {
     pixels[0] = r;
     pixels[1] = g;
     pixels[2] = b;
-  }
-}
-
-
-void setupPins() {
-  pinMode(LEDPIN, OUTPUT);
-  pinMode(INDICATE0, OUTPUT);
-  pinMode(INDICATE1, OUTPUT);
-  pinMode(INDICATE2, OUTPUT);
-  pinMode(ENC1_PINA, INPUT_PULLUP);
-  pinMode(ENC1_PINB, INPUT_PULLUP);
-  pinMode(ENC1_BTN, INPUT_PULLUP);
-  pinMode(ENC2_PINA, INPUT_PULLUP);
-  pinMode(ENC2_PINB, INPUT_PULLUP);
-  pinMode(ENC2_BTN, INPUT_PULLUP);
-  pinMode(MODE_BTN, INPUT_PULLUP);
-}
-
-#define debugSerial Serial0
-
-void setupPCINT() {
-  if (!MVIO.STATUS) {
-    uint32_t start = millis();
-    while ((!MVIO.STATUS) && millis() - start > 2000) {
-      if (millis() - start > 1000) {
-        Serial.println("MVIO failed to initialize? No VDDIO2?");
-        Serial.println(analogRead(ADC_VDDIO2DIV10));
-      }
-    }
-  }
-  VPORTC.INTFLAGS = VPORTC.INTFLAGS;
-  PORTC.PIN0CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
-  PORTC.PIN1CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
-  PORTC.PIN2CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
-  PORTC.PIN3CTRL = PORT_PULLUPEN_bm | PORT_ISC_BOTHEDGES_gc;
-}
-
-ISR(PORTC_PORT_vect) {
-  static uint8_t EncL_Prev = 3;  //lookup table index
-  static int8_t EncL_Val = 0;   //encoder value
-  static uint8_t EncR_Prev = 3;  //lookup table index
-  static int8_t EncR_Val = 0;   //encoder value
-  static const int8_t enc_states [] PROGMEM   = {0, -1,  1, 0,  1, 0, 0, -1, -1, 0, 0,  1, 0,  1, -1, 0}; //encoder lookup table
-  //static const int8_t enc_states [] PROGMEM = {0, 1, -1, 0, -1, 0, 0,  1, 1, 0, 0, -1, 0, -1,  1, 0}; // reversed encoder table
-  uint8_t enc_pinstate = ENC_PORT_READ();
-
-  VPORTC.INTFLAGS = VPORTC.INTFLAGS;
-  EncL_Prev <<= 2; //remember previous state
-  EncR_Prev <<= 2; //remember previous state
-
-  EncL_Prev |= (enc_pinstate & 0x0C) >> 2;
-  EncR_Prev |= (enc_pinstate & 0x03);
-
-  EncL_Val += pgm_read_byte(&(enc_states[(EncL_Prev & 0x0F)]));
-  EncR_Val += pgm_read_byte(&(enc_states[(EncR_Prev & 0x0F)]));
-
-  /* post "Navigation forward/reverse" event */
-  if ( EncL_Val > 3 ) { //four steps forward
-    if (currentValueLeft[currentSettingLeft] < (maxValueLeft[currentMode][currentSettingLeft])) currentValueLeft[currentSettingLeft]++;
-    //hackjob to handle min exceeding max or vice versa.
-    if ((currentMode == 1 || currentMode == 2 || currentMode == 3 || currentMode == 4 || currentMode == 5) && currentSettingLeft < 6) {
-      if (!(currentSettingLeft & 1)) {
-        if (currentValueLeft[currentSettingLeft] > currentValueLeft[currentSettingLeft + 1]) {
-          currentValueLeft[currentSettingLeft + 1] = currentValueLeft[currentSettingLeft];
-        }
-      }
-    }
-    UIChanged |= 1;
-    EncL_Val = 0;
-  }
-  else if ( EncL_Val < -3 ) { //four steps backwards
-    if (currentValueLeft[currentSettingLeft])currentValueLeft[currentSettingLeft]--;
-    //hackjob to handle min exceeding max or vice versa.
-    if ((currentMode == 1 || currentMode == 2) && currentSettingLeft < 6) {
-      if (currentSettingLeft & 1) {
-        if (currentValueLeft[currentSettingLeft] < currentValueLeft[currentSettingLeft - 1]) {
-          currentValueLeft[currentSettingLeft - 1] = currentValueLeft[currentSettingLeft];
-        }
-      }
-    }
-    UIChanged |= 1;
-    EncL_Val = 0;
-  }
-  if ( EncR_Val > 3 ) { //four steps forward
-    if (currentValueRight[currentSettingRight] < pgm_read_byte_near(&maxValueRight[currentMode][currentSettingRight]))currentValueRight[currentSettingRight]++;
-    UIChanged |= 1;
-    EncR_Val = 0;
-  }
-  else if ( EncR_Val < -3 ) { //four steps backwards
-    if (currentValueRight[currentSettingRight]) currentValueRight[currentSettingRight]--;
-    UIChanged |= 1;
-    EncR_Val = 0;
   }
 }

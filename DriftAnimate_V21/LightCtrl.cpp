@@ -117,7 +117,7 @@ bool init_lcd() {
   lcd.print(F("Nothing works!"));
 }
 void init_FB_SER() {
-  FB_SER.SWAP(FB_SER_SWAP);
+  FB_SER.swap(FB_SER_SWAP);
 
 }
 bool init_POST() {
