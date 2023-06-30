@@ -113,7 +113,7 @@ int16_t read_int_voltage(uint8_t chan) {
     return (voltage);
   }
 }
-bool init_LCD() {
+bool init_lcd() {
   lcd.begin(16, 2);
   lcd.print(F("Woah I'm V2.1.1"));
   lcd.setCursor(0, 1);
@@ -141,5 +141,6 @@ bool init_POST() {
   delay(100);
   set_BL_PWM(0, 0, 0xFFFF);
   delay(100);
-  init_LCD();
+  initLCD();
+
 }

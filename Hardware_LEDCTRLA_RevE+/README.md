@@ -39,26 +39,26 @@ Rev. E had the improved processor, but it was found to be unsuitable because it 
 ## Pin connections:
 
 ### PORTA
-| Pin | Function Rev F | Function Rev G |
-|-----|----------------|----------------|
-| PA0 | Crystal        | Crystal        |
-| PA1 | Crystal        | Crystal        |
-| PA2 | Unused. SDA    | Unused SDA     |
-| PA3 | Unused, SCL    | Unused SCL     |
-| PA4 | TX0 console    | TX0 console    |
-| PA5 | RX0 console    | RX0 console    |
-| PA6 | Led Data Out)   |                |
-| PA7 | LED (PWM)      | LED0           |
+| Pin | Function Rev F | Function Rev G | Function Rev H |
+|-----|----------------|----------------|----------------|
+| PA0 | Crystal        | Crystal        | Crystal        |
+| PA1 | Crystal        | Crystal        | Crystal        |
+| PA2 | Unused. SDA    | Unused SDA     | Part of Extend |
+| PA3 | Unused, SCL    | Unused SCL     | Part of Extend |
+| PA4 | TX0 console    | TX0 console    | TX0 console    |
+| PA5 | RX0 console    | RX0 console    | RX0 console    |
+| PA6 | Led Data Out   | Led Data Out   | Led Data Out   |
+| PA7 | LED (PWM)      | LED0           | LED0           |
 
 ### PORTB
-| Pin | Function Rev F | Function Rev G |
-|-----|----------------|----------------|
-| PB0 | Backlight RED  | Backlight RED  |
-| PB1 | Backlight GRN  | Backlight GRN  |
-| PB2 | Backlight BLU  | Backlight BLU  |
-| PB3 | Button - Color | Button - Color |
-| PB4 | Button - Param | Button - Param |
-| PB5 | Button - Mode  | Button - Mode  |
+| Pin | Function Rev F-H  |
+|-----|-------------------|
+| PB0 | Backlight RED     |
+| PB1 | Backlight GRN     |
+| PB2 | Backlight BLU     |
+| PB3 | Button - Color    |
+| PB4 | Button - Param    |
+| PB5 | Button - Mode     |
 
 * PB0, PB1, PB2 = PWM control for red, greemn and blue backlight leds. TCA1 will be used to provide 16-bit buffered PW<, as only three channels are needed.
 * PB3, PB4, PB5 - sense for the three standard buttomns, Color, Parameter, and Mode.
@@ -67,53 +67,53 @@ Rev. E had the improved processor, but it was found to be unsuitable because it 
 First half is used for the encoders.
 Second half is either for extensions, or on Rev. G, for the self-connections required for the CCL/EVSYS driven SPI ByteOut functionality, which will increase the cycle budget per frame for generation of pixel data by more than a factor of 3.
 
-| Pin | Function Rev F | Function Rev G |
-|-----|----------------|----------------|
-| PC0 | Color Enc. A   | Color Enc. A   |
-| PC1 | Color Enc. B   | Color Enc. B   |
-| PC2 | Param Enc. A   | Param Enc. A   |
-| PC3 | Param Enc. B   | Param Enc. B   |
-| PC4 | Extend Header  | Extend Header  |
-| PC5 | Extend Header  | Extend Header  |
-| PC6 | Extend Header  | Extend Header  |
-| PC7 | Extend Header  | Extend Header  |
+| Pin | Function Rev F-H  |
+|-----|-------------------|
+| PC0 | Color Enc. A      |
+| PC1 | Color Enc. B      |
+| PC2 | Param Enc. A      |
+| PC3 | Param Enc. B      |
+| PC4 | Extend Header     |
+| PC5 | Extend Header     |
+| PC6 | Extend Header     |
+| PC7 | Extend Header     |
 
 
 
 ### PORTD
 PORTD is dedicated to interfacing with the LCD. We will likely adapt the library to improve the currently dismal performance
-| Pin | Function Rev F | Function Rev G |
-|-----|----------------|----------------|
-| PD0 | Data4          | Data4          |
-| PD1 | Data4          | Data4          |
-| PD2 | Data4          | Data4          |
-| PD3 | Data4          | Data4          |
-| PD4 | RS             | RS             |
-| PD5 | RW             | RW             |
-| PD6 | Contrast (DAC) | Contrast (DAC) |
-| PD7 | EN             | EN             |
+| Pin | Function Rev F-H  | |
+|-----|----------------   |
+| PD0 | Data4             |
+| PD1 | Data4             |
+| PD2 | Data4             |
+| PD3 | Data4             |
+| PD4 | RS                |
+| PD5 | RW                |
+| PD6 | Contrast (DAC)    |
+| PD7 | EN                |
 
 The contrast pin appears to have no effect on the screens we are currently using.
 
 ### PORTE
 
-| Pin | Function Rev F | Function Rev G |
-|-----|----------------|----------------|
-| PE0 | Extend Header  | Extend Header  |
-| PE1 | Extend Header  | Extend Header  |
-| PE2 | Extend Header  | Extend Header  |
-| PE3 | Extend Header  | Extend Header  |
+| Pin | Function Rev F-H  |
+|-----|-------------------|
+| PE0 | Extend Header     |
+| PE1 | Extend Header     |
+| PE2 | Extend Header     |
+| PE3 | Extend Header     |
 
 ### PORTF
-| Pin | Function Rev F | Function Rev G |
-|-----|----------------|----------------|
-| PF0 | AUX            | AUX            |
-| PF1 | LED1           | LED1           |
-| PF2 | LED2           | LED2           |
-| PF3 | RF In          | RF In          |
-| PF4 | TX2 Feedback   | TX2 Feedback   |
-| PF5 | RX2 on header  | RX2 on header  |
-| PF6 | Reset          | Reset          |
+| Pin | Function Rev F-H  |
+|-----|-------------------|
+| PF0 | AUX               |
+| PF1 | LED1              |
+| PF2 | LED2              |
+| PF3 | RF In             |
+| PF4 | TX2 Feedback      |
+| PF5 | RX2 on header     |
+| PF6 | Reset             |
 
 
 ## Splitters
@@ -173,13 +173,13 @@ Higher current supported with power injected in multiple places.
 Lines to PH4 F to controller should be the listed colors, or this should be a 4 conductor cable chosen for appropriate aesthetics.
 
 ```
- PH4 F                                      ___________
+ PH5 F                                      ___________
  ____                         /------+19V--| MX 3.0|___]
-|    |--R-----+5V------------t-------------| 5 pin |___]
-|    |--U-----Data-----------t-------------| Female|___]
-|    |--B-----Gnd--------..--t-------------| (male)|___]
-|____|--Y-----FB---------``--t----.-Gnd----|_______|___]
-                             |    |
+|  1 |--R-----+5V------------t-------------| 5 pin |___]
+|  2 |--U-----Data-----------t-------------| Female|___]
+|  3 |--B-----Gnd--------..--t-------------| (male)|___]
+|    |                  ,`  `t----.-Gnd----|_______|___]
+|__5_|--Y-----FB-------`     |    |
  _______________             /    |
 | Male          |-O---+19V--`     |
 | SuperSeal 2p  |                 /
@@ -191,13 +191,13 @@ Lines to PH4 F to controller should be the listed colors, or this should be a 4 
 Lines to PH4 F to controller should be the listed colors, or this should be a 4 conductor cable chosen for appropriate aesthetics.
 
 ``` text
- PH4 Male                         ZH6
+ PH5 Male                         ZH6
  ________                         ___
 |      1 |--R-----+5V------------|6  |   +5V
 |      2 |--U-----Data-----------|5  |   Data
 |      3 |--B-----Gnd------------|4  |   Gnd
-|______4_|--Y-----FB-----.       |3  |   RX2/etc
-                          `------|2  |   TX2/FB
+|      4 |                       |3  |   RX2/etc
+|______5_|--Y-----FB-------------|2  |   TX2/FB
                                  |1__|   Aux
 ```
 
@@ -235,28 +235,28 @@ ___________                                       ___________
 |_______________|-B---Gnd-------`    `---Gnd-B-|_______________|
 ```
 
-
+## Identifying string length, color order, otherwise sends messages
 
 The value of the resistor betweeen the FB pin and Gnd is one of these. They are measured against Vdd, with 12 bit resolution
 
 
 | Value | String length | Order | ADC min | ADC Max | Notes               |
 |-------|---------------|-------|---------|---------|---------------------|
-|     0 |        N * 50 |       |       0 |     344 | WS2811 strings      |
-|  6800 |            50 |       |     344 |     981 |                     |
-| 12000 |           100 |       |     982 |    1471 |                     |
-|   20k |           200 |       |    1478 |    1877 |                     |
-|   33k |            50 |       |         |    2172 |                     |
-|   39k |           ??? |       |         |    2348 |                     |
-|   47k |           ??? |       |         |    2502 |                     |
-|   56k |           332 |       |         |    2674 |                     |
-|   68k |           664 |       |         |    2878 |                     |
-|   75k |            60 |       |         |    2987 |                     |
-|  100k |           144 |       |         |         |                     |
-|  150k |            60 |       |         |         |                     |
-|  220k |           144 |       |         |         |                     |
-|  470k |               |       |         |         |                     |
-| >470k |             0 |       |         |    4095 | Nothing atttached   |
+|     0 |        N * 50 | GRB   |       0 |     6683| 1-4 WS2811 strings  |
+|  6800 |            50 | TBD   |     344 |     663 | Most fairy lights.  |
+| 10000 |           100 | TBD   |     664 |    1140 | Fairy lights.       |
+| 15000 |           200 | TBD   |    1141 |    1490 | Fairy lights        |
+| 22000 |           200 | TBD   |    1491 |    1877 |                     |
+|   33k |            50 | TBD   |    1878 |    2172 |                     |
+|   39k |           TBD | TBD   |    2173 |    2348 |                     |
+|   47k |           TBD | TBD   |    2357 |    2502 |                     |
+|   56k |           332 | TBD   |    2520 |    2674 |                     |
+|   68k |           664 | TBD   |    2667 |    2878 |                     |
+|   75k |            60 | TBD   |    2887 |    2987 |                     |
+|  100k |           144 | TBD   |    3067 |    3273 |                     |
+|  150k |            60 | TBD   |    3273 |    3494 |                     |
+|  220k |           144 | TBD   |    3495 |    3715 |                     |
+|  470k |           N/A | TBD   |    3716 |    3097 |                     |
+| >470k |             0 | N/A   |    3898 |    4095 | Nothing atttached   |
 
-
-344.7565368 982.6256713 1471  1877  2172.5  2328.408117 2502.627593 2674.704777 2807.599928 2987.921134 3272  3494.5  3716  3971
+See [CSWP.md](CSWP.md) for critical details.

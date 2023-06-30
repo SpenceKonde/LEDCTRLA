@@ -1,5 +1,15 @@
-#include "typedefs.h"
+
 #include "HWSpecs.h"
+
+void init_Console();
+void init_BL_PWM();
+void set_BL_PWM(uint16_t red, uint16_t green, uint16_t blue);
+bool init_UI_Pins();
+bool init_LCD();
+bool init_POST();
+int16_t enumerate_leds();
+void init_FB();
+
 
 
 
@@ -125,32 +135,14 @@ USART4 (Serial4 = Unused on EXT pins)
 #endif
 //#define EXTEND_SER_MODE
 //#define EXTEND_SER_BAUD
-  /* LightCtrl.c */
-  void init_Console();
-  void init_BL_PWM();
-  void set_BL_PWM(uint16_t red, uint16_t green, uint16_t blue);
-  bool init_UI_Pins();
-  bool init_LCD();
-  bool init_POST();
-  int16_t enumerate_leds();
-  void init_FB();
-  /* Modes.c */
-  uint8_t getFrameDelay();
-  uint8_t getDirection();
-  uint8_t getColorMenuNumber();
-  uint8_t getColorMenuSelection();
-  char* getColorMenuName();
-  uint8_t getAdjustMenuNumber();
-  uint8_t getAdjustMenuSelection();
-  char* getAdjustOptionName();
-  bool adjustValue(int8_t change);
-  void scrollColorMenu();
-  bool scrollAdjustMenu();
-  void scrollMode();
-  bool setMode(uint8_t num);
-  extern controlstate_t Mode;
-  extern globalstate_t LedState;
-  const modeset_t modes[];
+
+
+
+
+
+
+
+
 
 
 

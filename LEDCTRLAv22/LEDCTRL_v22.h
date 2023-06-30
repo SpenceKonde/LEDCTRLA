@@ -1,5 +1,15 @@
-#include "typedefs.h"
+#include "LEDCTRLA.h"
 #include "HWSpecs.h"
+
+void init_Console();
+void init_BL_PWM();
+void set_BL_PWM(uint16_t red, uint16_t green, uint16_t blue);
+bool init_UI_Pins();
+bool init_LCD();
+bool init_POST();
+int16_t enumerate_leds();
+void init_FB();
+
 
 
 
@@ -17,11 +27,10 @@ PC | EVOUT | CCLO1 | U1 RX | U1 TX | ENC2B | ENC2A | ENC1B | ENC1A |
 PD |  EN   |CONTRAS|  RW   |  RS   |  LCD  |  LCD  |  LCD  |  LCD  |
 PE |xxxxxxx|xxxxxxx|xxxxxxx|xxxxxxx| EVOUT |  EXT  | U4 RX | U4 TX |
 PE |xxxxxxx|xxxxxxx|xxxxxxx|xxxxxxx|  SS   |  SCK  | MISO  |  MOSI |
-PF | UPDI  | RESET |_U2_RX_| U2 TX | RF IN | LED 1 | LED 0 |  AUX  |
-
+PF | UPDI  | RESET |_U2_RX_|_U2_TX_| RF IN | LED 1 | LED 0 |  AUX  |
 Serial Ports:
 USART0 (Serial) - Programming + Debug
-USART1 (Serial1) - Unused, on EXT pins
+USART1 (Serial1) - Unused, on EXT pins, *MVIO*
 USART2 (LED SERIAL) - Likely will be used in half-duplex.
 USART3 (Unavailable)
 USART4 (Serial4 = Unused on EXT pins)
@@ -125,32 +134,14 @@ USART4 (Serial4 = Unused on EXT pins)
 #endif
 //#define EXTEND_SER_MODE
 //#define EXTEND_SER_BAUD
-  /* LightCtrl.c */
-  void init_Console();
-  void init_BL_PWM();
-  void set_BL_PWM(uint16_t red, uint16_t green, uint16_t blue);
-  bool init_UI_Pins();
-  bool init_LCD();
-  bool init_POST();
-  int16_t enumerate_leds();
-  void init_FB();
-  /* Modes.c */
-  uint8_t getFrameDelay();
-  uint8_t getDirection();
-  uint8_t getColorMenuNumber();
-  uint8_t getColorMenuSelection();
-  char* getColorMenuName();
-  uint8_t getAdjustMenuNumber();
-  uint8_t getAdjustMenuSelection();
-  char* getAdjustOptionName();
-  bool adjustValue(int8_t change);
-  void scrollColorMenu();
-  bool scrollAdjustMenu();
-  void scrollMode();
-  bool setMode(uint8_t num);
-  extern controlstate_t Mode;
-  extern globalstate_t LedState;
-  const modeset_t modes[];
+
+
+
+
+
+
+
+
 
 
 

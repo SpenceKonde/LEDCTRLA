@@ -3,7 +3,7 @@
 
 #define SKETCH_MAIN_H
 typedef struct hardwarespecs {
-  uint8_t HW_Version;     //  starts at 0x1402 in the unified address space. PCB rev.
+  uint8_t HW_Version;     //  starts at 0x1402 in the unified address space.
   uint8_t Seq_Number;     //  Running tally of Dx-based boards produced.
   uint8_t LCD_flags;      //
   uint8_t RF_Flags;       //
@@ -33,11 +33,11 @@ extern hardware_t Hardware;
    *
    */
 
-  PROGMEM_MAPPED char  names_bl_mode[2][6] = {"Color", "Mono."};
-  PROGMEM_MAPPED char  names_contrast[4][7] = {"Manual", "DAC", "Fixed"};
+  PROGMEM_MAPPED char names_bl_mode[2][6] = {"Color", "Mono."};
+  PROGMEM_MAPPED char names_contrast[4][7] = {"Manual", "DAC", "Fixed"};
 
   /*  RF Info:
-   *
+   *  Turn pullup on data pin on. Check if any transitions are observed. If none seen conclude we don't have one.
    *  0x80: Reserved
    *  0x40: Reserved
    *  0x10-0x20: Antenna configuration
@@ -63,10 +63,11 @@ extern hardware_t Hardware;
   #define RECEIVER_SuperHet = 4, // generic superhet receiver
   #define RECEIVER_SuoerReg = 5, // generic supetregenerative receiver
   #define RECEIVER_H5V4D  = 6
-  PROGMEM_MAPPED char  names_antennae[4][5] = {"None", "Whip", "Chip", "PCB"};
-  PROGMEM_MAPPED char  names_receivers[8][9] = {"None", "SYN470", "SRX882", "SuperHet", "SuperReg", "H5V4D", "STX887", "Other"};
+  const PROGMEM_MAPPED char  names_antennae[4][5] = {"None", "Whip", "Chip", "PCB"};
+  const PROGMEM_MAPPED char  names_receivers[8][9] = {"None", "SYN470", "SRX882", "SuperHet", "SuperReg", "H5V4D", "STX887", "Other"};
 
   /*  Basic_Features:
+   *  Only 0x44 should be seen.
    *      0x01: 3 wire output present
    *      0x02  4 wire output present
    *      0x04  6 wire output present
@@ -76,24 +77,25 @@ extern hardware_t Hardware;
    *      0x40  6 wire has internal protection
    *      0x80  reserved
    *
-   *  Low level configuration:
+   *  UI OPTs: Directions can optionally be reversed and the functions of the two encoders swapped.
    *  0x01 Reverse left encoder
    *  0x02 reverse right encoder
    *  0x04 swap encoders
-   *  0bxx000xxx default button order
-   *  0bxx001xxx swap the two encoder buttons
+   *
+   *   Normally in order
+   *  0bxx000xxx menu highest
+   *  0bxx001xxx
    *  0bxx010xxx swap menu and left buttons
    *  0bxx011xxx swap menu and left buttons and reverse encoder button functions
-   *  0bxx100xxx swap menu and right buttons
+   *  0bxx100xxx swap menu and right button.
    *  0bxx101xxx swap menu and right buttons and swap button functions.
    *  0s40:
    *  0x80:
    *
    *  Configuration: Data Control
    *  First two bits: Comms Control:
-   *  1. Disable RS on Serial (and hence no serial control).
-   *  2. enable full duplex two wire downstream serial.
-   *
+   *  1. Disable  on Serial (and hence no serial control).
+   *  2. enable RX duplex two wire downstream serial.
    *
    *  Configuration: RF
    *  0bOSaaaaaa

@@ -38,9 +38,11 @@ volatile unsigned long lastUserAction = 0;
 //animation related globals
 #define LENGTH 500
 uint16_t         frameDelay           = 30;
-uint32_t        lastFrameAt               ;
-uint8_t  pixels[LENGTH * 3]               ;
-uint8_t scratch[LENGTH * 3]               ;
+uint32_t         lastFrameAt              ;
+uint8_t  pixels  [LENGTH * 3]             ;
+uint8_t scratch  [LENGTH * 3]             ;
+scratchsector_t* [LENGTH / 50]            ;
+
 uint32_t        frameNumber           = 0 ;
 
 tinyNeoPixel leds = tinyNeoPixel(LENGTH, LEDPIN, NEO_GRB, pixels);
